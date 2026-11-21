@@ -2,7 +2,15 @@
 (function () {
   "use strict";
   const R = window.Rules;
-  const cfg = R.clone(R.DEFAULTS);
+  // cfg est modifie sur place quand l'utilisateur change ses reglages (desk.js garde la meme reference)
+  const cfg = {};
+  function applySettings(s) {
+    const n = R.withSettings(R.DEFAULTS, s);
+    Object.keys(cfg).forEach((k) => delete cfg[k]);
+    Object.assign(cfg, n);
+    if (window.Analysis) window.Analysis.configureXau(n.settings.xauPipUsd);
+  }
+  applySettings((function () { try { return JSON.parse(localStorage.getItem("dfx.settings")) || {}; } catch (e) { return {}; } })());
   const SYMS = Object.keys(cfg.symbols);
   const PER_POLL = SYMS.length; // 1 credit par symbole
   const TD_URL = "https://api.twelvedata.com/quote?symbol=" + encodeURIComponent(SYMS.join(",")) + "&interval=1min&timezone=UTC";
@@ -55,7 +63,9 @@
     NETWORK_ERROR: "erreur réseau", QUOTA_EXCEEDED_API: "quota atteint", PRICE_MISSING: "prix absent",
     NO_DATA_IN_RESPONSE: "pas de donnée", SYNTHETIC_MISSING_TICK: "donnée manquante (démo)" };
   const reasonsFr = (s) => (s || "").split(";").filter(Boolean)
-    .map((r) => (r.startsWith("SHARP_MOVE") ? "mouvement brusque à examiner" : REASON_FR[r] || r)).join(", ");
+    .map((r) => (r.startsWith("SHARP_MOVE") ? "mouvement brusque à examiner"
+      : r.startsWith("WATCH_ALREADY_SIGNALED_") ? `mouvement déjà signalé à ${r.slice(-5)} UTC (pause en cours)`
+        : REASON_FR[r] || r)).join(", ");
 
   // ---------------------------------------------------------------- onglets, horloge, marche
   document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
@@ -68,6 +78,9 @@
   function tick() {
     const now = Date.now();
     $("clock").textContent = new Date(now).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) + " · " + R.isoUtc(now).slice(11, 16) + " UTC";
+    if (typeof mon !== "undefined" && mon.running && mon.mode === "demo") {   // la demo simule un mercredi
+      $("mktPill").textContent = "DÉMO"; $("mktPill").className = "pill WATCH"; return;
+    }
     const open = R.marketStatus(now, "EUR/USD") === "OPEN";
     $("mktPill").textContent = open ? "Marché ouvert" : "Marché fermé";
     $("mktPill").className = "pill " + (open ? "on" : "bad");
@@ -150,12 +163,12 @@
     mon.running = true; mon.mode = mode; mon.sid++; mon.engine = R.newEngineState(cfg); mon.rows = [];
     mon.failures = 0; mon.lastNotified = {};
     $("demoBanner").classList.toggle("hidden", mode !== "demo");
-    setRunningUi(true); renderCards(); renderLog();
+    setRunningUi(true); renderCards(); renderLog(); tick();
     return mon.sid;
   }
   function stopMonitor(msg, important) {
     mon.sid++; mon.running = false; clearTimeout(mon.timer);
-    setRunningUi(false); setStatus(msg || "Arrêté.");
+    setRunningUi(false); setStatus(msg || "Arrêté."); tick();
     if (important) { toast(msg, 7000); notify("Desk Forex", msg); }
     renderCredits();
   }
@@ -170,9 +183,7 @@
     renderCards(); renderLog(); renderCredits();
   }
   function onWatch(r) {
-    const t = Date.parse(r.fetched_at_utc), last = mon.lastNotified[r.symbol];
-    if (last && t - last < 10 * 60000) return; // un message par mouvement
-    mon.lastNotified[r.symbol] = t;
+    // la pause par paire est appliquee par le moteur (rules.js) : chaque WATCH ici est un nouveau mouvement
     const msg = `WATCH ${r.symbol} ${r.price} : ${r.change_5m_pips} pips en 5 min. À examiner, pas un signal.`;
     toast(msg, 8000); notify("WATCH " + r.symbol + (mon.mode === "demo" ? " (démo)" : ""), msg);
   }
@@ -291,12 +302,36 @@
   }
 
   // ----- demo synthetique
-  $("demoBtn").addEventListener("click", () => {
+  /** Dernier prix reel connu par symbole : journal live de cet appareil, sinon /price si une cle existe (2 credits). */
+  async function lastRealPrices() {
+    const out = {};
+    [...liveLog].reverse().forEach((r) => { if (!(r.symbol in out) && r.price !== "MISSING" && r.source === "TWELVE_DATA") out[r.symbol] = Number(r.price); });
+    const missing = SYMS.filter((s) => !(out[s] > 0) && !(Number((cfg.settings.demoStart || {})[s]) > 0));
+    if (missing.length && getKey() && credits.check(missing.length, Date.now()) === "OK") {
+      try {
+        const j = await fetchJson("https://api.twelvedata.com/price?symbol=" + encodeURIComponent(missing.join(",")),
+          { headers: { Authorization: "apikey " + getKey() } }, 1);
+        if (!R.apiError(j)) {
+          credits.spend(missing.length, Date.now()); renderCredits();
+          if (missing.length === 1 && j.price != null) out[missing[0]] = Number(j.price);
+          else missing.forEach((s) => { if (j[s] && j[s].price != null) out[s] = Number(j[s].price); });
+        }
+      } catch (e) { /* repli sur le reglage ou la valeur par defaut */ }
+    }
+    return out;
+  }
+  $("demoBtn").addEventListener("click", async () => {
+    $("demoBtn").disabled = true;
+    const starts = R.demoStartPrices(cfg.settings, await lastRealPrices());
     const sid = startCommon("demo");
     const start = Date.parse("2026-11-18T13:00:00Z");
-    const feed = R.SyntheticFeed(cfg, 42);
+    const feed = R.SyntheticFeed(cfg, 42, Object.fromEntries(Object.entries(starts).map(([s, v]) => [s, v.price])));
+    $("demoBanner").textContent = "DÉMO : données SYNTHÉTIQUES, aucun prix réel. Départ : " +
+      SYMS.map((s) => `${s} ${starts[s].price.toFixed(cfg.symbols[s].decimals)} (${starts[s].source})`).join(", ") +
+      ". Un mouvement brusque, une donnée périmée et une donnée manquante sont injectés exprès.";
     const demoNews = [{ timeMs: Date.parse("2026-11-18T13:40:00Z"), currency: "USD", event: "EXEMPLE_SYNTHETIQUE_CPI", impact: "high" }];
-    const controls = { "EUR/USD": { price: 1.08, source: "SYNTHETIQUE" } };
+    // controle BCE synthetique aligne sur le prix de depart (sinon faux "prix trop eloigne")
+    const controls = { "EUR/USD": { price: starts["EUR/USD"].price, source: "SYNTHETIQUE" } };
     let i = 0;
     const step = () => {
       if (sid !== mon.sid) return;
@@ -326,9 +361,43 @@
           el("div", {}, el("span", {}, "5 min"), el("b", { class: "mono " + dir(r && r.change_5m_pips) }, r ? r.change_5m_pips + (r.change_5m_pips === "N/A" ? "" : " p") : "–")),
           el("div", {}, el("span", {}, "Spread"), el("b", { class: "mono" }, r ? r.spread_pips + " p" : "–"), r && r.spread_status === "ASSUMED" ? el("span", {}, "supposé") : null)),
         el("div", { class: "small" }, r && r.reasons ? reasonsFr(r.reasons) : (r ? "Aucune alerte." : "")),
-        r && r.news_proximity !== "NONE" ? el("div", { class: "small warnline" }, "Annonce : " + r.news_proximity) : null));
+        r && r.news_proximity !== "NONE" ? el("div", { class: "small warnline" }, "Annonce : " + r.news_proximity) : null,
+        el("div", { class: "pipnote" }, pipLabel(s))));
     });
   }
+  function pipLabel(s) {
+    const sc = cfg.symbols[s];
+    const val = sc.pipSize.toLocaleString("fr-FR", { minimumFractionDigits: s === "XAU/USD" ? 2 : 4 });
+    return s === "XAU/USD"
+      ? `1 pip = ${val} $ de prix (${sc.pipValuePerLot.toLocaleString("fr-FR")} $ par lot de 100 oz) · réglable, varie selon le courtier`
+      : `1 pip = ${val} · ${sc.pipValuePerLot} $ par lot standard`;
+  }
+
+  // ---------------------------------------------------------------- reglages
+  function renderSettingsForm() {
+    const s = cfg.settings;
+    $("setCdEUR").value = s.watchCooldownMin["EUR/USD"];
+    $("setCdXAU").value = s.watchCooldownMin["XAU/USD"];
+    $("setXauPip").value = String(s.xauPipUsd);
+    $("setDemoEUR").value = s.demoStart["EUR/USD"] || "";
+    $("setDemoXAU").value = s.demoStart["XAU/USD"] || "";
+  }
+  $("setForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (mon.running) { toast("Arrête d'abord la surveillance ou la démo."); return; }
+    const num = (id) => { const v = Number($(id).value); return $(id).value !== "" && v >= 0 ? v : null; };
+    const s = {
+      watchCooldownMin: { "EUR/USD": num("setCdEUR") ?? 10, "XAU/USD": num("setCdXAU") ?? 10 },
+      xauPipUsd: Number($("setXauPip").value),
+      demoStart: { "EUR/USD": num("setDemoEUR") || null, "XAU/USD": num("setDemoXAU") || null },
+    };
+    store.set("settings", s); applySettings(s);
+    renderSettingsForm(); renderCards(); toast("Réglages enregistrés.");
+  });
+  $("setReset").addEventListener("click", () => {
+    if (mon.running) { toast("Arrête d'abord la surveillance ou la démo."); return; }
+    store.del("settings"); applySettings({}); renderSettingsForm(); renderCards(); toast("Réglages par défaut rétablis.");
+  });
   function renderLog() {
     const tb = clear($("logTable").querySelector("tbody"));
     const rows = (mon.rows.length ? mon.rows : liveLog).slice(-60).reverse();
@@ -420,7 +489,7 @@
 
   // ---------------------------------------------------------------- demarrage
   showTab(store.get("tab", "monitor"));
-  renderKey(); renderCredits(); renderNews(); renderCards(); renderLog(); renderSize(); renderJournal(); renderNotifBtn();
+  renderKey(); renderCredits(); renderNews(); renderCards(); renderLog(); renderSize(); renderJournal(); renderNotifBtn(); renderSettingsForm();
   tick(); setInterval(tick, 30000);
   window.addEventListener("beforeunload", (e) => { if (mon.running && mon.mode === "live") { e.preventDefault(); e.returnValue = ""; } });
 })();

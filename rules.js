@@ -129,6 +129,9 @@
   function decide(o) {
     if (o.price == null) return { decision: "DATA_MISSING", reasons: [o.missingReason || "PRICE_MISSING"] };
     const r = [...(o.extraReject || [])];
+    // Donnee perimee pendant les heures d'ouverture : on ne peut pas l'evaluer -> DATA_MISSING.
+    // Marche ferme : REJECT (MARKET_CLOSED), car un prix fige le week-end est normal.
+    if (o.stale && o.marketOpen) return { decision: "DATA_MISSING", reasons: ["STALE_DATA", ...r] };
     if (!o.marketOpen) r.push("MARKET_CLOSED");
     if (o.stale) r.push("STALE_DATA");
     if (o.newsNear) r.push("NEWS_WINDOW");
@@ -260,7 +263,50 @@
   function newEngineState(cfg) {
     const hist = {};
     Object.keys(cfg.symbols).forEach((s) => (hist[s] = []));
-    return { hist };
+    return { hist, lastWatch: {} };
+  }
+
+  // ------------------------------------------------------------------ reglages de l'utilisateur
+  const DEFAULT_SETTINGS = {
+    watchCooldownMin: { "EUR/USD": 10, "XAU/USD": 10 }, // pause avant de redeclencher un WATCH
+    xauPipUsd: 0.1,                                     // 1 pip XAU/USD = 0,10 $ de prix (varie selon le courtier)
+    demoStart: { "EUR/USD": null, "XAU/USD": null },    // null = dernier prix reel connu, sinon valeur par defaut
+  };
+  const DEMO_FALLBACK = { "EUR/USD": 1.097, "XAU/USD": 3530 };  // derniers prix reels releves le 21/11/2026
+  /**
+   * Applique les reglages a une configuration. Changer le pip de l'or garde les memes montants en $ :
+   * seuil WATCH 3 $, spread suppose 0,30 $, spread max 0,80 $, contrat 100 oz.
+   */
+  function withSettings(baseCfg, settings) {
+    const s = Object.assign(clone(DEFAULT_SETTINGS), settings || {});
+    const cfg = clone(baseCfg);
+    Object.entries(cfg.symbols).forEach(([sym, sc]) => {
+      const cd = Number((s.watchCooldownMin || {})[sym]);
+      sc.watchCooldownMin = Number.isFinite(cd) && cd >= 0 ? cd : 10;
+    });
+    const xau = cfg.symbols["XAU/USD"];
+    const pip = [0.01, 0.1, 1].includes(Number(s.xauPipUsd)) ? Number(s.xauPipUsd) : 0.1;
+    if (xau) {
+      xau.pipSize = pip;
+      xau.pipValuePerLot = 100 * pip;            // 100 oz par lot
+      xau.watchMove5mPips = +(3 / pip).toFixed(4);
+      xau.assumedSpreadPips = +(0.3 / pip).toFixed(4);
+      xau.maxSpreadPips = +(0.8 / pip).toFixed(4);
+    }
+    cfg.settings = s;
+    return cfg;
+  }
+  /** Prix de depart de la demo : reglage, sinon dernier prix reel connu, sinon valeur par defaut. */
+  function demoStartPrices(settings, lastReal) {
+    const out = {};
+    Object.keys(DEMO_FALLBACK).forEach((sym) => {
+      const manual = Number(settings && settings.demoStart && settings.demoStart[sym]);
+      const real = Number(lastReal && lastReal[sym]);
+      out[sym] = manual > 0 ? { price: manual, source: "réglage" }
+        : real > 0 ? { price: real, source: "dernier prix réel connu" }
+          : { price: DEMO_FALLBACK[sym], source: "valeur par défaut" };
+    });
+    return out;
   }
   function evaluate(state, obs, nowMs, cfg, news, controls, extra) {
     extra = extra || {};
@@ -280,10 +326,19 @@
     const nw = newsProximity(nowMs, sc.newsCurrencies, news, cfg.newsWindowMinutes);
     const control = controls[obs.symbol];
     const dev = control ? controlDeviationPct(obs.price, control.price) : null;
-    const d = decide({ price: obs.price, marketOpen, stale, newsNear: nw.near, spreadPips: spread.pips,
+    let d = decide({ price: obs.price, marketOpen, stale, newsNear: nw.near, spreadPips: spread.pips,
       spreadStatus: spread.status, maxSpreadPips: sc.maxSpreadPips, controlDevPct: dev,
       maxControlDevPct: cfg.maxControlDeviationPct, move5mPips: ch5, watchThresholdPips: sc.watchMove5mPips,
       missingReason: obs.missingReason, extraReject: extra.extraReject });
+    if (d.decision === "WATCH") {
+      // Un seul WATCH par mouvement : pause reglable par paire avant de pouvoir redeclencher.
+      state.lastWatch = state.lastWatch || {};
+      const last = state.lastWatch[obs.symbol];
+      const cdMs = (sc.watchCooldownMin != null ? sc.watchCooldownMin : 10) * 60000;
+      if (last != null && cdMs > 0 && nowMs - last < cdMs) {
+        d = { decision: "NO_ALERT", reasons: [`WATCH_ALREADY_SIGNALED_${isoUtc(last).slice(11, 16)}`] };
+      } else state.lastWatch[obs.symbol] = nowMs;
+    }
     const num = (v) => (v == null ? "N/A" : (v > 0 ? "+" : "") + v.toFixed(1));
     return {
       mode: extra.mode || "live",
@@ -321,12 +376,13 @@
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   }
-  function SyntheticFeed(cfg, seed = 42) {
+  function SyntheticFeed(cfg, seed = 42, startPrices) {
     const rnd = mulberry32(seed);
     const gauss = () => { let u = 0, v = 0; while (u === 0) u = rnd(); while (v === 0) v = rnd();
       return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
-    const start = { "EUR/USD": 1.08, "XAU/USD": 2650 };   // valeurs de depart FICTIVES
-    const vol = { "EUR/USD": 1.5, "XAU/USD": 8 };
+    const start = Object.assign({}, DEMO_FALLBACK, startPrices || {});   // point de depart, la suite est FICTIVE
+    // volatilite par minute exprimee en $ pour l'or (0,80 $), pour rester juste quel que soit le pip choisi
+    const vol = { "EUR/USD": 1.5, "XAU/USD": 0.8 / ((cfg.symbols["XAU/USD"] || {}).pipSize || 0.1) };
     const prices = {};
     Object.keys(cfg.symbols).forEach((s) => (prices[s] = start[s] || 1));
     return {
@@ -358,5 +414,6 @@
   return { DECISIONS, DEFAULTS, LOG_FIELDS, clone, isoUtc, toNumber, nyParts, marketStatus, isStale, checkBidAsk,
     computeSpread, newsProximity, parseNewsCsv, parseEcbJson, controlDeviationPct, decide, positionSize,
     riskWithinLimit, paperTradeCalc, parseQuotePayload, apiError, quoteToObservation, CreditTracker, changePips, newEngineState,
+    DEFAULT_SETTINGS, DEMO_FALLBACK, withSettings, demoStartPrices,
     evaluate, SyntheticFeed, csvCell, toCsv };
 });

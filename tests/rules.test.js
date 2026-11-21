@@ -15,7 +15,47 @@ test("donnees perimees, absentes ou dans le futur", () => {
   assert.equal(R.isStale(WED - 600000, WED, 180), true);
   assert.equal(R.isStale(null, WED, 180), true);
   assert.equal(R.isStale(WED + 600000, WED, 180), true);
-  assert.deepEqual(base({ stale: true, move5mPips: 40 }), { decision: "REJECT", reasons: ["STALE_DATA"] });
+  // marche ouvert : une donnee perimee ne peut pas etre evaluee -> DATA_MISSING
+  assert.deepEqual(base({ stale: true, move5mPips: 40 }), { decision: "DATA_MISSING", reasons: ["STALE_DATA"] });
+  // marche ferme : prix fige normal -> REJECT (pas d'alerte le week-end)
+  assert.deepEqual(base({ stale: true, marketOpen: false }), { decision: "REJECT", reasons: ["MARKET_CLOSED", "STALE_DATA"] });
+});
+
+test("pause WATCH par paire : un seul WATCH par mouvement", () => {
+  const run = (cooldown) => {
+    const c = R.withSettings(R.DEFAULTS, { watchCooldownMin: { "EUR/USD": cooldown, "XAU/USD": 10 } });
+    const st = R.newEngineState(c);
+    const prices = [1.08, 1.08, 1.08, 1.08, 1.08, 1.08, 1.082, 1.0825, 1.083, 1.083, 1.083, 1.083, 1.083, 1.083, 1.083, 1.083, 1.0855];
+    return prices.map((p, i) => R.evaluate(st, { symbol: "EUR/USD", price: p, sourceMs: WED + i * 60000 - 5000, source: "SYNTHETIC" },
+      WED + i * 60000, c, [], {}));
+  };
+  const rows = run(10);
+  const watch = rows.filter((r) => r.decision === "WATCH").map((r) => r.fetched_at_utc.slice(11, 16));
+  assert.deepEqual(watch, ["13:06", "13:16"]);           // 1er mouvement, puis nouveau mouvement apres 10 min
+  assert.match(rows[7].reasons, /^WATCH_ALREADY_SIGNALED_13:06$/);
+  assert.equal(rows[7].decision, "NO_ALERT");
+  assert.ok(run(0).filter((r) => r.decision === "WATCH").length >= 4);   // pause 0 = chaque minute
+});
+
+test("reglages : pip de l'or, montants en $ conserves ; prix de depart de la demo", () => {
+  const c = R.withSettings(R.DEFAULTS, { xauPipUsd: 0.01 });
+  const x = c.symbols["XAU/USD"];
+  assert.deepEqual([x.pipSize, x.pipValuePerLot, x.watchMove5mPips, x.assumedSpreadPips, x.maxSpreadPips], [0.01, 1, 300, 30, 80]);
+  const d = R.withSettings(R.DEFAULTS, {}).symbols["XAU/USD"];
+  assert.deepEqual([d.pipSize, d.pipValuePerLot, d.watchMove5mPips], [0.1, 10, 30]);
+  assert.equal(R.withSettings(R.DEFAULTS, { xauPipUsd: 0.5 }).symbols["XAU/USD"].pipSize, 0.1);   // valeur refusee
+  // 1 lot d'or, stop de 3 $ : risque identique quel que soit le pip choisi
+  for (const pip of [0.01, 0.1, 1]) {
+    const s = R.withSettings(R.DEFAULTS, { xauPipUsd: pip }).symbols["XAU/USD"];
+    assert.ok(Math.abs((3 / s.pipSize) * s.pipValuePerLot - 300) < 1e-9);
+  }
+  const p = R.demoStartPrices({ demoStart: { "EUR/USD": null, "XAU/USD": 3600 } }, { "EUR/USD": 1.0968 });
+  assert.deepEqual(p["XAU/USD"], { price: 3600, source: "réglage" });
+  assert.deepEqual(p["EUR/USD"], { price: 1.0968, source: "dernier prix réel connu" });
+  assert.deepEqual(R.demoStartPrices({}, {})["XAU/USD"], { price: R.DEMO_FALLBACK["XAU/USD"], source: "valeur par défaut" });
+  const st = R.newEngineState(cfg), feed = R.SyntheticFeed(cfg, 42, { "XAU/USD": 3532.8 });
+  const first = feed.step(0, WED).find((o) => o.symbol === "XAU/USD");
+  assert.ok(Math.abs(first.price - 3532.8) < 5, "la demo part du prix demande");
 });
 
 test("bid/ask manquant -> spread ASSUMED ; croise -> REJECT", () => {
@@ -145,6 +185,12 @@ test("demo synthetique deterministe : WATCH, REJECT et DATA_MISSING", () => {
   const d = new Set(a.map((r) => r.decision));
   for (const k of ["WATCH", "REJECT", "DATA_MISSING"]) assert.ok(d.has(k), k);
   assert.ok(a.every((r) => r.source === "SYNTHETIC" && r.spread_status === "ASSUMED"));
+  // les deux anomalies annoncees en demo sont bien en DATA_MISSING dans le journal
+  const xauMissing = a.filter((r) => r.symbol === "XAU/USD" && r.decision === "DATA_MISSING");
+  assert.deepEqual(xauMissing.map((r) => [r.fetched_at_utc.slice(11, 16), r.reasons]),
+    [["13:15", "STALE_DATA"], ["13:18", "SYNTHETIC_MISSING_TICK"]]);
+  // un seul WATCH pour le mouvement brusque injecte sur EUR/USD (minutes 4 a 6)
+  assert.equal(a.filter((r) => r.symbol === "EUR/USD" && r.decision === "WATCH").length, 1);
 });
 
 test("CSV : protection contre les formules", () => {

@@ -20,6 +20,18 @@ test("valeur du pip en USD et conversion", () => {
   assert.equal(A.conversionNeeded("XAU/USD"), null);
 });
 
+test("pip de l'or reglable dans l'analyse et le plan", () => {
+  try {
+    A.configureXau(0.01);
+    assert.equal(A.PAIRS["XAU/USD"].pip, 0.01);
+    assert.equal(A.PAIRS["XAU/USD"].spread, 30);
+    near(A.pipValueUsd("XAU/USD", 3500), 1);       // 0,01 $ x 100 oz
+    A.configureXau(7);                              // valeur refusee -> 0,10 $
+    assert.equal(A.PAIRS["XAU/USD"].pip, 0.1);
+  } finally { A.configureXau(0.1); }
+  near(A.pipValueUsd("XAU/USD", 3500), 10);
+});
+
 test("bougies Twelve Data : ordre croissant, dates jour et heure", () => {
   const b = A.parseTimeSeries({ status: "ok", values: [
     { datetime: "2026-11-20 15:00:00", open: "2", high: "3", low: "1", close: "2.5" },

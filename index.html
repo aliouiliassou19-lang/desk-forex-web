@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
   <header class="top">
@@ -103,6 +103,28 @@
         <div class="scroll"><table id="logTable"><thead><tr><th>Heure UTC</th><th>Symbole</th><th>Prix</th><th>1 min</th><th>5 min</th><th>Marché</th><th>Décision</th><th>Raisons</th></tr></thead><tbody></tbody></table></div>
         <p class="muted small">Prix = clôture 1 min (milieu de marché), <b>pas ton prix d'exécution</b>. Chez un courtier tu achètes à l'ask et vends au bid. bid/ask non fournis : spread <b>supposé</b> (réglable).</p>
       </div>
+
+      <details class="card" id="settingsCard">
+        <summary><h2 class="inline-h">Réglages</h2> <span class="muted small">pause des WATCH, pip de l'or, démo</span></summary>
+        <form id="setForm" class="formgrid" autocomplete="off">
+          <label>Pause WATCH EUR/USD (min)<input id="setCdEUR" type="number" min="0" max="240" step="1"></label>
+          <label>Pause WATCH XAU/USD (min)<input id="setCdXAU" type="number" min="0" max="240" step="1"></label>
+          <label>Or : valeur d'un pip
+            <select id="setXauPip">
+              <option value="0.01">0,01 $ de prix</option>
+              <option value="0.1">0,10 $ de prix (par défaut)</option>
+              <option value="1">1,00 $ de prix</option>
+            </select></label>
+          <label>Démo : départ EUR/USD<input id="setDemoEUR" type="number" step="any" min="0" placeholder="auto"></label>
+          <label>Démo : départ XAU/USD<input id="setDemoXAU" type="number" step="any" min="0" placeholder="auto"></label>
+          <div class="row"><button class="btn" type="submit">Enregistrer</button><button id="setReset" class="btn ghost" type="button">Par défaut</button></div>
+        </form>
+        <ul class="notes small muted">
+          <li><b>Pause WATCH</b> : après un WATCH, le même symbole ne redéclenche pas d'alerte (ni notification) pendant cette durée ; les relevés suivants sont notés « déjà signalé ». 0 = pas de pause.</li>
+          <li><b>Pip de l'or</b> : 0,10 $ dans nos calculs par défaut (contrat de 100 oz : 10 $ par pip et par lot). Ton courtier peut utiliser 0,01 $ ou 1 $ : les seuils et spreads en $ restent les mêmes, seul le nombre de pips change.</li>
+          <li><b>Départ de la démo</b> : vide = dernier prix réel connu (journal de cet appareil, ou 2 crédits si une clé est enregistrée), sinon une valeur par défaut.</li>
+        </ul>
+      </details>
 
       <div class="card">
         <h2>Alertes de prix</h2>
@@ -373,8 +395,10 @@
         <h3>Décisions</h3>
         <ul>
           <li><b>WATCH</b> : mouvement brusque sur 5 min (≥ 15 pips EUR/USD, ≥ 3 $ sur l'or), données fraîches, marché ouvert, aucune annonce proche. Aucune direction ni profit implicite.</li>
-          <li><b>REJECT</b> : marché fermé, donnée périmée (&gt; 3 min), annonce à moins de 15 min, spread trop large, ou prix trop éloigné du taux de référence de la BCE (EUR/USD).</li>
-          <li><b>DATA_MISSING</b> : prix absent, quota atteint, erreur réseau. Une valeur manquante n'est jamais un zéro.</li>
+          <li><b>REJECT</b> : marché fermé, annonce à moins de 15 min, spread trop large, ou prix trop éloigné du taux de référence de la BCE (EUR/USD).</li>
+          <li><b>DATA_MISSING</b> : prix absent, donnée périmée (&gt; 3 min) pendant les heures d'ouverture, quota atteint, erreur réseau. Une valeur manquante n'est jamais un zéro.</li>
+          <li><b>Pause WATCH</b> : un même mouvement ne déclenche qu'un WATCH ; pendant la pause (10 min par défaut, réglable par paire dans Moniteur → Réglages), les relevés suivants sont notés « déjà signalé ».</li>
+          <li><b>Pip</b> : EUR/USD 1 pip = 0,0001 (10 $ par lot standard). <b>Or : 1 pip = 0,10 $ de prix dans nos calculs</b> (10 $ par lot de 100 oz), réglable car il varie selon le courtier.</li>
         </ul>
         <h3>Limites</h3>
         <ul>
@@ -398,9 +422,9 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=7"></script>
-  <script src="analysis.js?v=7"></script>
-  <script src="app.js?v=7"></script>
-  <script src="desk.js?v=7"></script>
+  <script src="rules.js?v=8"></script>
+  <script src="analysis.js?v=8"></script>
+  <script src="app.js?v=8"></script>
+  <script src="desk.js?v=8"></script>
 </body>
 </html>

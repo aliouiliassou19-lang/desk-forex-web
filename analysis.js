@@ -26,6 +26,14 @@
   };
   const ccys = (pair) => pair.split("/");
 
+  /** Regle la valeur du pip de l'or (0,01 / 0,10 / 1 $ de prix) ; le spread par defaut reste 0,30 $. */
+  function configureXau(pipUsd) {
+    const pip = [0.01, 0.1, 1].includes(Number(pipUsd)) ? Number(pipUsd) : 0.1;
+    PAIRS["XAU/USD"].pip = pip;
+    PAIRS["XAU/USD"].spread = +(0.3 / pip).toFixed(4);
+    return PAIRS["XAU/USD"];
+  }
+
   /** Valeur d'un pip pour 1 lot, en USD. conv = cours de conversion necessaire (null si inutile). */
   function conversionNeeded(pair) {
     const [, q] = ccys(pair);
@@ -509,7 +517,7 @@
     return fired;
   }
 
-  return { PAIRS, conversionNeeded, pipValueUsd, parseTimeSeries, emaSeries, rsiSeries, atr, efficiency, swings,
+  return { PAIRS, configureXau, conversionNeeded, pipValueUsd, parseTimeSeries, emaSeries, rsiSeries, atr, efficiency, swings,
     pivots, bollinger, technical, parseNyFedEffr, blsYoY, blsLatest, parseEcbSeries, parseEurostat, ageDays,
     fundamentalSummary, sessionsAt, plan, pretest, dailyBrief, checkAlerts };
 });
