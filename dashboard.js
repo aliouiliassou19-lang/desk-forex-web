@@ -355,6 +355,29 @@
     toast(f.type === "deposit" ? "Dépôt enregistré." : "Retrait enregistré.");
   });
 
+  // ---------------------------------------------------------------- sauvegarde et restauration (etape 6)
+  function renderBackup() {
+    const st = J.getState(), msg = clear($("dbBackupMsg"));
+    let last = null; try { last = D.store.get("lastBackup", null); } catch (e) { last = null; }
+    const flows = st.accounts.reduce((n, a) => n + (a.cashflows || []).length, 0);
+    const content = `Dans ce navigateur : ${pl(st.trades.length, "trade")}, ${pl(st.accounts.length, "compte")}, ${pl(flows, "mouvement")} d'argent.`;
+    const days = last ? Math.floor((Date.now() - last) / 86400000) : null;
+    const old = st.trades.length > 0 && (last == null || days >= 7);
+    msg.className = "small" + (old ? " down" : "");
+    msg.append(last ? `Dernière sauvegarde depuis ce navigateur : ${JC.fmtLocal(last)} (${days === 0 ? "aujourd'hui" : days === 1 ? "hier" : `il y a ${days} jours`}). `
+      : "Aucune sauvegarde faite depuis ce navigateur. ", old ? "Pense à sauvegarder. " : "", el("span", { class: "muted" }, content));
+  }
+  $("dbSave").addEventListener("click", async () => {
+    const m = await J.exportBackup();
+    renderBackup(); toast(m);
+  });
+  $("dbRestore").addEventListener("change", async (e) => {
+    const file = e.target.files[0]; e.target.value = "";
+    if (!file) return;
+    const m = await J.importBackup(file);
+    if (m) toast(m, 6000);
+  });
+
   // ---------------------------------------------------------------- raccourcis
   $("dbAddTrade").addEventListener("click", () => J.openNew({ accountId: currentAccount().id }));
   $("dbImport").addEventListener("click", () => {
@@ -375,6 +398,7 @@
     renderCalendar(acc, list);
     renderBreakdowns(acc, list);
     renderFlows(acc);
+    renderBackup();
   }
   $("cfDate").value = JC.toLocalInput(Date.now());
   J.onChange(render);

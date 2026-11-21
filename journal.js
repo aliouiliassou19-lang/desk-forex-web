@@ -468,7 +468,8 @@
     if (!enriched.length) { toast("Journal vide."); return; }
     D.download(`journal-${today()}.csv`, JC.toCsv([...enriched].sort((a, b) => (a.t.entryTime || 0) - (b.t.entryTime || 0))));
   });
-  $("exJson").addEventListener("click", async () => {
+  /** Sauvegarde JSON complete (telechargee). Utilisee par Journal -> Reglages et par le Dashboard. */
+  async function exportBackup() {
     const local = {};
     ["news", "alerts", "settings"].forEach((k) => { const v = D.store.get(k, null); if (v != null) local[k] = v; });   // jamais la cle API
     const backup = { app: "desk-forex", kind: "backup", version: 1, exportedAt: new Date().toISOString(),
@@ -476,15 +477,19 @@
     const blob = new Blob([JSON.stringify(backup, null, 1)], { type: "application/json" });
     const a = el("a", { href: URL.createObjectURL(blob), download: `desk-forex-sauvegarde-${today()}.json` });
     document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-    $("exMsg").textContent = `Sauvegarde créée : ${trades.length} trade(s).`;
-  });
-  $("imJson").addEventListener("change", async (e) => {
-    const file = e.target.files[0]; e.target.value = "";
-    if (!file) return;
-    if (file.size > 20 * 1024 * 1024) { toast("Fichier trop gros (20 Mo maximum)."); return; }
+    try { D.store.set("lastBackup", Date.now()); } catch (e) { /* stockage indisponible */ }
+    const msg = `Sauvegarde créée : ${trades.length} trade(s), ${accounts.length} compte(s).`;
+    $("exMsg").textContent = msg;
+    return msg;
+  }
+  $("exJson").addEventListener("click", () => exportBackup());
+  $("imJson").addEventListener("change", (e) => { const file = e.target.files[0]; e.target.value = ""; if (file) importBackup(file); });
+  /** Restaure une sauvegarde JSON : ajoute ou remplace, ne supprime rien. Renvoie un message ou null (annule / refuse). */
+  async function importBackup(file) {
+    if (file.size > 20 * 1024 * 1024) { toast("Fichier trop gros (20 Mo maximum)."); return null; }
     let data;
-    try { data = JSON.parse(await file.text()); } catch (err) { toast("Fichier illisible : ce n'est pas du JSON."); return; }
-    if (!data || data.app !== "desk-forex" || data.kind !== "backup") { toast("Ce fichier n'est pas une sauvegarde Desk Forex."); return; }
+    try { data = JSON.parse(await file.text()); } catch (err) { toast("Fichier illisible : ce n'est pas du JSON."); return null; }
+    if (!data || data.app !== "desk-forex" || data.kind !== "backup") { toast("Ce fichier n'est pas une sauvegarde Desk Forex."); return null; }
     const tr = (Array.isArray(data.trades) ? data.trades : []).map(JC.sanitizeTrade).filter(Boolean);
     const ac = (Array.isArray(data.accounts) ? data.accounts : []).filter((a) => a && a.id).map((a) => ({
       id: String(a.id).slice(0, 80), name: String(a.name || "Compte").slice(0, 40), type: String(a.type || "demo").slice(0, 20),
@@ -496,7 +501,7 @@
         .slice(-200).map((s) => ({ t: +s.t, equity: +s.equity, balance: Number.isFinite(+s.balance) ? +s.balance : null, source: String(s.source || "manuel").slice(0, 20) })) : [] }));
     const rv = (Array.isArray(data.reviews) ? data.reviews : []).filter((r) => r && r.key).map((r) => ({
       key: String(r.key).slice(0, 20), lessons: String(r.lessons || "").slice(0, 4000), goal: String(r.goal || "").slice(0, 1000), updatedAt: Number(r.updatedAt) || Date.now() }));
-    if (!confirm(`Importer ${tr.length} trade(s), ${ac.length} compte(s) et ${rv.length} revue(s) ? Les trades avec le même identifiant seront remplacés ; rien ne sera supprimé.`)) return;
+    if (!confirm(`Importer ${tr.length} trade(s), ${ac.length} compte(s) et ${rv.length} revue(s) ? Les trades avec le même identifiant seront remplacés ; rien ne sera supprimé.`)) return null;
     try {
       await DB.putMany("trades", tr); await DB.putMany("accounts", ac); await DB.putMany("reviews", rv);
       if (data.prefs && typeof data.prefs === "object") {
@@ -506,11 +511,13 @@
         await savePrefs();
       }
       if (data.local && typeof data.local === "object") ["news", "alerts", "settings"].forEach((k) => { if (k in data.local) D.store.set(k, data.local[k]); });
-    } catch (err) { toast("Import interrompu : " + err.message, 7000); return; }
+    } catch (err) { toast("Import interrompu : " + err.message, 7000); return null; }
     trades = await DB.getAll("trades"); accounts = await DB.getAll("accounts");
     renderPrefsForm(); refresh();
-    $("exMsg").textContent = `Import terminé : ${tr.length} trade(s). Recharge la page pour appliquer les annonces, alertes et réglages importés.`;
-  });
+    const msg = `Restauration terminée : ${tr.length} trade(s), ${ac.length} compte(s). Recharge la page pour appliquer les annonces, alertes et réglages importés.`;
+    $("exMsg").textContent = msg;
+    return msg;
+  }
   $("jWipe").addEventListener("click", async () => {
     if (!confirm("Effacer TOUT le journal (trades et revues) de ce navigateur ? C'est irréversible.")) return;
     if (!confirm("Dernière confirmation : as-tu exporté une sauvegarde JSON ?")) return;
@@ -571,7 +578,7 @@
     toast(`${n} trade(s) d'exemple supprimé(s).`);
   });
   window.Journal = {
-    openNew, reload: load, saveAccount, deleteAccount, showAccount, upsertTrades, loadDemo, removeDemo,
+    openNew, reload: load, saveAccount, deleteAccount, showAccount, upsertTrades, loadDemo, removeDemo, exportBackup, importBackup,
     getState: () => ({ accounts: accounts.slice(), trades: trades.slice(), enriched, prefs }),
     onChange: (fn) => listeners.push(fn),
   };

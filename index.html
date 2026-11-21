@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=31">
+  <link rel="stylesheet" href="style.css?v=32">
 </head>
 <body>
   <header class="top">
@@ -234,6 +234,17 @@
         </form>
         <div class="scroll"><table id="cfTable"><thead><tr><th>Date (Bénin)</th><th>Type</th><th>Montant</th><th>Note</th><th></th></tr></thead><tbody></tbody></table></div>
         <p id="cfEmpty" class="muted small">Aucun dépôt ni retrait pour ce compte.</p>
+      </div>
+
+      <div class="card" id="dbBackupCard">
+        <h2>Sauvegarde de mes données</h2>
+        <p class="muted small">Tes trades, comptes, règles, dépôts et retraits restent <b>dans ce navigateur</b>. Si ses données sont effacées ou si tu changes d'appareil, ils disparaissent : garde une sauvegarde à jour sur ton PC ou ton téléphone.</p>
+        <div class="row wrap">
+          <button id="dbSave" class="btn" type="button">Sauvegarder mes données</button>
+          <label class="btn ghost filebtn">Restaurer une sauvegarde<input id="dbRestore" type="file" accept="application/json,.json"></label>
+        </div>
+        <p id="dbBackupMsg" class="small"></p>
+        <p class="muted small">La sauvegarde est un fichier JSON (tous les comptes, pas seulement celui affiché). Elle ne contient <b>jamais</b> ta clé Twelve Data. Restaurer ajoute ou remplace des données, sans rien supprimer.</p>
       </div>
     </section>
 
@@ -755,6 +766,7 @@
           <li><b>Annonces</b> : fenêtres d'annonces (REJECT 15 min avant et après).</li>
           <li><b>Journal</b> : fiche complète de chaque trade (heures UTC et Bénin, risque, pips, R, coûts, session, setup, checklist, qualité, émotions, erreurs, capture), statistiques filtrables (équité, drawdown, calendrier, par setup / session / jour / heure, coût des erreurs, plan vs hors plan), revue de la semaine, exports CSV et JSON, rapport imprimable.</li>
           <li><b>Comptes</b> : plusieurs comptes (démo, challenge, financé), règles de challenge que tu saisis, jauges, statut, alertes, lot maximum autorisé, modèles de règles, import MT5.</li>
+          <li><b>Dashboard</b> : évolution d'un compte (solde, profit du jour, de la semaine et du mois, statistiques, courbe, drawdown, calendrier, répartitions, règles prop firm, dépôts et retraits, sauvegarde).</li>
         </ul>
         <h3>Journal : les points clés</h3>
         <ul>
@@ -773,16 +785,39 @@
           <li>Alerte quand il reste moins de 30 % de marge. Le calculateur de lot maximum prend la marge la plus serrée, spread compris.</li>
           <li>L'<b>équité</b> vient de ta saisie (« Saisir l'équité actuelle ») ou de l'import MT5. Sans valeur récente, le calcul se fait sur le solde.</li>
         </ul>
+        <h3>Dashboard : mode d'emploi</h3>
+        <ol>
+          <li>Choisis le compte en haut à droite. Chaque compte a son solde de départ (onglet Comptes).</li>
+          <li>Ajoute tes trades : bouton <b>+ Ajouter un trade</b> (saisie manuelle) ou <b>Importer l'historique MT5</b>. Les trades vont dans le <b>Journal</b> : il n'y a qu'un seul journal pour tout le site.</li>
+          <li>Note tes <b>dépôts et retraits</b> en bas de la page : ils changent le solde, mais pas le profit, les statistiques ni le drawdown.</li>
+          <li>Lis les cartes : solde actuel, profit total (en % du capital investi = départ + dépôts − retraits), aujourd'hui, cette semaine (depuis lundi), ce mois.</li>
+          <li><b>Courbe du solde</b> : choisis 7 jours, 30 jours, 3 mois ou Tout ; passe le doigt sur la courbe pour le détail. Le <b>drawdown</b> est la baisse depuis le plus haut atteint (trades seulement).</li>
+          <li><b>Calendrier</b> : vert = journée gagnante, rouge = perdante (jour de clôture, heure du Bénin). Touche un jour pour voir ses trades.</li>
+          <li><b>Répartitions</b> : résultats par symbole, jour de la semaine et session (selon l'heure d'ouverture du trade).</li>
+          <li><b>Règles prop firm</b> (optionnel) : coche « Activer pour ce compte », puis règle tes limites. OK = tout va bien ; ATTENTION = plus de la moitié de la marge utilisée ; ÉCHEC = limite franchie ; EN COURS = objectif ou jours pas encore atteints. Calcul indicatif : seules les règles officielles de ta prop firm font foi.</li>
+          <li><b>Sauvegarder mes données</b> régulièrement, et <b>Restaurer</b> sur un autre navigateur ou après un effacement.</li>
+        </ol>
+        <p class="muted small">Peu de trades ne prouvent rien : un bon mois peut venir de la chance. Le Dashboard ne donne aucun conseil et ne passe aucun ordre.</p>
+        <h3>Exporter ton historique depuis MT5</h3>
+        <ol>
+          <li>Dans MetaTrader 5 sur PC, ouvre la fenêtre <b>Boîte à outils</b> (Ctrl+T) puis l'onglet <b>Historique</b>.</li>
+          <li>Clic droit dans la liste → choisis l'affichage <b>Positions</b>, et une période (par exemple « Tout l'historique » ou « 3 derniers mois »).</li>
+          <li>Clic droit → <b>Rapport</b> → <b>HTML</b> (ou <b>Open XML</b> pour un fichier Excel .xlsx). Enregistre le fichier.</li>
+          <li>Tu peux aussi utiliser un fichier <b>CSV</b> (par exemple un rapport ouvert dans Excel puis « Enregistrer sous » CSV) : il doit garder les colonnes de la section Positions.</li>
+          <li>Sur ce site : Dashboard → <b>Importer l'historique MT5</b> (ou Comptes → Import MT5), choisis le fichier, indique le <b>décalage horaire du serveur</b> de ton courtier (souvent UTC+2 l'hiver, UTC+3 l'été), vérifie l'aperçu puis importe.</li>
+          <li>Réimporter le même rapport plus tard ne crée pas de doublon : seuls les nouveaux trades sont ajoutés.</li>
+        </ol>
+        <p class="muted small">Seule la section <b>Positions</b> est lue (pas les ordres ni les transactions). Aucun mot de passe n'est demandé. Sur téléphone, l'appli MT5 ne crée pas de rapport : fais l'export depuis un PC.</p>
         <h3>Import MT5 (lecture seule)</h3>
         <ul>
-          <li><b>Rapport MT5</b> : Historique → clic droit → Rapport → HTML (ou Open XML), puis Comptes → Import MT5. Indique le décalage horaire du serveur de ton courtier.</li>
+          <li><b>Rapport MT5</b> : fichier HTML, Excel (.xlsx) ou CSV, voir ci-dessus. Indique le décalage horaire du serveur de ton courtier.</li>
           <li><b>Script local</b> <code>outils/mt5_export.py</code> : il lit ton MT5 ouvert sans mot de passe et ne passe aucun ordre. Export en fichier, ou connexion automatique sur ce PC (code secret). Voir le <a href="outils/GUIDE-MT5.md" target="_blank" rel="noopener noreferrer">guide pas à pas</a>.</li>
           <li>Les trades sont dédoublonnés par ticket MT5 ; ce que tu ajoutes à la main (setup, émotions, erreurs, captures) est conservé. Les indices et cryptos sont ignorés (12 paires suivies).</li>
         </ul>
         <h3>Sauvegarde</h3>
         <ul>
-          <li>Tes données restent dans <b>ce navigateur</b> (IndexedDB). Changer de navigateur ou effacer ses données les fait disparaître : exporte régulièrement une <b>sauvegarde JSON</b> (Journal → Réglages) et réimporte-la au besoin.</li>
-          <li>La sauvegarde contient journal, comptes, revues, listes, annonces, alertes et réglages, <b>jamais ta clé Twelve Data</b>.</li>
+          <li>Tes données restent dans <b>ce navigateur</b> (IndexedDB). Changer de navigateur ou effacer ses données les fait disparaître : exporte régulièrement une <b>sauvegarde JSON</b> (Dashboard → Sauvegarder mes données, ou Journal → Réglages) et restaure-la au besoin.</li>
+          <li>La sauvegarde contient journal, comptes (règles, dépôts et retraits compris), revues, listes, annonces, alertes et réglages, <b>jamais ta clé Twelve Data</b>.</li>
         </ul>
         <h3>Décisions</h3>
         <ul>
@@ -814,18 +849,18 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=31"></script>
-  <script src="analysis.js?v=31"></script>
-  <script src="mt5-core.js?v=31"></script>
-  <script src="journal-core.js?v=31"></script>
-  <script src="challenge-core.js?v=31"></script>
-  <script src="dashboard-core.js?v=31"></script>
-  <script src="db.js?v=31"></script>
-  <script src="app.js?v=31"></script>
-  <script src="journal.js?v=31"></script>
-  <script src="accounts.js?v=31"></script>
-  <script src="mt5-import.js?v=31"></script>
-  <script src="dashboard.js?v=31"></script>
-  <script src="desk.js?v=31"></script>
+  <script src="rules.js?v=32"></script>
+  <script src="analysis.js?v=32"></script>
+  <script src="mt5-core.js?v=32"></script>
+  <script src="journal-core.js?v=32"></script>
+  <script src="challenge-core.js?v=32"></script>
+  <script src="dashboard-core.js?v=32"></script>
+  <script src="db.js?v=32"></script>
+  <script src="app.js?v=32"></script>
+  <script src="journal.js?v=32"></script>
+  <script src="accounts.js?v=32"></script>
+  <script src="mt5-import.js?v=32"></script>
+  <script src="dashboard.js?v=32"></script>
+  <script src="desk.js?v=32"></script>
 </body>
 </html>
