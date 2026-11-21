@@ -61,12 +61,14 @@
   }
 
   function recompute() { enriched = JC.enrich(trades, accounts, prefs.maxRiskPct); }
+  const listeners = [];
   function refresh() {
     recompute();
     renderFilterOptions();
     renderList();
     if (view === "stats") renderStats();
     if (view === "review") renderReview();
+    listeners.forEach((fn) => { try { fn(); } catch (e) { /* un module ne bloque pas le journal */ } });
   }
 
   // ---------------------------------------------------------------- listes et filtres
@@ -443,8 +445,6 @@
 
   // ---------------------------------------------------------------- reglages du journal
   function renderPrefsForm() {
-    const a = accounts[0] || JC.DEFAULT_ACCOUNT;
-    $("acName").value = a.name; $("acStart").value = a.startBalance; $("acCcy").value = a.currency || "USD";
     $("prMaxRisk").value = prefs.maxRiskPct;
     $("plSetups").value = prefs.setups.join("\n"); $("plErrors").value = prefs.errors.join("\n");
     $("plEmotions").value = prefs.emotions.join("\n"); $("plChecklist").value = prefs.checklist.join("\n");
@@ -452,12 +452,9 @@
   const savePrefs = () => DB.put("meta", { key: "prefs", value: prefs });
   $("acForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const a = Object.assign({}, accounts[0], { name: $("acName").value.trim().slice(0, 40) || "Compte démo",
-      startBalance: Math.max(0, Number($("acStart").value) || 0), currency: $("acCcy").value });
     const r = Number($("prMaxRisk").value);
     prefs.maxRiskPct = r > 0 && r <= 20 ? r : 2;
-    await DB.put("accounts", a); await savePrefs();
-    accounts[0] = a; refresh(); toast("Compte enregistré.");
+    await savePrefs(); refresh(); toast("Règle enregistrée.");
   });
   $("plSave").addEventListener("click", async () => {
     const lines = (id) => [...new Set($(id).value.split("\n").map((s) => s.trim().slice(0, 80)).filter(Boolean))].slice(0, 40);
@@ -492,7 +489,10 @@
     const ac = (Array.isArray(data.accounts) ? data.accounts : []).filter((a) => a && a.id).map((a) => ({
       id: String(a.id).slice(0, 80), name: String(a.name || "Compte").slice(0, 40), type: String(a.type || "demo").slice(0, 20),
       currency: String(a.currency || "USD").slice(0, 3), startBalance: Math.max(0, Number(a.startBalance) || 0),
-      rules: a.rules && typeof a.rules === "object" ? a.rules : undefined }));
+      startDate: Number(a.startDate) || null,
+      rules: a.rules && typeof a.rules === "object" && window.ChallengeCore ? window.ChallengeCore.normalizeRules(a.rules) : undefined,
+      equitySnapshots: Array.isArray(a.equitySnapshots) ? a.equitySnapshots.filter((s) => s && Number.isFinite(+s.t) && Number.isFinite(+s.equity))
+        .slice(-200).map((s) => ({ t: +s.t, equity: +s.equity, balance: Number.isFinite(+s.balance) ? +s.balance : null, source: String(s.source || "manuel").slice(0, 20) })) : [] }));
     const rv = (Array.isArray(data.reviews) ? data.reviews : []).filter((r) => r && r.key).map((r) => ({
       key: String(r.key).slice(0, 20), lessons: String(r.lessons || "").slice(0, 4000), goal: String(r.goal || "").slice(0, 1000), updatedAt: Number(r.updatedAt) || Date.now() }));
     if (!confirm(`Importer ${tr.length} trade(s), ${ac.length} compte(s) et ${rv.length} revue(s) ? Les trades avec le même identifiant seront remplacés ; rien ne sera supprimé.`)) return;
@@ -517,6 +517,28 @@
     trades = []; refresh(); toast("Journal effacé.");
   });
 
-  window.Journal = { openNew, reload: load };
+  // ---------------------------------------------------------------- donnees partagees avec l'onglet Comptes
+  async function saveAccount(a) {
+    await DB.put("accounts", a);
+    const i = accounts.findIndex((x) => x.id === a.id);
+    if (i >= 0) accounts[i] = a; else accounts.push(a);
+    refresh();
+  }
+  async function deleteAccount(id) {
+    if (trades.some((t) => t.accountId === id)) return "Ce compte a des trades dans le journal : supprime-les ou déplace-les d'abord.";
+    if (accounts.length <= 1) return "Il faut garder au moins un compte.";
+    await DB.del("accounts", id);
+    accounts = accounts.filter((a) => a.id !== id);
+    refresh();
+    return null;
+  }
+  function showAccount(id) {
+    $("fAccount").value = id; D.showTab("journal"); setView("trades"); refresh();
+  }
+  window.Journal = {
+    openNew, reload: load, saveAccount, deleteAccount, showAccount,
+    getState: () => ({ accounts: accounts.slice(), trades: trades.slice(), enriched, prefs }),
+    onChange: (fn) => listeners.push(fn),
+  };
   load();
 })();
