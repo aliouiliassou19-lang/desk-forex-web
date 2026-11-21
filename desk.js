@@ -9,7 +9,8 @@
   const $ = (id) => document.getElementById(id);
   const PAIRS = Object.keys(A.PAIRS);
   const TD = "https://api.twelvedata.com";
-  const fmt = (x, d) => (x == null || !Number.isFinite(x) ? "–" : Number(x).toFixed(d));
+  const F = window.Fmt;
+  const fmt = (x, d) => F.num(x, d);                       // nombres au format francais (affichage)
 
   // ---------------------------------------------------------------- listes de paires
   document.querySelectorAll(".pairsel").forEach((s) => PAIRS.forEach((p) => s.append(el("option", { value: p }, p))));
@@ -127,8 +128,8 @@
     current = c;
     const t = c.tech, dec = t.dec;
     $("aOut").classList.remove("hidden");
-    $("aPrice").textContent = `${c.pair} ${t.price.toFixed(dec)}`;
-    $("aTime").textContent = `Dernière bougie H1 : ${D.fmtUtc(t.time)} UTC · prix milieu de marché`;
+    $("aPrice").textContent = `${c.pair} ${fmt(t.price, dec)}`;
+    $("aTime").textContent = `Dernière bougie H1 : ${F.both(t.time, { date: true })} · prix milieu de marché`;
     $("aBias").textContent = t.bias;
     $("aBias").className = "bias " + (/^Haussier/.test(t.bias) ? "up" : /^Baissier/.test(t.bias) ? "down" : "warnline");
     const ul = clear($("aNotes")); t.notes.forEach((n) => ul.append(el("li", {}, n)));
@@ -143,13 +144,13 @@
       list.forEach((l) => box.append(el("button", { class: "level", type: "button", title: "Créer une alerte",
         onclick: () => {
           alerts.push({ id: Date.now(), pair: c.pair, side, price: +l.price.toFixed(dec), note: l.label, triggered: null });
-          saveAlerts(); renderAlerts(); toast(`Alerte créée : ${c.pair} ${side === "above" ? "au-dessus de" : "en dessous de"} ${l.price.toFixed(dec)}.`);
-        } }, el("span", {}, l.label), el("span", { class: "mono" }, `${l.price.toFixed(dec)} · ${fmt(Math.abs(l.price - t.price) / t.pip, 0)} p`))));
+          saveAlerts(); renderAlerts(); toast(`Alerte créée : ${c.pair} ${side === "above" ? "au-dessus de" : "en dessous de"} ${fmt(l.price, dec)}.`);
+        } }, el("span", {}, l.label), el("span", { class: "mono" }, `${fmt(l.price, dec)} · ${fmt(Math.abs(l.price - t.price) / t.pip, 0)} p`))));
     };
     lv($("aRes"), t.resistances, "above"); lv($("aSup"), t.supports, "below");
     const rg = clear($("aRanges"));
     t.ranges.forEach((r) => rg.append(el("div", { class: "kvbox" }, el("span", {}, `${r.days} jours`),
-      el("b", { class: "mono" }, `${r.low.toFixed(dec)} – ${r.high.toFixed(dec)}`), el("small", {}, `position ${(r.pos * 100).toFixed(0)} %`))));
+      el("b", { class: "mono" }, `${fmt(r.low, dec)} – ${fmt(r.high, dec)}`), el("small", {}, `position ${fmt(r.pos * 100, 0)} %`))));
     const h1 = t.tfs.find((x) => x.tf === "H1");
     if (h1 && h1.atrPips) { $("prAtr").value = h1.atrPips.toFixed(1); $("prSpread").value = A.PAIRS[c.pair].spread; }
     drawChart();
@@ -182,7 +183,7 @@
     for (let i = 0; i <= 4; i++) {
       const p = lo + (hi - lo) * i / 4, yy = Math.round(y(p)) + 0.5;
       ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke();
-      ctx.fillText(p.toFixed(dec), plotW + 6, yy);
+      ctx.fillText(fmt(p, dec), plotW + 6, yy);
     }
     // niveaux proches
     const labelYs = [];
@@ -219,7 +220,7 @@
     // dernier prix
     const lp = data[n - 1].c, ly = y(lp);
     ctx.fillStyle = col("--accent"); ctx.fillRect(plotW + 2, ly - 9, padR - 4, 18);
-    ctx.fillStyle = "#ffffff"; ctx.fillText(lp.toFixed(dec), plotW + 6, ly);
+    ctx.fillStyle = "#ffffff"; ctx.fillText(fmt(lp, dec), plotW + 6, ly);
     // dates
     ctx.fillStyle = col("--muted"); ctx.textBaseline = "alphabetic";
     const long = chartTf !== "D1" && plotW > 420;            // heure seulement si la place le permet
@@ -280,7 +281,7 @@
   function cell(x, unit, maxDays) {
     if (!x || x.error) return el("td", { class: "muted" }, "indisponible");
     const age = A.ageDays(x.date, Date.now());
-    return el("td", {}, el("b", { class: "mono" }, `${x.value.toFixed(2)} ${unit}`), el("br"),
+    return el("td", {}, el("b", { class: "mono" }, `${fmt(x.value, 2)} ${unit}`), el("br"),
       el("small", { class: "muted" }, x.date), age != null && age > maxDays ? el("span", { class: "pill bad tiny" }, "ancien") : null);
   }
   function renderFund(d, cached) {
@@ -306,9 +307,9 @@
         el("button", { class: "btn ghost small", type: "button", onclick: () => D.showTab("news") }, "+ Ajouter une annonce"));
       return;
     }
-    const t = el("table", {}, el("thead", {}, el("tr", {}, el("th", {}, "Heure locale"), el("th", {}, "Devise"), el("th", {}, "Annonce"), el("th", {}, "Impact"))));
+    const t = el("table", {}, el("thead", {}, el("tr", {}, el("th", {}, "Heure (Bénin)"), el("th", {}, "Devise"), el("th", {}, "Annonce"), el("th", {}, "Impact"))));
     const tb = el("tbody"); t.append(tb);
-    up.forEach((e) => tb.append(el("tr", {}, el("td", {}, D.fmtLocal(e.timeMs)), el("td", {}, e.currency), el("td", {}, e.event),
+    up.forEach((e) => tb.append(el("tr", {}, el("td", {}, D.timeCell(e.timeMs)), el("td", {}, e.currency), el("td", {}, e.event),
       el("td", {}, e.impact === "high" ? "fort" : e.impact === "medium" ? "moyen" : e.impact))));
     box.append(el("div", { class: "scroll" }, t));
   }
@@ -342,7 +343,7 @@
   function renderBrief(b, techEntry) {
     $("bOut").classList.remove("hidden");
     $("bTitle").textContent = `${b.pair} · synthèse`;
-    $("bTime").textContent = `Générée le ${D.fmtLocal(b.generatedAt)} (heure locale)` + (techEntry ? ` · prix ${techEntry.tech.price.toFixed(techEntry.tech.dec)}` : "");
+    $("bTime").textContent = `Générée le ${D.fmtLocal(b.generatedAt)} (heure du Bénin)` + (techEntry ? ` · prix ${fmt(techEntry.tech.price, techEntry.tech.dec)}` : "");
     const cv = { "élevée": "v-no", "normale": "v-ok", "marché fermé": "v-warn" }[b.caution] || "v-warn";
     $("bCaution").className = "verdict " + cv;
     $("bCaution").textContent = b.caution.toUpperCase();
@@ -395,10 +396,10 @@
     const dec = A.PAIRS[pair].dec;
     out.append(el("div", { class: "verdict v-" + (r.verdict === "OK" ? "ok" : r.verdict === "NON" ? "no" : "warn") }, r.verdict));
     out.append(el("div", { class: "grid3" },
-      el("div", { class: "kvbox" }, el("span", {}, "Entrée → stop"), el("b", { class: "mono" }, `${r.entry.toFixed(dec)} → ${r.stop.toFixed(dec)}`), el("small", {}, `${r.stopPips.toFixed(1)} pips + spread ${r.spread} p`)),
-      el("div", { class: "kvbox" }, el("span", {}, "Taille"), el("b", { class: "mono" + (r.size && !r.size.allowed ? " down" : "") }, r.size ? (r.size.allowed ? `${r.size.lots.toFixed(2)} lot` : "refusé") : "–"),
-        el("small", {}, r.size ? `risque ${r.size.riskUsd.toFixed(2)} $ (${r.size.riskPct.toFixed(2)} %)` : "valeur du pip inconnue")),
-      el("div", { class: "kvbox" }, el("span", {}, "Objectifs"), ...r.targets.map((t) => el("small", { class: "mono" }, `${t.price.toFixed(dec)} · ${t.pips.toFixed(0)} p · R net ${t.rrNet.toFixed(2)}`)))));
+      el("div", { class: "kvbox" }, el("span", {}, "Entrée → stop"), el("b", { class: "mono" }, `${fmt(r.entry, dec)} → ${fmt(r.stop, dec)}`), el("small", {}, `${fmt(r.stopPips, 1)} pips + spread ${r.spread} p`)),
+      el("div", { class: "kvbox" }, el("span", {}, "Taille"), el("b", { class: "mono" + (r.size && !r.size.allowed ? " down" : "") }, r.size ? (r.size.allowed ? `${fmt(r.size.lots, 2)} lot` : "refusé") : "–"),
+        el("small", {}, r.size ? `risque ${fmt(r.size.riskUsd, 2)} $ (${fmt(r.size.riskPct, 2)} %)` : "valeur du pip inconnue")),
+      el("div", { class: "kvbox" }, el("span", {}, "Objectifs"), ...r.targets.map((t) => el("small", { class: "mono" }, `${fmt(t.price, dec)} · ${fmt(t.pips, 0)} p · R net ${fmt(t.rrNet, 2)}`)))));
     const ul = el("ul", { class: "checks" });
     r.checks.forEach((c) => ul.append(el("li", {}, el("span", { class: "pill " + (c.level === "OK" ? "on" : c.level === "NON" ? "bad" : "WATCH") }, c.level), " ", c.msg)));
     out.append(ul);
@@ -428,10 +429,10 @@
     if (r.error) { out.append(el("p", { class: "err" }, r.error)); return; }
     out.append(el("div", { class: "verdict v-" + (r.verdict === "IDÉE TESTABLE" ? "ok" : r.verdict === "DIFFICILE" ? "warn" : "no") }, r.verdict));
     const ul = el("ul", { class: "notes" });
-    [`Stop : ${r.stopPips.toFixed(1)} pips. Coût d'un trade : ${r.costPips.toFixed(2)} pips, soit ${(r.costAtr * 100).toFixed(0)} % de l'ATR et ${r.costR.toFixed(2)} R.`,
-      `Taux de réussite minimal pour ne pas perdre (coûts compris) : ${(r.breakeven * 100).toFixed(1)} %.`,
-      `Taux visé par prudence (espérance ≥ 3 × le coût) : ${(r.target * 100).toFixed(1)} %.`,
-      r.expectancy != null ? `Avec ${win} % de réussite : espérance nette ${r.expectancy >= 0 ? "+" : ""}${r.expectancy.toFixed(2)} R par trade.` : null,
+    [`Stop : ${fmt(r.stopPips, 1)} pips. Coût d'un trade : ${fmt(r.costPips, 2)} pips, soit ${fmt(r.costAtr * 100, 0)} % de l'ATR et ${fmt(r.costR, 2)} R.`,
+      `Taux de réussite minimal pour ne pas perdre (coûts compris) : ${fmt(r.breakeven * 100, 1)} %.`,
+      `Taux visé par prudence (espérance ≥ 3 × le coût) : ${fmt(r.target * 100, 1)} %.`,
+      r.expectancy != null ? `Avec ${win} % de réussite : espérance nette ${r.expectancy >= 0 ? "+" : ""}${fmt(r.expectancy, 2)} R par trade.` : null,
       r.expectancy != null ? (r.tradesToProve ? `Il faudrait environ ${r.tradesToProve} trades pour distinguer cet avantage du hasard (95 %).` : "Espérance négative ou nulle : pas d'avantage à prouver.") : null,
     ].filter(Boolean).forEach((t) => ul.append(el("li", {}, t)));
     out.append(ul, el("p", { class: "muted small" }, "Un pré-test ne remplace pas un backtest hors échantillon, puis un test en démo."));

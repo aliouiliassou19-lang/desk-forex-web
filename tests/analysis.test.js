@@ -178,7 +178,7 @@ test("synthese du jour : contexte, agenda, prudence, scenarios, jamais d'ordre",
   const text = (x) => x.sections.map((s) => s.title + " " + s.items.join(" ")).join(" ");
   assert.equal(b.caution, "élevée");
   assert.match(text(b), /contexte équilibré/);          // taux : +1 dollar ; taux reels : +1 euro
-  assert.match(text(b), /13:30 UTC : USD CPI \(impact fort\)/);
+  assert.match(text(b), /14:30 \(Bénin, 13:30 UTC\) : USD CPI \(impact fort\)/);   // heure du Benin, UTC en petit
   assert.doesNotMatch(text(b), /Plus tard/);              // hors des 24 h
   assert.match(text(b), /donnée ancienne/);
   assert.match(text(b), /Lance l'analyse technique/);

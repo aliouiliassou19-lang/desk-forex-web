@@ -3,6 +3,7 @@
  */
 (function () {
   "use strict";
+  const nb = (v, d) => window.Fmt.num(v, d);
   const M = window.Mt5Core, J = window.Journal, D = window.DeskApp;
   if (!M || !J || !D) return;
   const { el, clear, toast } = D;
@@ -74,7 +75,7 @@
     out.append(el("div", { class: "result" },
       el("b", {}, `${label} : `), `${norm.positions.length} position(s) fermée(s) et ${norm.open.length} ouverte(s) lues pour le compte MT5 ${mask(norm.login)}.`, el("br"),
       `Journal (« ${acc.name} ») : ${res.created} ajoutée(s), ${res.updated} mise(s) à jour, ${res.unchanged} déjà à jour.`,
-      norm.snapshot ? el("span", {}, el("br"), `Équité enregistrée : ${norm.snapshot.equity.toFixed(2)} (solde ${norm.snapshot.balance != null ? norm.snapshot.balance.toFixed(2) : "?"}).`) : null));
+      norm.snapshot ? el("span", {}, el("br"), `Équité enregistrée : ${nb(norm.snapshot.equity, 2)} (solde ${norm.snapshot.balance != null ? nb(norm.snapshot.balance, 2) : "?"}).`) : null));
     if (Object.keys(skipped).length) out.append(el("p", { class: "muted small" },
       "Ignorés (symboles non suivis par le site) : " + Object.entries(skipped).map(([k, v]) => `${k} ×${v}`).join(", ") + "."));
     (norm.warnings || []).forEach((w) => out.append(el("p", { class: "warnline small" }, "Attention : " + w)));

@@ -7,7 +7,8 @@
   if (!DC || !JC || !CC || !J || !D) return;
   const { el, clear, toast } = D;
   const $ = (id) => document.getElementById(id);
-  const money = (v, sign) => (v == null || !Number.isFinite(v) ? "–" : (sign && v > 0 ? "+" : "") + v.toFixed(2) + " $");
+  const F = window.Fmt, nb = (v, d) => F.num(v, d);         // affichage francais : 1 234,56
+  const money = (v, sign) => F.money(v, sign);
   const cls = (v) => (v > 0 ? "up" : v < 0 ? "down" : "");
 
   // ---------------------------------------------------------------- compte choisi
@@ -24,8 +25,8 @@
 
   // ---------------------------------------------------------------- cartes du haut (etape 2)
   const tile = (label, value, c, sub) => el("div", { class: "kpi" }, el("span", {}, label), el("b", { class: "mono " + (c || "") }, value), sub ? el("small", {}, sub) : null);
-  const pct = (v) => (v == null || !Number.isFinite(v) ? "" : `${v > 0 ? "+" : ""}${v.toFixed(2)} %`);
-  const fix = (v, d) => (v == null || !Number.isFinite(v) ? "–" : (v > 0 ? "+" : "") + v.toFixed(d));
+  const pct = (v) => (v == null || !Number.isFinite(v) ? "" : F.pct(v, 2, true));
+  const fix = (v, d) => F.signed(v, d);
   const pl = (n, w) => `${n} ${w}${n > 1 ? "s" : ""}`;
   function renderSummary(acc, list) {
     const s = DC.summary(acc, list), p = DC.periodPnl(acc, list, Date.now());
@@ -40,7 +41,7 @@
   // ---------------------------------------------------------------- regles prop firm (etape 5)
   const ST = { ok: ["OK", "on"], warn: ["ATTENTION", "WATCH"], fail: ["ÉCHEC", "bad"], progress: ["EN COURS", "off"], off: ["non réglée", "off"] };
   const GLOBAL = { "EN COURS": "WATCH", "OBJECTIF ATTEINT": "on", "RÈGLE VIOLÉE": "bad" };
-  const plain = (v) => (v == null || !Number.isFinite(v) ? "–" : v.toFixed(2) + " $");
+  const plain = (v) => F.money(v);
   function ruleGauge(it) {
     const [stText, stCls] = ST[it.status];
     let label, value, sub, fill;
@@ -124,7 +125,7 @@
   // ---------------------------------------------------------------- courbe et drawdown (etape 3)
   let range = D.store.get("dbRange", "all"), view = null, hoverT = null;
   const ddate = (ms) => { const l = JC.local(ms); return `${String(l.d).padStart(2, "0")}/${String(l.m).padStart(2, "0")}`; };
-  const short = (v) => (Math.abs(v) >= 10000 ? (v / 1000).toFixed(1) + " k" : v.toFixed(0));
+  const short = (v) => (Math.abs(v) >= 10000 ? nb(v / 1000, 1) + " k" : nb(v, 0));
   /** Graphique en escalier dans le temps (canvas, sans bibliotheque). pts = [{t, v}] tries par t. */
   function timeChart(cv, pts, t0, t1, opts) {
     const css = getComputedStyle(document.documentElement), col = (v) => css.getPropertyValue(v).trim();
@@ -193,7 +194,7 @@
       { color: c.endBalance >= c.startBalance ? "--ok" : "--reject", fmt: short, base: c.startBalance, marks, hoverT, empty });
     const low = c.troughT != null ? c.points.find((p) => p.t === c.troughT && p.dd === c.maxDD) : null;
     timeChart($("dbDD"), pts.map((p) => ({ t: p.t, v: p.ddPct })), t0, t1,
-      { color: "--reject", fmt: (v) => v.toFixed(1) + " %", zeroTop: true, fillTo: 0, hoverT, empty,
+      { color: "--reject", fmt: (v) => nb(v, 1) + " %", zeroTop: true, fillTo: 0, hoverT, empty,
         marks: low ? [{ t: low.t, v: low.ddPct, color: "--reject" }] : [] });
   }
   const INFO = "Passe le doigt ou la souris sur la courbe pour voir le détail.";
@@ -202,7 +203,7 @@
     for (const q of ps) { if (q.t <= t) p = q; else break; }
     const what = p.kind === "trade" ? `trade ${p.symbol || ""} ${money(p.amount, true)}` : p.kind === "deposit" ? `dépôt ${money(p.amount, true)}`
       : p.kind === "withdrawal" ? `retrait ${money(p.amount, true)}` : "début de la période";
-    $("dbCurveInfo").textContent = `${JC.fmtLocal(p.t)} · ${what} · solde ${money(p.balance)} · drawdown ${money(p.dd)} (${p.ddPct.toFixed(2)} %)`;
+    $("dbCurveInfo").textContent = `${JC.fmtLocal(p.t)} · ${what} · solde ${money(p.balance)} · drawdown ${money(p.dd)} (${nb(p.ddPct, 2)} %)`;
   }
   function onPointer(e) {
     const cv = e.currentTarget, L = cv._layout; if (!L || !view || view.empty) return;
@@ -229,13 +230,13 @@
     hoverT = null; $("dbCurveInfo").textContent = empty ? "" : INFO;
     drawCharts();
     const label = DC.PERIODS[range].toLowerCase();
-    const ddSub = (v, at) => `${v.toFixed(2)} %${at ? " · le " + JC.fmtLocal(at).slice(0, 10) : ""}`;
+    const ddSub = (v, at) => `${nb(v, 2)} %${at ? " · le " + JC.fmtLocal(at).slice(0, 10) : ""}`;
     clear($("dbCurveKpis")).append(
       tile(`Résultat (${label})`, money(c.pnl, true), cls(c.pnl), `${pct(c.pnlPct)}${c.pnlPct != null ? " · " : ""}${pl(c.trades, "trade")}` +
         (c.flows ? ` · mouvements ${money(c.flows, true)}` : "")),
       tile("Solde début → fin", `${money(c.startBalance)} → ${money(c.endBalance)}`),
       tile(`Drawdown max (${label})`, money(c.maxDD), c.maxDD < 0 ? "down" : "", ddSub(c.maxDDPct, c.troughT)),
-      tile("Drawdown actuel", money(all.currentDD), all.currentDD < 0 ? "down" : "", `${all.currentDDPct.toFixed(2)} % sous le plus haut`),
+      tile("Drawdown actuel", money(all.currentDD), all.currentDD < 0 ? "down" : "", `${nb(all.currentDDPct, 2)} % sous le plus haut`),
       tile("Drawdown max (tout l'historique)", money(all.maxDD), all.maxDD < 0 ? "down" : "", ddSub(all.maxDDPct, all.troughT)));
   }
   let resizeT = null;
@@ -247,16 +248,16 @@
   // ---------------------------------------------------------------- statistiques (etape 2)
   function renderStats(acc, list) {
     const s = DC.accountStats(acc, list);
-    const pf = s.profitFactor === Infinity ? "∞" : s.profitFactor == null ? "–" : s.profitFactor.toFixed(2);
+    const pf = s.profitFactor === Infinity ? "∞" : s.profitFactor == null ? "–" : nb(s.profitFactor, 2);
     clear($("dbStats")).append(
       tile("Trades clôturés", String(s.n), "", `${pl(s.wins, "gagnant")} · ${pl(s.losses, "perdant")}`),
-      tile("Taux de réussite", s.winRate == null ? "–" : (s.winRate * 100).toFixed(0) + " %"),
+      tile("Taux de réussite", s.winRate == null ? "–" : nb(s.winRate * 100, 0) + " %"),
       tile("Gain moyen", money(s.avgWin, true), "up"),
       tile("Perte moyenne", money(s.avgLoss, true), "down"),
-      tile("Ratio gain/perte", s.payoffRatio == null ? "–" : s.payoffRatio.toFixed(2), "", "gain moyen ÷ perte moyenne"),
+      tile("Ratio gain/perte", s.payoffRatio == null ? "–" : nb(s.payoffRatio, 2), "", "gain moyen ÷ perte moyenne"),
       tile("Profit factor", pf, s.profitFactor > 1 ? "up" : s.profitFactor != null && s.profitFactor < 1 ? "down" : "", "total des gains ÷ total des pertes"),
       tile("Espérance par trade", money(s.expectancyUsd, true), cls(s.expectancyUsd), s.expectancyR != null ? `${fix(s.expectancyR, 2)} R` : "R inconnu (stop manquant)"),
-      tile("R moyen", fix(s.expectancyR, 2), cls(s.expectancyR), `gains ${fix(s.avgWinR, 2)} · pertes ${fix(s.avgLossR, 2)}`),
+      tile(["R moyen ", D.tip("r")], fix(s.expectancyR, 2), cls(s.expectancyR), `gains ${fix(s.avgWinR, 2)} · pertes ${fix(s.avgLossR, 2)}`),
       tile("Plus longue série de gains", pl(s.longestWin, "trade")),
       tile("Plus longue série de pertes", pl(s.longestLoss, "trade")));
   }
@@ -296,8 +297,8 @@
     const t = el("table", {}, el("thead", {}, el("tr", {}, ...["Clôture", "Symbole", "Sens", "Lots", "Net", "R"].map((h) => el("th", {}, h)))));
     const tb = el("tbody"); t.append(tb);
     items.forEach((x) => tb.append(el("tr", {},
-      el("td", { class: "mono" }, JC.fmtLocal(x.t.exitTime).slice(11)), el("td", {}, x.t.symbol), el("td", {}, x.t.side === "sell" ? "Vente" : "Achat"),
-      el("td", { class: "mono" }, x.t.lots != null ? String(x.t.lots) : "–"), el("td", { class: "mono " + cls(x.m.net) }, money(x.m.net, true)),
+      el("td", { class: "mono" }, JC.fmtLocal(x.t.exitTime).slice(11), el("small", { class: "utc" }, F.utc(x.t.exitTime))), el("td", {}, x.t.symbol), el("td", {}, x.t.side === "sell" ? "Vente" : "Achat"),
+      el("td", { class: "mono" }, x.t.lots != null ? nb(x.t.lots, 2) : "–"), el("td", { class: "mono " + cls(x.m.net) }, money(x.m.net, true)),
       el("td", { class: "mono " + cls(x.m.r) }, fix(x.m.r, 2)))));
     clear($("dbDayList")).append(el("div", { class: "scroll" }, t));
   }
@@ -316,7 +317,7 @@
     rows.forEach((g) => {
       const w = max > 0 ? Math.abs(g.net) / max * 50 : 0;
       tb.append(el("tr", {}, el("td", {}, g.key), el("td", { class: "mono" }, String(g.n)),
-        el("td", { class: "mono" }, g.winRate == null ? "–" : (g.winRate * 100).toFixed(0) + " %"),
+        el("td", { class: "mono" }, g.winRate == null ? "–" : nb(g.winRate * 100, 0) + " %"),
         el("td", { class: "mono " + cls(g.net) }, money(g.net, true)),
         el("td", { class: "barcell" }, el("div", { class: "nbar", "aria-hidden": "true" }, g.net ? bar(g.net > 0 ? "up" : "down", w) : null))));
     });
@@ -334,7 +335,7 @@
     const tb = clear($("cfTable").querySelector("tbody"));
     const flows = DC.flowsOf(acc).slice().reverse();
     flows.forEach((f) => tb.append(el("tr", {},
-      el("td", { class: "mono" }, JC.fmtLocal(f.t)), el("td", {}, f.type === "withdrawal" ? "Retrait" : "Dépôt"),
+      el("td", { class: "mono" }, JC.fmtLocal(f.t), el("small", { class: "utc" }, F.utc(f.t))), el("td", {}, f.type === "withdrawal" ? "Retrait" : "Dépôt"),
       el("td", { class: "mono " + (f.type === "withdrawal" ? "down" : "up") }, money(DC.signed(f), true)), el("td", { class: "wrap" }, f.note || ""),
       el("td", {}, el("button", { class: "btn ghost small", type: "button", onclick: async () => {
         if (!confirm("Supprimer ce mouvement ?")) return;

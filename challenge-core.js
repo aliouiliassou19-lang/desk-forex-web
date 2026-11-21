@@ -4,10 +4,13 @@
  */
 (function (root, factory) {
   const isNode = typeof module === "object" && module.exports;
-  const api = factory(isNode ? require("./journal-core.js") : root.JournalCore, isNode ? require("./analysis.js") : root.Analysis);
+  const api = factory(isNode ? require("./journal-core.js") : root.JournalCore, isNode ? require("./analysis.js") : root.Analysis,
+    isNode ? require("./fmt.js") : root.Fmt);
   if (isNode) module.exports = api; else root.ChallengeCore = api;
-})(typeof self !== "undefined" ? self : this, function (JC, A) {
+})(typeof self !== "undefined" ? self : this, function (JC, A, F) {
   "use strict";
+  const nb = (v, d) => F.num(v, d);                        // messages affiches : nombres au format francais
+  const frDay = (k) => k.split("-").reverse().join("/");     // "2026-11-17" -> "17/11/2026"
 
   const ACCOUNT_TYPES = { demo: "Démo", challenge: "Challenge", funded: "Compte financé", live: "Réel personnel" };
   const EMPTY_RULES = {
@@ -104,14 +107,14 @@
     if (on(r.dailyLossPct)) {
       Object.entries(days).forEach(([k, d]) => {
         const lim = dailyLimitFor(d);
-        if (d.worst <= -lim + 1e-9) violations.push({ rule: "Perte journalière maximale", detail: `${k} : perte de ${(-d.worst).toFixed(2)} pour une limite de ${lim.toFixed(2)}` });
+        if (d.worst <= -lim + 1e-9) violations.push({ rule: "Perte journalière maximale", detail: `${frDay(k)} : perte de ${nb(-d.worst, 2)} pour une limite de ${nb(lim, 2)}` });
       });
       const limit = dailyLimitFor(today);
       const pnlNow = today.net + (r.ddBasis === "equity" ? floatPnl : 0);
       const remain = limit + pnlNow;
       daily = { limit, todayPnl: pnlNow, remain, remainFrac: Math.max(0, Math.min(1, remain / limit)), level: level(Math.max(0, Math.min(1, remain / limit))) };
-      if (remain <= 0 && !violations.some((v) => v.rule === "Perte journalière maximale")) violations.push({ rule: "Perte journalière maximale", detail: `aujourd'hui : ${pnlNow.toFixed(2)} pour une limite de ${limit.toFixed(2)}` });
-      if (daily.remainFrac < 0.3 && remain > 0) alerts.push(`Perte journalière : il ne reste que ${remain.toFixed(2)} (${Math.round(daily.remainFrac * 100)} % de la marge).`);
+      if (remain <= 0 && !violations.some((v) => v.rule === "Perte journalière maximale")) violations.push({ rule: "Perte journalière maximale", detail: `aujourd'hui : ${nb(pnlNow, 2)} pour une limite de ${nb(limit, 2)}` });
+      if (daily.remainFrac < 0.3 && remain > 0) alerts.push(`Perte journalière : il ne reste que ${nb(remain, 2)} (${Math.round(daily.remainFrac * 100)} % de la marge).`);
     }
 
     // ----- drawdown maximal
@@ -121,9 +124,9 @@
       const remain = basisValue - floor;
       const frac = Math.max(0, Math.min(1, remain / ddAmount));
       dd = { floor, remain, remainFrac: frac, level: level(frac), mode: r.ddMode, basis: r.ddBasis, peak: peakAll };
-      if (ddBreach) violations.push({ rule: "Drawdown maximal", detail: `${JC.fmtLocal(ddBreach.t)} : ${ddBreach.value.toFixed(2)} sous le plancher de ${ddBreach.floor.toFixed(2)}` });
-      else if (remain <= 0) violations.push({ rule: "Drawdown maximal", detail: `valeur actuelle ${basisValue.toFixed(2)} sous le plancher de ${floor.toFixed(2)}` });
-      if (frac < 0.3 && remain > 0) alerts.push(`Drawdown : il ne reste que ${remain.toFixed(2)} avant le plancher de ${floor.toFixed(2)} (${Math.round(frac * 100)} % de la marge).`);
+      if (ddBreach) violations.push({ rule: "Drawdown maximal", detail: `${JC.fmtLocal(ddBreach.t)} : ${nb(ddBreach.value, 2)} sous le plancher de ${nb(ddBreach.floor, 2)}` });
+      else if (remain <= 0) violations.push({ rule: "Drawdown maximal", detail: `valeur actuelle ${nb(basisValue, 2)} sous le plancher de ${nb(floor, 2)}` });
+      if (frac < 0.3 && remain > 0) alerts.push(`Drawdown : il ne reste que ${nb(remain, 2)} avant le plancher de ${nb(floor, 2)} (${Math.round(frac * 100)} % de la marge).`);
     }
 
     // ----- objectif, jours, duree, consistance
@@ -141,9 +144,9 @@
     const targetReached = target != null && profit >= target - 1e-9;
     if (on(r.maxDays) && daysElapsed > r.maxDays && !(targetReached && daysOk && consistencyOk))
       violations.push({ rule: "Durée limite", detail: `${daysElapsed} jours écoulés pour une limite de ${r.maxDays}` });
-    if (target != null && !targetReached) pending.push(`Objectif : ${profit.toFixed(2)} sur ${target.toFixed(2)} (${Math.round((progress || 0) * 100)} %)`);
+    if (target != null && !targetReached) pending.push(`Objectif : ${nb(profit, 2)} sur ${nb(target, 2)} (${Math.round((progress || 0) * 100)} %)`);
     if (!daysOk) pending.push(`Jours de trading : ${tradingDays} sur ${r.minTradingDays} minimum`);
-    if (!consistencyOk) pending.push(`Consistance : le meilleur jour fait ${consistencyRatio.toFixed(0)} % du profit (maximum ${r.consistencyPct} %)`);
+    if (!consistencyOk) pending.push(`Consistance : le meilleur jour fait ${nb(consistencyRatio, 0)} % du profit (maximum ${r.consistencyPct} %)`);
 
     // ----- annonces
     const newsTrades = [];

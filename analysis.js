@@ -2,11 +2,13 @@
  * Code pur (aucun DOM, aucun reseau). LECTURE SEULE : aucun ordre, aucun conseil.
  */
 (function (root, factory) {
-  const api = factory();
-  if (typeof module === "object" && module.exports) module.exports = api;
+  const isNode = typeof module === "object" && module.exports;
+  const api = factory(isNode ? require("./fmt.js") : root.Fmt);
+  if (isNode) module.exports = api;
   else root.Analysis = api;
-})(typeof self !== "undefined" ? self : this, function () {
+})(typeof self !== "undefined" ? self : this, function (F) {
   "use strict";
+  const nb = (v, d) => F.num(v, d);                        // textes affiches : nombres au format francais
 
   // ------------------------------------------------------------------ paires
   // contract = unites par lot ; spread = ordre de grandeur en pips (a remplacer par celui du courtier)
@@ -188,14 +190,14 @@
     else bias = "Mixte (" + tfs.map((t) => `${t.tf} ${t.trend}`).join(", ") + ")";
     const notes = [];
     const stretch = D.atr ? (price - D.ema20) / D.atr : 0;
-    if (Math.abs(stretch) >= 2) notes.push(`Prix très étiré : ${stretch.toFixed(1)} ATR de l'EMA20 journalière.`);
+    if (Math.abs(stretch) >= 2) notes.push(`Prix très étiré : ${nb(stretch, 1)} ATR de l'EMA20 journalière.`);
     if (boll && price < boll.low) notes.push("Prix sous la bande de Bollinger basse (D1).");
     else if (boll && price > boll.high) notes.push("Prix au-dessus de la bande de Bollinger haute (D1).");
     const rsiRef = (H4 || tfs[tfs.length - 1]);
-    if (rsiRef.rsi != null && rsiRef.rsi < 30) notes.push(`RSI ${rsiRef.tf} en survente (${rsiRef.rsi.toFixed(0)}).`);
-    else if (rsiRef.rsi != null && rsiRef.rsi > 70) notes.push(`RSI ${rsiRef.tf} en surachat (${rsiRef.rsi.toFixed(0)}).`);
+    if (rsiRef.rsi != null && rsiRef.rsi < 30) notes.push(`RSI ${rsiRef.tf} en survente (${nb(rsiRef.rsi, 0)}).`);
+    else if (rsiRef.rsi != null && rsiRef.rsi > 70) notes.push(`RSI ${rsiRef.tf} en surachat (${nb(rsiRef.rsi, 0)}).`);
     const eff = D.eff || 0;
-    notes.push(`Régime journalier : ${eff >= 0.35 ? "tendance" : eff <= 0.2 ? "range" : "mixte"} (efficacité ${eff.toFixed(2)}).`);
+    notes.push(`Régime journalier : ${eff >= 0.35 ? "tendance" : eff <= 0.2 ? "range" : "mixte"} (efficacité ${nb(eff, 2)}).`);
     if (D.ema200 == null) notes.push("EMA200 journalière indisponible (historique trop court).");
     const ranges = [5, 20, 60].filter((n) => d1.length >= n).map((n) => {
       const w = d1.slice(-n), hi = Math.max(...w.map((b) => b.h)), lo = Math.min(...w.map((b) => b.l));
@@ -275,11 +277,11 @@
     let diff = null;
     if (ok(f.usdRate) && ok(f.eurRate)) {
       diff = f.usdRate.value - f.eurRate.value;
-      notes.push(`Écart de taux USD - EUR : ${diff >= 0 ? "+" : ""}${diff.toFixed(2)} point(s). ` +
+      notes.push(`Écart de taux USD - EUR : ${diff >= 0 ? "+" : ""}${nb(diff, 2)} point(s). ` +
         (Math.abs(diff) < 0.25 ? "Écart faible." : diff > 0 ? "Le dollar rémunère davantage (porte un avantage de portage)." : "L'euro rémunère davantage."));
     }
-    if (ok(f.usdCpi) && ok(f.usdRate)) notes.push(`Taux réel US approximatif : ${(f.usdRate.value - f.usdCpi.value).toFixed(2)} % (taux Fed - inflation sur 1 an).`);
-    if (ok(f.eurCpi) && ok(f.eurRate)) notes.push(`Taux réel zone euro approximatif : ${(f.eurRate.value - f.eurCpi.value).toFixed(2)} % (taux de dépôt - inflation sur 1 an).`);
+    if (ok(f.usdCpi) && ok(f.usdRate)) notes.push(`Taux réel US approximatif : ${nb(f.usdRate.value - f.usdCpi.value, 2)} % (taux Fed - inflation sur 1 an).`);
+    if (ok(f.eurCpi) && ok(f.eurRate)) notes.push(`Taux réel zone euro approximatif : ${nb(f.eurRate.value - f.eurCpi.value, 2)} % (taux de dépôt - inflation sur 1 an).`);
     if (ok(f.usdCpi) && f.usdCpi.value > 2.5) notes.push("Inflation US au-dessus de la cible de 2 % de la Fed.");
     if (ok(f.eurCpi) && f.eurCpi.value > 2.5) notes.push("Inflation zone euro au-dessus de la cible de 2 % de la BCE.");
     if (stale.length) notes.push("Données anciennes à vérifier : " + stale.join(", ") + ".");
@@ -354,18 +356,18 @@
       if (lots < minLot - 1e-12) {
         const r = minLot * effStop * pv;
         size = { lots: 0, riskUsd: r, riskPct: r / i.balance * 100, allowed: false };
-        add("NON", `Même ${minLot} lot risque ${r.toFixed(2)} $ (${(r / i.balance * 100).toFixed(2)} %), au-delà de ${i.riskPct} % du solde.`);
+        add("NON", `Même ${minLot} lot risque ${nb(r, 2)} $ (${nb(r / i.balance * 100, 2)} %), au-delà de ${i.riskPct} % du solde.`);
       } else {
         const r = lots * effStop * pv;
         size = { lots: +lots.toFixed(2), riskUsd: r, riskPct: r / i.balance * 100, allowed: true };
-        add("OK", `Taille ${lots.toFixed(2)} lot : risque ${r.toFixed(2)} $ (${(r / i.balance * 100).toFixed(2)} %), spread compris.`);
+        add("OK", `Taille ${nb(lots, 2)} lot : risque ${nb(r, 2)} $ (${nb(r / i.balance * 100, 2)} %), spread compris.`);
       }
     } else add("ATTENTION", "Valeur du pip inconnue : taille non calculée (conversion de devise nécessaire).");
     const bestRR = tgt.length ? Math.max(...tgt.map((t) => t.rrNet)) : null;
     if (bestRR == null) add("ATTENTION", "Aucun objectif défini.");
-    else if (bestRR < (i.minRR || 1.5)) add("ATTENTION", `Rapport gain/risque net ${bestRR.toFixed(2)} < ${i.minRR || 1.5}.`);
-    else add("OK", `Rapport gain/risque net jusqu'à ${bestRR.toFixed(2)}.`);
-    if (spread / stopPips > 0.2) add("ATTENTION", `Le spread représente ${(100 * spread / stopPips).toFixed(0)} % du stop : coût élevé.`);
+    else if (bestRR < (i.minRR || 1.5)) add("ATTENTION", `Rapport gain/risque net ${nb(bestRR, 2)} < ${i.minRR || 1.5}.`);
+    else add("OK", `Rapport gain/risque net jusqu'à ${nb(bestRR, 2)}.`);
+    if (spread / stopPips > 0.2) add("ATTENTION", `Le spread représente ${nb(100 * spread / stopPips, 0)} % du stop : coût élevé.`);
     if (i.atrH1 > 0 && stopPips * p.pip < 0.5 * i.atrH1) add("ATTENTION", "Stop plus serré qu'une demi-ATR H1 : risque d'être sorti par le bruit.");
     const s = sessionsAt(i.nowMs);
     if (s.weekend) add("NON", "Marché fermé (week-end).");
@@ -374,7 +376,7 @@
     const rel = new Set(i.pair.startsWith("XA") ? ["USD"] : [b, q]);
     const win = (i.windowHours || 4) * 3600000;
     (i.news || []).filter((e) => rel.has(e.currency) && e.timeMs >= i.nowMs - 1800000 && e.timeMs <= i.nowMs + win)
-      .forEach((e) => add("ATTENTION", `Annonce ${e.impact === "high" ? "forte " : ""}${e.currency} « ${e.event} » à ${new Date(e.timeMs).toISOString().slice(11, 16)} UTC.`));
+      .forEach((e) => add("ATTENTION", `Annonce ${e.impact === "high" ? "forte " : ""}${e.currency} « ${e.event} » à ${F.benin(e.timeMs)} (Bénin, ${F.utc(e.timeMs)}).`));
     const levels = new Set(checks.map((c) => c.level));
     const verdict = levels.has("NON") ? "NON" : levels.has("ATTENTION") ? "À REVOIR" : "OK";
     return { pair: i.pair, dir: i.dir, entry, stop, stopPips, spread, targets: tgt, size, checks, verdict };
@@ -427,20 +429,20 @@
       let usd = 0, eur = 0;
       if (ok(f.usdRate) && ok(f.eurRate)) {
         const d = f.usdRate.value - f.eurRate.value;
-        if (d > 0.25) { usd++; fundItems.push(`Taux : le dollar rapporte ${d.toFixed(2)} point de plus que l'euro (Fed ${f.usdRate.value.toFixed(2)} % contre BCE ${f.eurRate.value.toFixed(2)} %). Cet écart soutient en général le dollar face à l'euro.`); }
-        else if (d < -0.25) { eur++; fundItems.push(`Taux : l'euro rapporte ${(-d).toFixed(2)} point de plus que le dollar.`); }
+        if (d > 0.25) { usd++; fundItems.push(`Taux : le dollar rapporte ${nb(d, 2)} point de plus que l'euro (Fed ${nb(f.usdRate.value, 2)} % contre BCE ${nb(f.eurRate.value, 2)} %). Cet écart soutient en général le dollar face à l'euro.`); }
+        else if (d < -0.25) { eur++; fundItems.push(`Taux : l'euro rapporte ${nb(-d, 2)} point de plus que le dollar.`); }
         else fundItems.push("Taux : écart faible entre la Fed et la BCE ; pas d'avantage net de rendement.");
         if (ok(f.usdCpi) && ok(f.eurCpi)) {
           const ru = f.usdRate.value - f.usdCpi.value, re = f.eurRate.value - f.eurCpi.value;
           if (ru - re > 0.25) usd++; else if (re - ru > 0.25) eur++;
-          fundItems.push(`Taux réels (taux - inflation) : États-Unis ${ru.toFixed(2)} %, zone euro ${re.toFixed(2)} %${Math.abs(ru - re) <= 0.25 ? " : proches" : ru > re ? " : avantage au dollar" : " : avantage à l'euro"}.`);
+          fundItems.push(`Taux réels (taux - inflation) : États-Unis ${nb(ru, 2)} %, zone euro ${nb(re, 2)} %${Math.abs(ru - re) <= 0.25 ? " : proches" : ru > re ? " : avantage au dollar" : " : avantage à l'euro"}.`);
         }
       }
       if (ok(f.usdCpi)) fundItems.push(f.usdCpi.value > 2.5
-        ? `Inflation US à ${f.usdCpi.value.toFixed(1)} % (${f.usdCpi.date}), au-dessus de la cible de 2 % : la Fed a peu de marge pour baisser ses taux rapidement.`
-        : `Inflation US à ${f.usdCpi.value.toFixed(1)} % (${f.usdCpi.date}), proche de la cible : la Fed garde de la marge.`);
-      if (ok(f.eurCpi)) fundItems.push(`Inflation zone euro à ${f.eurCpi.value.toFixed(1)} % (${f.eurCpi.date})${ageDays(f.eurCpi.date, now) > 75 ? ", donnée ancienne : vérifie le dernier chiffre" : ""}.`);
-      if (ok(f.usdUnemp) && ok(f.eurUnemp)) fundItems.push(`Chômage : ${f.usdUnemp.value.toFixed(1)} % aux États-Unis, ${f.eurUnemp.value.toFixed(1)} % en zone euro.`);
+        ? `Inflation US à ${nb(f.usdCpi.value, 1)} % (${f.usdCpi.date}), au-dessus de la cible de 2 % : la Fed a peu de marge pour baisser ses taux rapidement.`
+        : `Inflation US à ${nb(f.usdCpi.value, 1)} % (${f.usdCpi.date}), proche de la cible : la Fed garde de la marge.`);
+      if (ok(f.eurCpi)) fundItems.push(`Inflation zone euro à ${nb(f.eurCpi.value, 1)} % (${f.eurCpi.date})${ageDays(f.eurCpi.date, now) > 75 ? ", donnée ancienne : vérifie le dernier chiffre" : ""}.`);
+      if (ok(f.usdUnemp) && ok(f.eurUnemp)) fundItems.push(`Chômage : ${nb(f.usdUnemp.value, 1)} % aux États-Unis, ${nb(f.eurUnemp.value, 1)} % en zone euro.`);
       const usdSide = pair === "EUR/USD" ? "baissier pour EUR/USD" : pair === "XAU/USD" ? "plutôt défavorable à l'or (dollar et taux réels)" : "favorable au dollar";
       const eurSide = pair === "EUR/USD" ? "haussier pour EUR/USD" : pair === "XAU/USD" ? "plutôt favorable à l'or" : "favorable à l'euro";
       fundItems.push(usd > eur ? `Bilan : contexte plutôt favorable au dollar (${usd} facteur(s) contre ${eur}), donc fond ${usdSide}.`
@@ -456,7 +458,7 @@
     const rel = new Set(pair.startsWith("XA") ? ["USD"] : [base, quote]);
     const today = (i.news || []).filter((e) => rel.has(e.currency) && e.timeMs >= now - 900000 && e.timeMs <= now + 86400000)
       .sort((a, b) => a.timeMs - b.timeMs);
-    const agenda = today.map((e) => `${new Date(e.timeMs).toISOString().slice(11, 16)} UTC : ${e.currency} ${e.event}${e.impact === "high" ? " (impact fort)" : ""}. Pas de nouvelle position de 15 min avant à 15 min après.`);
+    const agenda = today.map((e) => `${F.benin(e.timeMs)} (Bénin, ${F.utc(e.timeMs)}) : ${e.currency} ${e.event}${e.impact === "high" ? " (impact fort)" : ""}. Pas de nouvelle position de 15 min avant à 15 min après.`);
     if (!agenda.length) agenda.push("Aucune annonce enregistrée pour les 24 prochaines heures. Vérifie le calendrier (onglet Annonces) : une annonce oubliée est le piège le plus courant.");
     sec("Agenda des 24 prochaines heures", agenda);
     if (today.some((e) => e.impact === "high")) { out.caution = "élevée"; out.cautionWhy.push("annonce à impact fort dans les 24 h"); }
@@ -466,17 +468,17 @@
     if (t) {
       const D = t.tfs.find((x) => x.tf === "D1"), pip = t.pip, dec = t.dec;
       const items = [`Biais technique : ${t.bias}.`];
-      if (D && D.atrPips) items.push(`Amplitude habituelle d'une journée : environ ${D.atrPips.toFixed(0)} pips entre le plus haut et le plus bas (ATR sur 14 jours)${out.caution === "élevée" ? ", souvent davantage un jour d'annonce forte" : ""}. Ce n'est pas une direction.`);
+      if (D && D.atrPips) items.push(`Amplitude habituelle d'une journée : environ ${nb(D.atrPips, 0)} pips entre le plus haut et le plus bas (ATR sur 14 jours)${out.caution === "élevée" ? ", souvent davantage un jour d'annonce forte" : ""}. Ce n'est pas une direction.`);
       if (D && D.eff != null) items.push(D.eff >= 0.35 ? "Régime : tendance sur 20 jours. Lecture classique (non vérifiée ici) : les cassures de niveaux y tiennent mieux qu'en range."
         : D.eff <= 0.2 ? "Régime : range sur 20 jours. Lecture classique (non vérifiée ici) : les bords du couloir freinent souvent le prix." : "Régime : mixte, ni tendance nette ni range.");
-      if (Math.abs(t.stretchAtr || 0) >= 2) items.push(`Prix étiré (${t.stretchAtr.toFixed(1)} ATR de l'EMA20 journalière). Lecture classique (non vérifiée ici) : un retour vers la moyenne est possible, mais un prix étiré peut le rester longtemps.`);
+      if (Math.abs(t.stretchAtr || 0) >= 2) items.push(`Prix étiré (${nb(t.stretchAtr, 1)} ATR de l'EMA20 journalière). Lecture classique (non vérifiée ici) : un retour vers la moyenne est possible, mais un prix étiré peut le rester longtemps.`);
       sec("Technique et amplitude", items);
       const r1 = t.resistances[0], r2 = t.resistances[1], s1 = t.supports[0], s2 = t.supports[1];
-      const dist = (l) => `${(Math.abs(l.price - t.price) / pip).toFixed(0)} pips`;
+      const dist = (l) => `${nb(Math.abs(l.price - t.price) / pip, 0)} pips`;
       const sc = [];
-      if (r1) sc.push(`Si le prix dépasse ${r1.price.toFixed(dec)} (${r1.label}, à ${dist(r1)})${r2 ? `, la zone suivante est ${r2.price.toFixed(dec)} (${r2.label})` : ""}.`);
-      if (s1) sc.push(`S'il passe sous ${s1.price.toFixed(dec)} (${s1.label}, à ${dist(s1)})${s2 ? `, la zone suivante est ${s2.price.toFixed(dec)} (${s2.label})` : ""}.`);
-      if (r1 && s1) sc.push(`Entre ${s1.price.toFixed(dec)} et ${r1.price.toFixed(dec)} : couloir de ${((r1.price - s1.price) / pip).toFixed(0)} pips. Un WATCH au milieu du couloir a moins de sens qu'un mouvement qui le quitte.`);
+      if (r1) sc.push(`Si le prix dépasse ${nb(r1.price, dec)} (${r1.label}, à ${dist(r1)})${r2 ? `, la zone suivante est ${nb(r2.price, dec)} (${r2.label})` : ""}.`);
+      if (s1) sc.push(`S'il passe sous ${nb(s1.price, dec)} (${s1.label}, à ${dist(s1)})${s2 ? `, la zone suivante est ${nb(s2.price, dec)} (${s2.label})` : ""}.`);
+      if (r1 && s1) sc.push(`Entre ${nb(s1.price, dec)} et ${nb(r1.price, dec)} : couloir de ${nb((r1.price - s1.price) / pip, 0)} pips. Un WATCH au milieu du couloir a moins de sens qu'un mouvement qui le quitte.`);
       sc.push("Ces scénarios disent où regarder, pas ce qui va se passer. Attends la clôture d'une bougie au-delà du niveau plutôt qu'une simple mèche.");
       sec("Scénarios à surveiller (conditionnels)", sc);
     } else {

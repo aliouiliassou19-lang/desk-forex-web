@@ -10,8 +10,9 @@
   let editingId = null, templates = [];
   const alerted = new Set();          // alertes deja signalees pendant cette visite
 
-  const money = (v) => (v == null || !Number.isFinite(v) ? "–" : (v > 0 ? "+" : "") + v.toFixed(2));
-  const plain = (v) => (v == null || !Number.isFinite(v) ? "–" : v.toFixed(2));
+  const F = window.Fmt, nb = (v, d) => F.num(v, d);         // affichage francais : 1 234,56
+  const money = (v) => F.signed(v, 2);
+  const plain = (v) => F.num(v, 2);
   const opt = (v, l, sel) => { const o = el("option", { value: v }, l); if (sel) o.selected = true; return o; };
 
   // ---------------------------------------------------------------- initialisation
@@ -55,7 +56,7 @@
       if (ev.dd) gauges.append(gauge(`Marge drawdown ${ev.dd.mode === "trailing" ? "suiveur" : "statique"} sur ${ev.dd.basis === "equity" ? "l'équité" : "le solde"} (plancher ${plain(ev.dd.floor)})`,
         ev.dd.remainFrac, ev.dd.level, `reste ${plain(Math.max(0, ev.dd.remain))} · ${Math.round(ev.dd.remainFrac * 100)} %`));
       if (ev.rules.consistencyPct) gauges.append(el("p", { class: "small " + (ev.consistencyOk ? "" : "warnline") },
-        `Consistance : ${ev.consistencyRatio == null ? "pas encore de profit" : `meilleur jour = ${ev.consistencyRatio.toFixed(0)} % du profit`} (maximum ${ev.rules.consistencyPct} %) ${ev.consistencyOk ? "✓" : "✗"}`));
+        `Consistance : ${ev.consistencyRatio == null ? "pas encore de profit" : `meilleur jour = ${nb(ev.consistencyRatio, 0)} % du profit`} (maximum ${ev.rules.consistencyPct} %) ${ev.consistencyOk ? "✓" : "✗"}`));
       if (gauges.childNodes.length) card.append(gauges);
       const lists = el("div", {});
       ev.violations.forEach((v) => lists.append(el("p", { class: "err small" }, `Règle violée : ${v.rule} — ${v.detail}`)));
@@ -64,7 +65,7 @@
       ev.notes.forEach((x) => lists.append(el("p", { class: "muted small" }, x)));
       if (window.DashboardCore && (a.cashflows || []).length) {
         const net = window.DashboardCore.flowsOf(a).reduce((s, f) => s + window.DashboardCore.signed(f), 0);
-        lists.append(el("p", { class: "muted small" }, `Dépôts et retraits : ${net >= 0 ? "+" : ""}${net.toFixed(2)} au total. Ils sont comptés dans le solde du Dashboard ; les règles de challenge ci-dessus utilisent seulement les trades.`));
+        lists.append(el("p", { class: "muted small" }, `Dépôts et retraits : ${net >= 0 ? "+" : ""}${nb(net, 2)} au total. Ils sont comptés dans le solde du Dashboard ; les règles de challenge ci-dessus utilisent seulement les trades.`));
       }
       card.append(lists);
       card.append(el("div", { class: "row wrap" },
@@ -186,7 +187,7 @@
     const p = $("lmPair").value;
     $("lmSpread").placeholder = String(A.PAIRS[p].spread);
     const pv = A.pipValueUsd(p, null, null) || (p.startsWith("USD/") ? null : null);
-    $("lmPv").placeholder = pv ? `auto : ${pv.toFixed(2)}` : "à saisir";
+    $("lmPv").placeholder = pv ? `auto : ${nb(pv, 2)}` : "à saisir";
   }
   $("lmPair").addEventListener("change", autoPip);
   $("lmForm").addEventListener("submit", (e) => {
@@ -202,11 +203,11 @@
     if (ev.rules.maxRiskPerTradePct) limits.push({ name: `risque max ${ev.rules.maxRiskPerTradePct} % par trade`, amount: ev.balance * ev.rules.maxRiskPerTradePct / 100 });
     const r = C.maxLot({ stopPips: Number($("lmStop").value), spreadPips: $("lmSpread").value === "" ? A.PAIRS[p].spread : Number($("lmSpread").value), pipValue: pv, limits });
     if (r.error) { out.append(el("p", { class: "err" }, r.error === "stop (pips) et valeur du pip requis" && !pv ? "Valeur du pip à saisir pour cette paire (paire croisée ou cotée en autre devise que USD)." : r.error)); return; }
-    out.append(el("div", { class: "result" }, r.allowed ? el("b", { class: "mono" }, `${r.lots.toFixed(2)} lot maximum`) : el("b", { class: "down" }, "Aucun lot possible"),
-      r.allowed ? ` — perte au stop ${r.risk.toFixed(2)} (spread compris)` : ` — ${r.reason}`));
+    out.append(el("div", { class: "result" }, r.allowed ? el("b", { class: "mono" }, `${nb(r.lots, 2)} lot maximum`) : el("b", { class: "down" }, "Aucun lot possible"),
+      r.allowed ? ` — perte au stop ${nb(r.risk, 2)} (spread compris)` : ` — ${r.reason}`));
     const ul = el("ul", { class: "notes small" });
-    limits.forEach((l) => ul.append(el("li", { class: l.name === r.binding.name ? "warnline" : "" }, `${l.name} : ${l.amount.toFixed(2)}${l.name === r.binding.name ? " ← limite la plus serrée" : ""}`)));
-    out.append(ul, el("p", { class: "muted small" }, `Perte au stop pour 1 lot : ${r.perLot.toFixed(2)}. Arrondi vers le bas. Calcul papier : vérifie la taille de lot et la valeur du pip chez ton courtier.`));
+    limits.forEach((l) => ul.append(el("li", { class: l.name === r.binding.name ? "warnline" : "" }, `${l.name} : ${nb(l.amount, 2)}${l.name === r.binding.name ? " ← limite la plus serrée" : ""}`)));
+    out.append(ul, el("p", { class: "muted small" }, `Perte au stop pour 1 lot : ${nb(r.perLot, 2)}. Arrondi vers le bas. Calcul papier : vérifie la taille de lot et la valeur du pip chez ton courtier.`));
   });
 
   // ---------------------------------------------------------------- mises a jour

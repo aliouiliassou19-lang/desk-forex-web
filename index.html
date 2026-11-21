@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=39">
+  <link rel="stylesheet" href="style.css?v=44">
 </head>
 <body>
   <header class="top">
@@ -120,17 +120,17 @@
             <button id="clearLog" class="btn ghost small" type="button">Effacer</button>
           </div>
         </div>
-        <div class="scroll"><table id="logTable"><thead><tr><th>Heure UTC</th><th>Symbole</th><th>Prix</th><th>1 min</th><th>5 min</th><th>Marché</th><th>Décision</th><th>Raisons</th></tr></thead><tbody></tbody></table></div>
+        <div class="scroll"><table id="logTable"><thead><tr><th>Heure (Bénin)</th><th>Symbole</th><th>Prix</th><th>1 min (pips) <button type="button" class="tip" data-tip="pip"></button></th><th>5 min (pips)</th><th>Marché</th><th>Décision</th><th>Raisons</th></tr></thead><tbody></tbody></table></div>
         <div id="logEmpty" class="empty hidden"><p>Aucun relevé pour l'instant : les prix s'affichent ici pendant la surveillance.</p>
           <button id="logEmptyBtn" class="btn small" type="button">Démarrer la surveillance</button></div>
         <p class="muted small">Prix = clôture 1 min (milieu de marché), <b>pas ton prix d'exécution</b>. Chez un courtier tu achètes à l'ask et vends au bid. bid/ask non fournis : spread <b>supposé</b> (réglable).</p>
       </div>
 
       <details class="card" id="settingsCard">
-        <summary><h2 class="inline-h">Réglages</h2> <span class="muted small">pause des WATCH, pip de l'or, démo</span></summary>
+        <summary><h2 class="inline-h">Réglages</h2> <span class="muted small">pause « À surveiller », pip de l'or, démo</span></summary>
         <form id="setForm" class="formgrid" autocomplete="off">
-          <label>Pause WATCH EUR/USD (min)<input id="setCdEUR" type="number" min="0" max="240" step="1"></label>
-          <label>Pause WATCH XAU/USD (min)<input id="setCdXAU" type="number" min="0" max="240" step="1"></label>
+          <label>Pause « À surveiller » EUR/USD (min)<input id="setCdEUR" type="number" min="0" max="240" step="1"></label>
+          <label>Pause « À surveiller » XAU/USD (min)<input id="setCdXAU" type="number" min="0" max="240" step="1"></label>
           <label>Or : valeur d'un pip
             <select id="setXauPip">
               <option value="0.01">0,01 $ de prix</option>
@@ -142,7 +142,7 @@
           <div class="row"><button class="btn" type="submit">Enregistrer</button><button id="setReset" class="btn ghost" type="button">Par défaut</button></div>
         </form>
         <ul class="notes small muted">
-          <li><b>Pause WATCH</b> : après un WATCH, le même symbole ne redéclenche pas d'alerte (ni notification) pendant cette durée ; les relevés suivants sont notés « déjà signalé ». 0 = pas de pause.</li>
+          <li><b>Pause « À surveiller »</b> : après un « À surveiller », le même symbole ne redéclenche pas d'alerte (ni notification) pendant cette durée ; les relevés suivants sont notés « déjà signalé ». 0 = pas de pause.</li>
           <li><b>Pip de l'or</b> : 0,10 $ dans nos calculs par défaut (contrat de 100 oz : 10 $ par pip et par lot). Ton courtier peut utiliser 0,01 $ ou 1 $ : les seuils et spreads en $ restent les mêmes, seul le nombre de pips change.</li>
           <li><b>Départ de la démo</b> : vide = dernier prix réel connu (journal de cet appareil, ou 2 crédits si une clé est enregistrée), sinon une valeur par défaut.</li>
         </ul>
@@ -215,7 +215,7 @@
         <canvas id="dbCurve" class="chart" role="img" aria-label="Courbe du solde du compte"></canvas>
         <p id="dbCurveInfo" class="muted small chart-info">Passe le doigt ou la souris sur la courbe pour voir le détail.</p>
         <div id="dbCurveKpis" class="kpis flat"></div>
-        <h3>Drawdown</h3>
+        <h3>Drawdown <button type="button" class="tip" data-tip="drawdown"></button></h3>
         <canvas id="dbDD" class="chart dd-chart" role="img" aria-label="Courbe du drawdown"></canvas>
         <p class="muted small">Le drawdown est la baisse depuis le plus haut atteint par le solde. Seuls les trades comptent : un dépôt ou un retrait ne crée ni n'efface de drawdown. Sur une période, le plus haut de départ est le solde au début de cette période.</p>
       </div>
@@ -296,7 +296,7 @@
         </div>
         <div class="card"><h2>Lecture</h2><ul id="aNotes" class="notes"></ul></div>
         <div class="card"><h2>Unités de temps</h2>
-          <div class="scroll"><table id="aTfs"><thead><tr><th><abbr title="Unité de temps">UT</abbr></th><th>Tendance</th><th>RSI</th><th>ATR (pips)</th><th>Efficacité</th><th>EMA20</th><th>EMA50</th><th>EMA200</th></tr></thead><tbody></tbody></table></div>
+          <div class="scroll"><table id="aTfs"><thead><tr><th><abbr title="Unité de temps">UT</abbr></th><th>Tendance</th><th>RSI <button type="button" class="tip" data-tip="rsi"></button></th><th>ATR (pips) <button type="button" class="tip" data-tip="atr"></button></th><th>Efficacité</th><th>EMA20 <button type="button" class="tip" data-tip="ema"></button></th><th>EMA50</th><th>EMA200</th></tr></thead><tbody></tbody></table></div>
         </div>
         <div class="grid2">
           <div class="card"><h2>Résistances</h2><div id="aRes" class="levels"></div></div>
@@ -399,10 +399,10 @@
           <label>Entrée<input id="pEntry" type="number" step="any" required></label>
           <label>Stop (prix)<input id="pStop" type="number" step="any" placeholder="ou multiple d'ATR"></label>
           <label>Stop en ATR H1<input id="pStopAtr" type="number" step="0.1" min="0" value="1.5"></label>
-          <label>ATR H1 (prix)<input id="pAtr" type="number" step="any" placeholder="rempli par l'analyse"></label>
+          <label class="has-tip">ATR H1 (prix)<input id="pAtr" aria-label="ATR H1 (prix)" type="number" step="any" placeholder="rempli par l'analyse"><button type="button" class="tip" data-tip="atr"></button></label>
           <label>Objectifs (R)<input id="pRR" type="text" value="1.5 2 3"></label>
           <label>Objectif (prix)<input id="pTarget" type="number" step="any"></label>
-          <label>Spread (pips)<input id="pSpread" type="number" step="0.1" min="0"></label>
+          <label class="has-tip">Spread (pips)<input id="pSpread" aria-label="Spread (pips)" type="number" step="0.1" min="0"><button type="button" class="tip" data-tip="spread"></button></label>
           <label>Solde ($)<input id="pBal" type="number" step="0.01" min="0" value="68"></label>
           <label>Risque max (%)<input id="pRisk" type="number" step="0.1" min="0.1" value="2"></label>
           <label>Valeur du pip / lot ($)<input id="pPv" type="number" step="any"></label>
@@ -438,9 +438,9 @@
           <label>Symbole<select id="sSym"><option>EUR/USD</option><option>XAU/USD</option></select></label>
           <label>Solde ($)<input id="sBal" type="number" step="0.01" min="0" value="68"></label>
           <label>Risque max (%)<input id="sRisk" type="number" step="0.1" min="0.1" max="10" value="2"></label>
-          <label>Stop (pips)<input id="sStop" type="number" step="0.1" min="0" value="13"></label>
+          <label class="has-tip">Stop (pips)<input id="sStop" aria-label="Stop (pips)" type="number" step="0.1" min="0" value="13"><button type="button" class="tip" data-tip="pip"></button></label>
           <label>Valeur du pip par lot ($)<input id="sPv" type="number" step="0.01" min="0" value="10"></label>
-          <label>Lot minimal<input id="sMin" type="number" step="0.01" min="0.01" value="0.01"></label>
+          <label class="has-tip">Lot minimal<input id="sMin" aria-label="Lot minimal" type="number" step="0.01" min="0.01" value="0.01"><button type="button" class="tip" data-tip="lot"></button></label>
         </form>
         <div id="sizeOut" class="result"></div>
         <p class="warnline small">Levier : 0,01 lot d'EUR/USD ≈ 1 000 € de position. Un stop non respecté ou un écart d'ouverture peut faire perdre bien plus que prévu.</p>
@@ -451,10 +451,10 @@
     <section id="tab-news" class="tab hidden">
       <div class="card">
         <h2>Annonces économiques</h2>
-        <p class="muted">Le moniteur rejette (REJECT) les 15 minutes avant et après chaque annonce. Ajoute celles de la semaine (NFP, Fed, BCE, CPI…) depuis un calendrier, par exemple
+        <p class="muted">Le Moniteur refuse les signaux (« Refusé ») 15 minutes avant et après chaque annonce. Ajoute celles de la semaine (NFP, Fed, BCE, CPI…) depuis un calendrier, par exemple
           <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer">ForexFactory</a>. L'heure se saisit dans <b>ton heure locale</b> ; elle est enregistrée en UTC.</p>
         <form id="newsForm" class="formgrid" autocomplete="off">
-          <label>Date et heure (locale)<input id="nDate" type="datetime-local" required></label>
+          <label>Date et heure (Bénin)<input id="nDate" type="datetime-local" required></label>
           <label>Devise<select id="nCcy"><option>USD</option><option>EUR</option></select></label>
           <label>Annonce<input id="nEvent" type="text" maxlength="80" placeholder="ex. NFP" required></label>
           <label>Impact<select id="nImpact"><option value="high">fort</option><option value="medium">moyen</option></select></label>
@@ -463,7 +463,7 @@
       </div>
       <div class="card">
         <h2>À venir</h2>
-        <div class="scroll"><table id="newsTable"><thead><tr><th>Heure locale</th><th>UTC</th><th>Devise</th><th>Annonce</th><th>Impact</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+        <div class="scroll"><table id="newsTable"><thead><tr><th>Heure (Bénin)</th><th>Devise</th><th>Annonce</th><th>Impact</th><th>Action</th></tr></thead><tbody></tbody></table></div>
         <div id="newsEmpty" class="empty"><p>Aucune annonce enregistrée. Ajoute les annonces fortes de la semaine (NFP, CPI, banques centrales) : le Moniteur refuse les signaux autour.</p>
           <button class="btn small" type="button" data-focus="nDate">+ Ajouter une annonce</button></div>
       </div>
@@ -516,7 +516,7 @@
                 <label>Statut<select id="jfStatus"></select></label>
                 <label>Symbole<select id="jfSymbol" class="pairsel"></select></label>
                 <label>Sens<select id="jfSide"><option value="buy">achat</option><option value="sell">vente</option></select></label>
-                <label>Lots<input id="jfLots" type="number" step="0.01" min="0"></label>
+                <label class="has-tip">Lots<input id="jfLots" aria-label="Lots" type="number" step="0.01" min="0"><button type="button" class="tip" data-tip="lot"></button></label>
                 <label>Entrée (heure du Bénin)<input id="jfEntryTime" type="datetime-local"></label>
                 <label>Sortie (heure du Bénin)<input id="jfExitTime" type="datetime-local"></label>
                 <label>Prix d'entrée<input id="jfEntry" type="number" step="any"></label>
@@ -560,7 +560,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="scroll"><table id="jList"><thead><tr><th>Entrée (Bénin)</th><th>Symbole</th><th>Sens</th><th>Statut</th><th>Lots</th><th>Pips</th><th>Net $</th><th>R</th><th>Setup</th><th>Session</th><th>Qualité</th><th>Plan</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+          <div class="scroll"><table id="jList"><thead><tr><th>Entrée (Bénin)</th><th>Symbole</th><th>Sens</th><th>Statut</th><th>Lots <button type="button" class="tip" data-tip="lot"></button></th><th>Pips <button type="button" class="tip" data-tip="pip"></button></th><th>Net $</th><th>R <button type="button" class="tip" data-tip="r"></button></th><th>Setup</th><th>Session</th><th>Qualité</th><th>Plan</th><th>Action</th></tr></thead><tbody></tbody></table></div>
           <div id="jEmpty" class="empty"><p>Aucun trade à afficher (journal vide ou filtres trop stricts). Pour découvrir le journal, tu peux charger un exemple fictif.</p>
             <div class="row wrap"><button class="btn small" type="button" data-click="jNew">+ Nouveau trade</button><button class="btn ghost small" type="button" data-click="demoLoad">Charger l'exemple</button></div></div>
         </div>
@@ -571,7 +571,7 @@
         <div id="sKpis" class="kpis"></div>
         <div class="grid2">
           <div class="card"><h2>Courbe d'équité</h2><canvas id="sEquity" class="chart small-chart" role="img" aria-label="Courbe d'équité"></canvas></div>
-          <div class="card"><h2>Drawdown</h2><canvas id="sDD" class="chart small-chart" role="img" aria-label="Courbe de drawdown"></canvas></div>
+          <div class="card"><h2>Drawdown <button type="button" class="tip" data-tip="drawdown"></button></h2><canvas id="sDD" class="chart small-chart" role="img" aria-label="Courbe de drawdown"></canvas></div>
         </div>
         <div class="card">
           <div class="row between wrap"><h2>Calendrier</h2>
@@ -777,7 +777,7 @@
           <li>Crée ta clé gratuite Twelve Data et colle-la dans l'onglet Moniteur.</li>
           <li>Remplis les annonces de la semaine (onglet Annonces).</li>
           <li>Démarre la surveillance pendant une session ouverte (Londres ou New York), page ouverte.</li>
-          <li>Un <b>WATCH</b> veut dire « regarde ici » : jamais « achète » ni « vends ».</li>
+          <li><b>« À surveiller »</b> veut dire « regarde ici » : jamais « achète » ni « vends ».</li>
           <li>Note chaque trade (ou importe-le depuis MT5) dans le <b>Journal</b>, puis fais ta revue chaque semaine.</li>
         </ol>
         <p class="muted small">Pour tout découvrir sans compte : Journal → Réglages → <b>Charger l'exemple</b> (données fictives, supprimables en un clic).</p>
@@ -789,7 +789,7 @@
           <li><b>Fondamental</b> : taux directeurs, inflation et chômage aux États-Unis et en zone euro (sources officielles datées), écart de taux, tes annonces, liens vers les banques centrales et l'actualité.</li>
           <li><b>Synthèse</b> : lecture automatique du jour (contexte, agenda, amplitude habituelle, scénarios conditionnels, prudence). Pas de prédiction de direction.</li>
           <li><b>Plan</b> : plan de trade avec verdict OK / À REVOIR / NON, pré-test d'une idée, taille de position.</li>
-          <li><b>Annonces</b> : fenêtres d'annonces (REJECT 15 min avant et après).</li>
+          <li><b>Annonces</b> : fenêtres d'annonces (« Refusé » 15 min avant et après).</li>
           <li><b>Journal</b> : fiche complète de chaque trade (heures UTC et Bénin, risque, pips, R, coûts, session, setup, checklist, qualité, émotions, erreurs, capture), statistiques filtrables (équité, drawdown, calendrier, par setup / session / jour / heure, coût des erreurs, plan vs hors plan), revue de la semaine, exports CSV et JSON, rapport imprimable.</li>
           <li><b>Comptes</b> : plusieurs comptes (démo, challenge, financé), règles de challenge que tu saisis, jauges, statut, alertes, lot maximum autorisé, modèles de règles, import MT5.</li>
           <li><b>Dashboard</b> : évolution d'un compte (solde, profit du jour, de la semaine et du mois, statistiques, courbe, drawdown, calendrier, répartitions, règles prop firm, dépôts et retraits, sauvegarde).</li>
@@ -847,10 +847,10 @@
         </ul>
         <h3>Décisions</h3>
         <ul>
-          <li><b>WATCH</b> : mouvement brusque sur 5 min (≥ 15 pips EUR/USD, ≥ 3 $ sur l'or), données fraîches, marché ouvert, aucune annonce proche. Aucune direction ni profit implicite.</li>
-          <li><b>REJECT</b> : marché fermé, annonce à moins de 15 min, spread trop large, ou prix trop éloigné du taux de référence de la BCE (EUR/USD).</li>
-          <li><b>DATA_MISSING</b> : prix absent, donnée périmée (&gt; 3 min) pendant les heures d'ouverture, quota atteint, erreur réseau. Une valeur manquante n'est jamais un zéro.</li>
-          <li><b>Pause WATCH</b> : un même mouvement ne déclenche qu'un WATCH ; pendant la pause (10 min par défaut, réglable par paire dans Moniteur → Réglages), les relevés suivants sont notés « déjà signalé ».</li>
+          <li><b>À surveiller</b> (code WATCH) : mouvement brusque sur 5 min (≥ 15 pips EUR/USD, ≥ 3 $ sur l'or), données fraîches, marché ouvert, aucune annonce proche. Aucune direction ni profit implicite.</li>
+          <li><b>Refusé</b> (code REJECT) : marché fermé, annonce à moins de 15 min, spread trop large, ou prix trop éloigné du taux de référence de la BCE (EUR/USD).</li>
+          <li><b>Données manquantes</b> (code DATA_MISSING) : prix absent, donnée périmée (&gt; 3 min) pendant les heures d'ouverture, quota atteint, erreur réseau. Une valeur manquante n'est jamais un zéro.</li>
+          <li><b>Pause « À surveiller »</b> : un même mouvement ne déclenche qu'une alerte ; pendant la pause (10 min par défaut, réglable par paire dans Moniteur → Réglages), les relevés suivants sont notés « déjà signalé ».</li>
           <li><b>Pip</b> : EUR/USD 1 pip = 0,0001 (10 $ par lot standard). <b>Or : 1 pip = 0,10 $ de prix dans nos calculs</b> (10 $ par lot de 100 oz), réglable car il varie selon le courtier.</li>
         </ul>
         <h3>Limites</h3>
@@ -912,18 +912,19 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=39"></script>
-  <script src="analysis.js?v=39"></script>
-  <script src="mt5-core.js?v=39"></script>
-  <script src="journal-core.js?v=39"></script>
-  <script src="challenge-core.js?v=39"></script>
-  <script src="dashboard-core.js?v=39"></script>
-  <script src="db.js?v=39"></script>
-  <script src="app.js?v=39"></script>
-  <script src="journal.js?v=39"></script>
-  <script src="accounts.js?v=39"></script>
-  <script src="mt5-import.js?v=39"></script>
-  <script src="dashboard.js?v=39"></script>
-  <script src="desk.js?v=39"></script>
+  <script src="fmt.js?v=44"></script>
+  <script src="rules.js?v=44"></script>
+  <script src="analysis.js?v=44"></script>
+  <script src="mt5-core.js?v=44"></script>
+  <script src="journal-core.js?v=44"></script>
+  <script src="challenge-core.js?v=44"></script>
+  <script src="dashboard-core.js?v=44"></script>
+  <script src="db.js?v=44"></script>
+  <script src="app.js?v=44"></script>
+  <script src="journal.js?v=44"></script>
+  <script src="accounts.js?v=44"></script>
+  <script src="mt5-import.js?v=44"></script>
+  <script src="dashboard.js?v=44"></script>
+  <script src="desk.js?v=44"></script>
 </body>
 </html>

@@ -33,7 +33,7 @@ test("perte journaliere : violation sur le pire moment de la journee", () => {
   const r = run(trades, { dailyLossPct: 5 });                       // limite 500 (5 % du solde initial)
   assert.equal(r.status, "RÈGLE VIOLÉE");
   assert.equal(r.violations[0].rule, "Perte journalière maximale");
-  assert.match(r.violations[0].detail, /2026-11-17 : perte de 550\.00/);
+  assert.match(r.violations[0].detail, /17\/11\/2026 : perte de 550,00 pour une limite de 500,00/);
   // base "debut de journee" : 5 % de 10 600 = 530 -> toujours violee (550)
   assert.equal(run(trades, { dailyLossPct: 5, dailyBase: "dayStart" }).status, "RÈGLE VIOLÉE");
   assert.equal(run(trades, { dailyLossPct: 6 }).status, "EN COURS");   // limite 600
@@ -45,7 +45,7 @@ test("marge journaliere du jour, jauge et alerte sous 30 %", () => {
   assert.equal(r.daily.level, "warn"); assert.equal(r.alerts.length, 0);
   const r2 = run([tr("2026-11-20T09:00:00Z", -300), tr("2026-11-20T10:00:00Z", -100)], { dailyLossPct: 5 });
   near(r2.daily.remainFrac, 0.2); assert.equal(r2.daily.level, "danger");
-  assert.match(r2.alerts[0], /Perte journalière : il ne reste que 100\.00/);
+  assert.match(r2.alerts[0], /Perte journalière : il ne reste que 100,00/);
   // un gain du jour augmente la marge (mesuree depuis le debut de journee)
   near(run([tr("2026-11-20T09:00:00Z", 200)], { dailyLossPct: 5 }).daily.remain, 700);
 });
@@ -56,7 +56,7 @@ test("drawdown statique, suiveur, suiveur arrete au solde initial", () => {
   assert.equal(s.status, "EN COURS"); near(s.dd.floor, 9000); near(s.dd.remain, 1400);
   const t = run(trades, { maxDDPct: 10, ddMode: "trailing" });
   assert.equal(t.status, "RÈGLE VIOLÉE"); assert.equal(t.violations[0].rule, "Drawdown maximal");
-  assert.match(t.violations[0].detail, /sous le plancher de 10500\.00/);
+  assert.match(t.violations[0].detail, /sous le plancher de 10\s500,00/);
   const l = run(trades, { maxDDPct: 10, ddMode: "trailing", trailLock: true });
   assert.equal(l.status, "EN COURS"); near(l.dd.floor, 10000); near(l.dd.remain, 400);
 });
@@ -66,7 +66,7 @@ test("drawdown sur l'equite : valeur saisie plus recente que le dernier trade", 
   const snap = { equitySnapshots: [{ t: T("2026-11-20T08:00:00Z"), equity: 9200, balance: 9500 }] };
   const e = run(trades, { maxDDPct: 10, ddBasis: "equity" }, {}, snap);
   near(e.equity, 9200); near(e.dd.remain, 200); assert.equal(e.dd.level, "danger");
-  assert.match(e.alerts[0], /Drawdown : il ne reste que 200\.00/);
+  assert.match(e.alerts[0], /Drawdown : il ne reste que 200,00 avant le plancher de 9\s000,00/);
   const b = run(trades, { maxDDPct: 10, ddBasis: "balance" }, {}, snap);
   near(b.dd.remain, 500); assert.equal(b.dd.level, "ok");
   const old = run(trades, { maxDDPct: 10, ddBasis: "equity" }, {}, { equitySnapshots: [{ t: T("2026-11-18T08:00:00Z"), equity: 9900 }] });

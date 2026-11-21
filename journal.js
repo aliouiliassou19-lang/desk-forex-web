@@ -16,9 +16,10 @@
   let calY = nowL.y, calM = nowL.m, reviewWeek = JC.weekStart(Date.now());
 
   // ---------------------------------------------------------------- formats
-  const money = (v) => (v == null || !Number.isFinite(v) ? "–" : (v > 0 ? "+" : "") + v.toFixed(2) + " $");
-  const fix = (v, d = 1) => (v == null || !Number.isFinite(v) ? "–" : (v > 0 ? "+" : "") + v.toFixed(d));
-  const pct = (v, d = 0) => (v == null || !Number.isFinite(v) ? "–" : (v * 100).toFixed(d) + " %");
+  const F = window.Fmt, nb = (v, d) => F.num(v, d);         // affichage francais : 1 234,56
+  const money = (v) => F.money(v, true);
+  const fix = (v, d = 1) => F.signed(v, d);
+  const pct = (v, d = 0) => (v == null || !Number.isFinite(v) ? "–" : F.pct(v * 100, d));
   const cls = (v) => (v > 0 ? "up" : v < 0 ? "down" : "");
   const opt = (v, label, sel) => { const o = el("option", { value: v }, label == null ? v : label); if (sel) o.selected = true; return o; };
   const fillSelect = (s, items, value, first) => {
@@ -73,12 +74,12 @@
 
   // ---------------------------------------------------------------- listes et filtres
   function renderStatic() {
-    fillSelect($("jfStatus"), JC.STATUSES, "CLOSED");
+    fillSelect($("jfStatus"), JC.STATUSES.map((s) => ({ v: s, l: F.status(s) })), "CLOSED");
     fillSelect($("jfSymbol"), PAIRS, "EUR/USD");
     fillSelect($("jfTfA"), JC.TIMEFRAMES, "", "–");
     fillSelect($("jfTfE"), JC.TIMEFRAMES, "", "–");
     fillSelect($("fSession"), JC.SESSIONS, "", "Toutes les sessions");
-    fillSelect($("fStatus"), JC.STATUSES, "", "Tous les statuts");
+    fillSelect($("fStatus"), JC.STATUSES.map((s) => ({ v: s, l: F.status(s) })), "", "Tous les statuts");
     fillSelect($("fSymbol"), PAIRS, "", "Tous les symboles");
     renderPrefsForm();
   }
@@ -133,10 +134,10 @@
     const tb = clear($("jList").querySelector("tbody"));
     list.forEach(({ t, m }) => {
       const tr = el("tr", { class: "tap", title: "Ouvrir la fiche" },
-        el("td", { class: "mono" }, t.entryTime ? JC.fmtLocal(t.entryTime) : "–"), el("td", {}, t.symbol),
+        el("td", { class: "mono" }, t.entryTime ? [JC.fmtLocal(t.entryTime), el("small", { class: "utc" }, F.utc(t.entryTime))] : "–"), el("td", {}, t.symbol),
         el("td", {}, t.side === "sell" ? "vente" : "achat"),
-        el("td", {}, el("span", { class: "pill " + statusCls(t.status) }, t.status)),
-        el("td", { class: "mono" }, t.lots != null ? t.lots : "–"),
+        el("td", {}, el("span", { class: "pill " + statusCls(t.status) }, F.status(t.status))),
+        el("td", { class: "mono" }, t.lots != null ? nb(t.lots, 2) : "–"),
         el("td", { class: "mono " + cls(m.pips) }, fix(m.pips)),
         el("td", { class: "mono " + cls(m.net) }, money(m.net)),
         el("td", { class: "mono " + cls(m.r) }, fix(m.r, 2)),
@@ -166,7 +167,7 @@
   }
   function fillForm(t) {
     fillSelect($("jfAccount"), accounts.map((a) => ({ v: a.id, l: a.name })), t.accountId || accounts[0].id);
-    fillSelect($("jfStatus"), JC.STATUSES, t.status || "CLOSED");
+    fillSelect($("jfStatus"), JC.STATUSES.map((s) => ({ v: s, l: F.status(s) })), t.status || "CLOSED");
     fillSelect($("jfSymbol"), PAIRS, t.symbol || "EUR/USD");
     $("jfSide").value = t.side === "sell" ? "sell" : "buy";
     const set = (id, v) => ($(id).value = v == null ? "" : v);
@@ -214,12 +215,12 @@
   function preview() {
     const t = collect(), m = metricsFor(t);
     const auto = A.pipValueUsd(t.symbol, t.entry, null);
-    $("jfPipValue").placeholder = auto ? `auto : ${auto.toFixed(2)}` : "à saisir (paire croisée)";
+    $("jfPipValue").placeholder = auto ? `auto : ${nb(auto, 2)}` : "à saisir (paire croisée)";
     const box = clear($("jfPreview"));
     const kv = (label, value, c) => el("div", { class: "kvbox" }, el("span", {}, label), el("b", { class: "mono " + (c || "") }, value));
     box.append(el("div", { class: "grid3" },
-      kv("Risque", m.riskUsd != null ? `${m.riskUsd.toFixed(2)} $ (${m.riskPct != null ? m.riskPct.toFixed(2) : "?"} %)` : "–"),
-      kv("Stop / objectif", `${m.slPips != null ? m.slPips.toFixed(1) : "–"} p / ${m.tpPips != null ? m.tpPips.toFixed(1) : "–"} p${m.plannedRR != null ? " (R " + m.plannedRR.toFixed(2) + ")" : ""}`),
+      kv("Risque", m.riskUsd != null ? `${nb(m.riskUsd, 2)} $ (${m.riskPct != null ? nb(m.riskPct, 2) : "?"} %)` : "–"),
+      kv("Stop / objectif", `${m.slPips != null ? nb(m.slPips, 1) : "–"} p / ${m.tpPips != null ? nb(m.tpPips, 1) : "–"} p${m.plannedRR != null ? " (R " + nb(m.plannedRR, 2) + ")" : ""}`),
       kv("Résultat", `${fix(m.pips)} p · ${money(m.net != null ? m.net : m.gross)}${m.r != null ? " · " + fix(m.r, 2) + " R" : ""}`, cls(m.net != null ? m.net : m.gross)),
       kv("Durée", JC.fmtDuration(m.durationMs) || "–"),
       kv("Session · jour", m.session ? `${m.session} · ${m.weekday}` : "–"),
@@ -291,7 +292,7 @@
   function kpis(box, s, extra) {
     clear(box);
     const tile = (label, value, c, sub) => el("div", { class: "kpi" }, el("span", {}, label), el("b", { class: "mono " + (c || "") }, value), sub ? el("small", {}, sub) : null);
-    const pf = s.profitFactor === Infinity ? "∞" : s.profitFactor == null ? "–" : s.profitFactor.toFixed(2);
+    const pf = s.profitFactor === Infinity ? "∞" : s.profitFactor == null ? "–" : nb(s.profitFactor, 2);
     const pl = (n, w) => `${n} ${w}${n > 1 ? "s" : ""}`;
     [tile("Trades clôturés", String(s.n), "", `${pl(s.wins, "gagnant")} · ${pl(s.losses, "perdant")}`),
       tile("Taux de réussite", pct(s.winRate)),
@@ -300,7 +301,7 @@
       tile("R moyen gains / pertes", `${fix(s.avgWinR, 2)} / ${fix(s.avgLossR, 2)}`),
       tile("Espérance par trade", `${money(s.expectancyUsd)}`, cls(s.expectancyUsd), s.expectancyR != null ? `${fix(s.expectancyR, 2)} R (sur ${s.rCount} trades avec risque connu)` : "R inconnu"),
       tile("Profit factor", pf, s.profitFactor > 1 ? "up" : s.profitFactor != null && s.profitFactor < 1 ? "down" : ""),
-      tile("Drawdown max", money(s.maxDD), s.maxDD < 0 ? "down" : "", `${s.maxDDPct.toFixed(1)} %`),
+      tile("Drawdown max", money(s.maxDD), s.maxDD < 0 ? "down" : "", `${nb(s.maxDDPct, 1)} %`),
       tile("Plus longues séries", `${pl(s.longestWin, "gain")} · ${pl(s.longestLoss, "perte")}`),
       tile("Respect du plan", pct(s.plan.rate), "", `${s.plan.known} trade(s) avec checklist`),
       ...(extra || [])].forEach((x) => box.append(x));
@@ -355,8 +356,8 @@
     const f = filter(false), list = JC.filterTrades(enriched, f), s = JC.stats(list, startBalanceFor(f.accountId));
     kpis($("sKpis"), s);
     const css = getComputedStyle(document.documentElement);
-    lineChart($("sEquity"), s.curve.map((p) => p.equity), { color: css.getPropertyValue("--accent").trim(), fmt: (v) => v.toFixed(0) + " $", base: s.curve[0].equity });
-    lineChart($("sDD"), s.curve.map((p) => p.ddPct), { color: css.getPropertyValue("--reject").trim(), fmt: (v) => v.toFixed(1) + " %", zeroTop: true, fill: true, fillTo: 0 });
+    lineChart($("sEquity"), s.curve.map((p) => p.equity), { color: css.getPropertyValue("--accent").trim(), fmt: (v) => nb(v, 0) + " $", base: s.curve[0].equity });
+    lineChart($("sDD"), s.curve.map((p) => p.ddPct), { color: css.getPropertyValue("--reject").trim(), fmt: (v) => nb(v, 1) + " %", zeroTop: true, fill: true, fillTo: 0 });
     renderCalendar(list);
     const put = (id, node) => { clear($(id)).append(node); };
     put("sBySetup", groupTable(s.bySetup, "Setup")); put("sBySession", groupTable(s.bySession, "Session"));
@@ -393,7 +394,7 @@
       el("p", {}, `Édité le ${JC.fmtLocal(Date.now())} (heure du Bénin). Période : ${$("fPeriod").selectedOptions[0].textContent}. ` +
         `Filtres : ${[f.symbol, f.setup, f.session, f.accountId && (accounts.find((a) => a.id === f.accountId) || {}).name].filter(Boolean).join(", ") || "aucun"}.`),
       el("p", {}, `Trades clôturés : ${s.n} · réussite ${pct(s.winRate)} · net ${money(s.net)} · espérance ${money(s.expectancyUsd)} (${fix(s.expectancyR, 2)} R) · ` +
-        `profit factor ${s.profitFactor === Infinity ? "∞" : s.profitFactor == null ? "–" : s.profitFactor.toFixed(2)} · drawdown max ${money(s.maxDD)} (${s.maxDDPct.toFixed(1)} %) · ` +
+        `profit factor ${s.profitFactor === Infinity ? "∞" : s.profitFactor == null ? "–" : nb(s.profitFactor, 2)} · drawdown max ${money(s.maxDD)} (${nb(s.maxDDPct, 1)} %) · ` +
         `respect du plan ${pct(s.plan.rate)}.`),
       el("h2", {}, "Par setup"), groupTable(s.bySetup, "Setup"), el("h2", {}, "Par session"), groupTable(s.bySession, "Session"),
       el("h2", {}, "Coût des erreurs"), s.errorCost.length ? groupTable(s.errorCost.map((e) => ({ key: e.key, n: e.n, winRate: null, net: e.net, avgR: e.avgR })), "Erreur") : el("p", {}, "Aucune."),

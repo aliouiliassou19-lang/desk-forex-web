@@ -9,12 +9,12 @@
     const now = new Date();
     const utc = document.createElement("span");
     utc.className = "clock-utc"; utc.textContent = " · " + now.toISOString().slice(11, 16) + " UTC";   // cache sur telephone
-    c.textContent = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    c.textContent = window.Fmt ? window.Fmt.benin(now.getTime()) : now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
     c.append(utc);
     c.setAttribute("datetime", now.toISOString());
   }
   clockTick(); setInterval(clockTick, 10000);
-  const R = window.Rules;
+  const R = window.Rules, F = window.Fmt, JC = window.JournalCore;
   // cfg est modifie sur place quand l'utilisateur change ses reglages (desk.js garde la meme reference)
   const cfg = {};
   function applySettings(s) {
@@ -66,7 +66,9 @@
     return n;
   }
   const clear = (n) => { while (n.firstChild) n.removeChild(n.firstChild); return n; };
-  const fmtLocal = (ms) => new Date(ms).toLocaleString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const fmtLocal = (ms) => F.benin(ms, { date: true });                      // heure du Benin (UTC+1)
+  /** Cellule d'heure : heure du Benin, et l'heure UTC en petit dessous. */
+  const timeCell = (ms, opt) => [F.benin(ms, opt || { date: true }), el("small", { class: "utc" }, F.utc(ms))];
   const fmtUtc = (ms) => R.isoUtc(ms).slice(0, 16).replace("T", " ");
   function toast(msg, ms = 4000) {
     const t = $("toast"); t.textContent = msg; t.classList.remove("hidden");
@@ -191,7 +193,7 @@
     const tb = clear($("newsTable").querySelector("tbody"));
     const up = news.filter((e) => e.timeMs >= Date.now() - 15 * 60000);
     up.forEach((e) => tb.append(el("tr", {},
-      el("td", {}, fmtLocal(e.timeMs)), el("td", { class: "mono" }, fmtUtc(e.timeMs)), el("td", {}, e.currency),
+      el("td", { class: "mono" }, timeCell(e.timeMs)), el("td", {}, e.currency),
       el("td", {}, e.event), el("td", {}, e.impact === "high" ? "fort" : e.impact === "medium" ? "moyen" : e.impact),
       el("td", {}, el("button", { class: "btn ghost small", type: "button", "aria-label": "Supprimer", onclick: () => {
         news = news.filter((n) => n !== e); saveNews(); renderNews(); } }, "Supprimer")))));
@@ -200,11 +202,11 @@
   }
   $("newsForm").addEventListener("submit", (e) => {
     e.preventDefault();
-    const t = new Date($("nDate").value).getTime();
+    const t = JC.parseLocalInput($("nDate").value);            // saisie en heure du Benin
     const ev = $("nEvent").value.trim();
     if (!Number.isFinite(t) || !ev) { toast("Date ou nom d'annonce manquant."); return; }
     addNews([{ timeMs: t, currency: $("nCcy").value, event: ev, impact: $("nImpact").value }]);
-    $("nEvent").value = ""; toast("Annonce ajoutée (" + fmtUtc(t) + " UTC).");
+    $("nEvent").value = ""; toast("Annonce ajoutée : " + F.both(t, { date: true }) + ".");
   });
   $("newsImport").addEventListener("click", () => {
     const { events, errors } = R.parseNewsCsv($("newsCsv").value);
@@ -248,8 +250,8 @@
   }
   function onWatch(r) {
     // la pause par paire est appliquee par le moteur (rules.js) : chaque WATCH ici est un nouveau mouvement
-    const msg = `WATCH ${r.symbol} ${r.price} : ${r.change_5m_pips} pips en 5 min. À examiner, pas un signal.`;
-    toast(msg, 8000); notify("WATCH " + r.symbol + (mon.mode === "demo" ? " (démo)" : ""), msg);
+    const msg = `À surveiller : ${r.symbol} ${F.fromText(r.price)}, ${F.fromText(r.change_5m_pips)} pips en 5 min. À examiner, pas un signal.`;
+    toast(msg, 8000); notify("À surveiller : " + r.symbol + (mon.mode === "demo" ? " (démo)" : ""), msg);
   }
   function notify(title, body) {
     try { if ("Notification" in window && Notification.permission === "granted") new Notification(title, { body, icon: "icon.svg", tag: title }); } catch (e) { /* */ }
@@ -353,7 +355,7 @@
     priceHooks.forEach((fn) => { try { fn(prices, t); } catch (e) { /* un module ne bloque pas la surveillance */ } });
     const future = obs.some((o) => o.sourceMs && o.sourceMs - t > 120000);
     setStatus(future ? "Attention : l'horloge de ton appareil semble en retard (données marquées périmées). Règle l'heure automatique."
-      : `Dernier relevé ${R.isoUtc(t).slice(11, 19)} UTC · prochain dans ${cfg.intervalSeconds} s · fin à ${new Date(mon.endAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}. Garde la page ouverte.`);
+      : `Dernier relevé ${F.both(t)} · prochain dans ${cfg.intervalSeconds} s · fin à ${F.benin(mon.endAt)} (Bénin). Garde la page ouverte.`);
     schedule(sid, t0);
   }
   function schedule(sid, t0) {
@@ -362,7 +364,7 @@
   function summary() {
     const c = { WATCH: 0, REJECT: 0, DATA_MISSING: 0, NO_ALERT: 0 };
     mon.rows.forEach((r) => c[r.decision]++);
-    return `${mon.rows.length} lignes : WATCH ${c.WATCH}, REJECT ${c.REJECT}, manquantes ${c.DATA_MISSING}.`;
+    return `${mon.rows.length} lignes : à surveiller ${c.WATCH}, refusés ${c.REJECT}, données manquantes ${c.DATA_MISSING}.`;
   }
 
   // ----- demo synthetique
@@ -393,7 +395,7 @@
     const start = Date.parse("2026-11-18T13:00:00Z");
     const feed = R.SyntheticFeed(cfg, 42, Object.fromEntries(Object.entries(starts).map(([s, v]) => [s, v.price])));
     $("demoBanner").textContent = "Données de démo : prix SIMULÉS, aucun prix réel. Départ : " +
-      SYMS.map((s) => `${s} ${starts[s].price.toFixed(cfg.symbols[s].decimals)} (${starts[s].source})`).join(", ") +
+      SYMS.map((s) => `${s} ${F.num(starts[s].price, cfg.symbols[s].decimals)} (${starts[s].source})`).join(", ") +
       ". Un mouvement brusque, une donnée périmée et une donnée manquante sont injectés exprès.";
     const demoNews = [{ timeMs: Date.parse("2026-11-18T13:40:00Z"), currency: "USD", event: "EXEMPLE_SYNTHETIQUE_CPI", impact: "high" }];
     // controle BCE synthetique aligne sur le prix de depart (sinon faux "prix trop eloigne")
@@ -404,7 +406,7 @@
       if (i >= 30) return stopMonitor("Démo terminée (30 minutes simulées). " + summary());
       const t = start + i * 60000;
       addRows(feed.step(i, t).map((o) => R.evaluate(mon.engine, o, t, cfg, demoNews, controls, { mode: "demo" })));
-      setStatus(`DÉMO : minute simulée ${i + 1}/30 (${R.isoUtc(t).slice(11, 16)} UTC). Données SYNTHÉTIQUES.`);
+      setStatus(`Données de démo : minute simulée ${i + 1}/30, ${F.both(t)}. Prix simulés.`);
       i++; mon.timer = setTimeout(step, 600);
     };
     step();
@@ -419,14 +421,14 @@
       const dir = (v) => (v && v.startsWith("+") ? "up" : v && v.startsWith("-") ? "down" : "");
       box.append(el("div", { class: "card sym" },
         el("div", { class: "head" }, el("span", { class: "name" }, s),
-          r ? el("span", { class: "pill " + r.decision }, r.decision) : el("span", { class: "pill off" }, "en attente")),
-        el("div", { class: "price mono" }, r ? r.price : "–"),
-        el("div", { class: "muted small" }, r ? `${r.source === "SYNTHETIC" ? "SYNTHÉTIQUE · " : ""}${r.fetched_at_utc.slice(11, 16)} UTC · ${r.market_status === "OPEN" ? "marché ouvert" : "marché fermé"}` : "Aucun relevé"),
+          r ? el("span", { class: "pill " + r.decision }, F.status(r.decision)) : el("span", { class: "pill off" }, "en attente")),
+        el("div", { class: "price mono" }, r ? F.fromText(r.price) : "–"),
+        el("div", { class: "muted small" }, r ? `${r.source === "SYNTHETIC" ? "SIMULÉ · " : ""}${F.both(Date.parse(r.fetched_at_utc))} · ${r.market_status === "OPEN" ? "marché ouvert" : "marché fermé"}` : "Aucun relevé"),
         el("div", { class: "kv" },
-          el("div", {}, el("span", {}, "1 min"), el("b", { class: "mono " + dir(r && r.change_1m_pips) }, r ? r.change_1m_pips + (r.change_1m_pips === "N/A" ? "" : " p") : "–")),
-          el("div", {}, el("span", {}, "5 min"), el("b", { class: "mono " + dir(r && r.change_5m_pips) }, r ? r.change_5m_pips + (r.change_5m_pips === "N/A" ? "" : " p") : "–")),
-          el("div", {}, el("span", {}, "Spread"), el("b", { class: "mono" }, r ? r.spread_pips + " p" : "–"), r && r.spread_status === "ASSUMED" ? el("span", {}, "supposé") : null)),
-        el("div", { class: "small" }, r && r.reasons ? reasonsFr(r.reasons) : (r ? "Aucune alerte." : "")),
+          el("div", {}, el("span", {}, "1 min (pips) ", tip("pip")), el("b", { class: "mono " + dir(r && r.change_1m_pips) }, r ? F.fromText(r.change_1m_pips) : "–")),
+          el("div", {}, el("span", {}, "5 min (pips)"), el("b", { class: "mono " + dir(r && r.change_5m_pips) }, r ? F.fromText(r.change_5m_pips) : "–")),
+          el("div", {}, el("span", {}, "Spread ", tip("spread")), el("b", { class: "mono" }, r ? F.fromText(r.spread_pips) + " pips" : "–"), r && r.spread_status === "ASSUMED" ? el("span", {}, "supposé") : null)),
+        el("div", { class: "small" }, r && r.reasons ? reasonsFr(r.reasons) : (r ? "Rien à signaler." : "")),
         r && r.news_proximity !== "NONE" ? el("div", { class: "small warnline" }, "Annonce : " + r.news_proximity) : null,
         el("div", { class: "pipnote" }, pipLabel(s))));
     });
@@ -470,10 +472,10 @@
     $("logEmpty").classList.toggle("hidden", rows.length > 0);
     $("logTable").parentElement.classList.toggle("hidden", !rows.length);
     rows.forEach((r) => tb.append(el("tr", {},
-      el("td", { class: "mono" }, r.fetched_at_utc.slice(5, 16).replace("T", " ")), el("td", {}, r.symbol),
-      el("td", { class: "mono" }, r.price), el("td", { class: "mono" }, r.change_1m_pips), el("td", { class: "mono" }, r.change_5m_pips),
+      el("td", { class: "mono" }, timeCell(Date.parse(r.fetched_at_utc))), el("td", {}, r.symbol),
+      el("td", { class: "mono" }, F.fromText(r.price)), el("td", { class: "mono" }, F.fromText(r.change_1m_pips)), el("td", { class: "mono" }, F.fromText(r.change_5m_pips)),
       el("td", {}, r.market_status === "OPEN" ? "ouvert" : "fermé"),
-      el("td", {}, el("span", { class: "pill " + r.decision }, r.decision)), el("td", { class: "wrap" }, reasonsFr(r.reasons)))));
+      el("td", {}, el("span", { class: "pill " + r.decision }, F.status(r.decision))), el("td", { class: "wrap" }, reasonsFr(r.reasons)))));
   }
   function download(name, text) {
     const a = el("a", { href: URL.createObjectURL(new Blob(["﻿" + text], { type: "text/csv;charset=utf-8" })), download: name });
@@ -498,11 +500,49 @@
     const out = clear($("sizeOut"));
     const maxRisk = Number($("sBal").value) * Number($("sRisk").value) / 100;
     if (r.reason === "INVALID_INPUT") out.append("Complète le solde, le risque, le stop et la valeur du pip.");
-    else if (!r.allowed) out.append(el("span", { class: "err" }, `Refusé : même ${$("sMin").value} lot risque ${r.riskUsd} $ (${r.riskPct} %), au-delà de ${maxRisk.toFixed(2)} $. Stop trop large pour ce solde.`));
-    else out.append(el("b", { class: "mono" }, r.lots.toFixed(2) + " lot"), ` sur ${sym} · risque ${r.riskUsd.toFixed(2)} $ (${r.riskPct} % du solde, max ${maxRisk.toFixed(2)} $)`);
+    else if (!r.allowed) out.append(el("span", { class: "err" }, `Refusé : même ${F.num($("sMin").value, 2)} lot risque ${F.money(r.riskUsd)} (${F.pct(r.riskPct)}), au-delà de ${F.money(maxRisk)}. Stop trop large pour ce solde.`));
+    else out.append(el("b", { class: "mono" }, F.num(r.lots, 2) + " lot"), ` sur ${sym} · risque ${F.money(r.riskUsd)} (${F.pct(r.riskPct)} du solde, max ${F.money(maxRisk)})`);
   }
   ["sSym", "sBal", "sRisk", "sStop", "sPv", "sMin"].forEach((id) => $(id).addEventListener("input", renderSize));
   $("sSym").addEventListener("change", () => { $("sPv").value = cfg.symbols[$("sSym").value].pipValuePerLot; renderSize(); });
+
+  // ---------------------------------------------------------------- icones ⓘ (lexique dans fmt.js)
+  const tipBox = el("div", { id: "tipBox", class: "tipbox hidden", role: "tooltip", "aria-live": "polite" });
+  document.body.append(tipBox);
+  let tipOwner = null;
+  function prepTip(b) {
+    const g = F.GLOSSARY[b.dataset.tip];
+    if (!g || b.dataset.ready) return b;
+    b.dataset.ready = "1"; b.type = "button"; b.classList.add("tip"); b.textContent = "ⓘ";
+    b.setAttribute("aria-label", "Explication : " + g[0]); b.setAttribute("aria-expanded", "false"); b.setAttribute("aria-controls", "tipBox");
+    return b;
+  }
+  /** Bouton ⓘ pour un terme du lexique (contenu cree en JavaScript). */
+  function tip(key) { return prepTip(el("button", { type: "button", class: "tip", "data-tip": key })); }
+  function hideTip() {
+    if (!tipOwner) return;
+    tipOwner.setAttribute("aria-expanded", "false"); tipOwner.removeAttribute("aria-describedby");
+    tipBox.classList.add("hidden"); tipOwner = null;
+  }
+  function showTip(b) {
+    const g = F.GLOSSARY[b.dataset.tip]; if (!g) return;
+    if (tipOwner === b) return hideTip();
+    hideTip();
+    clear(tipBox).append(el("b", {}, g[0]), " : ", g[1]);
+    tipBox.classList.remove("hidden");
+    const r = b.getBoundingClientRect(), w = tipBox.offsetWidth, h = tipBox.offsetHeight;
+    tipBox.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + "px";
+    tipBox.style.top = (r.bottom + 8 + h < window.innerHeight ? r.bottom + 8 : Math.max(8, r.top - h - 8)) + "px";
+    b.setAttribute("aria-expanded", "true"); b.setAttribute("aria-describedby", "tipBox"); tipOwner = b;
+  }
+  document.querySelectorAll("button[data-tip]").forEach(prepTip);
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-tip]");
+    if (b) { e.preventDefault(); e.stopPropagation(); prepTip(b); showTip(b); return; }
+    if (!e.target.closest("#tipBox")) hideTip();
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && tipOwner) { const b = tipOwner; hideTip(); b.focus(); } });
+  window.addEventListener("scroll", hideTip, { passive: true }); window.addEventListener("resize", hideTip);
 
   // ---------------------------------------------------------------- outils partages avec desk.js et journal.js
   const priceHooks = [];
@@ -510,7 +550,7 @@
     cfg, store, getKey, credits, fetchJson, toast, notify, el, clear, showTab, renderCredits, download,
     getNews: () => news.slice(),
     onPrices: (fn) => priceHooks.push(fn),
-    fmtUtc, fmtLocal,
+    fmtUtc, fmtLocal, timeCell, tip,
   };
 
   // ---------------------------------------------------------------- demarrage

@@ -352,3 +352,18 @@ dialog.welcome::backdrop { background: rgba(15, 23, 42, .55); }
 .w-nav .btn { min-height: 44px; }
 #wNext { margin-left: auto; }
 #wKey { flex: 1 1 200px; }
+
+/* ---------- langage simple : icones ⓘ, heure UTC en petit */
+.tip {
+  border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 1em; line-height: 1; font-weight: 700;
+  min-width: 28px; min-height: 28px; padding: 0 4px; border-radius: 999px; cursor: help; vertical-align: middle;
+}
+.tip:hover, .tip[aria-expanded="true"] { background: var(--surface2); }
+th .tip { min-width: 24px; min-height: 24px; }
+label.has-tip { position: relative; }
+label.has-tip > .tip { position: absolute; top: -6px; right: 0; }
+.tipbox {
+  position: fixed; z-index: 40; max-width: min(320px, calc(100vw - 16px)); background: var(--text); color: var(--bg);
+  padding: 10px 12px; border-radius: 10px; font-size: 0.875rem; line-height: 1.45; box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+}
+.utc { display: block; font-size: 0.75rem; color: var(--muted); font-weight: 400; }

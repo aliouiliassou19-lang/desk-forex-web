@@ -161,7 +161,7 @@ test("regles prop firm : OK, ATTENTION, ECHEC, EN COURS et non reglee", () => {
   near(st(res, "target").used, 100 / 800); assert.equal(res.status, "EN COURS"); assert.equal(res.active, true);
   // perte de 550 le 17 : ECHEC, meme vu le 19 (la limite a ete franchie un jour passe)
   res = DB.propRules(pa, JC.enrich(base.concat([P("p5", "2026-11-17T16:00:00Z", -250), P("p4", "2026-11-19T10:00:00Z", 100)]), [pa], 2), T("2026-11-19T15:00:00Z"));
-  assert.equal(st(res, "daily").status, "fail"); assert.ok(st(res, "daily").fails[0].includes("2026-11-17"));
+  assert.equal(st(res, "daily").status, "fail"); assert.ok(st(res, "daily").fails[0].includes("17/11/2026"));
   assert.equal(res.status, "RÈGLE VIOLÉE");
   // perte totale : le solde passe sous le plancher de 9000 -> ECHEC
   res = DB.propRules(Object.assign({}, pa, { rules: { maxDDPct: 10 } }), JC.enrich([P("x", "2026-11-18T10:00:00Z", -1200)], [pa], 2), T("2026-11-19T15:00:00Z"));
