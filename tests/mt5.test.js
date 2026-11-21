@@ -60,6 +60,28 @@ test("rapport MT5 : seules les positions sont lues, colonnes vides conservees", 
   assert.equal(xl.positions[0].closeTime, T("2026-11-18T16:00:00Z"));
 });
 
+test("CSV : separateur, guillemets, format francais (virgules decimales, dates JJ/MM/AAAA)", () => {
+  const fr = '﻿Compte :;51234567 (USD, Broker-Demo, demo)\r\n' +
+    'Heure;Position;Symbole;Type;Volume;Prix;S / L;T / P;Heure;Prix;Commission;Swap;Profit\r\n' +
+    '18/11/2026 16:30:05;1001;EURUSD;buy;0,10;1,08500;1,08370;;18/11/2026 18:02:41;1,08700;-0,70;0,00;20,00\r\n' +
+    '19/11/2026 10:00;1002;"XAUUSD";sell;0,01;"3 530,00";;;19/11/2026 11:15;"3 533,00";0;-0,20;-3,00\r\n';
+  const rows = M.parseCsv(fr);
+  assert.equal(rows.length, 4);
+  assert.equal(rows[2][7], "");                                // T/P vide conserve
+  const r = M.parseReportRows(rows, 2);
+  assert.equal(r.login, "51234567");
+  assert.equal(r.positions.length, 2);
+  const [p1, p2] = r.positions;
+  assert.deepEqual([p1.volume, p1.openPrice, p1.sl, p1.tp, p1.commission, p1.profit], [0.1, 1.085, 1.0837, null, 0.7, 20]);
+  assert.equal(p1.openTime, T("2026-11-18T14:30:05Z"));
+  assert.deepEqual([p2.openPrice, p2.closePrice, p2.swap], [3530, 3533, -0.2]);
+  assert.equal(p2.openTime, T("2026-11-19T08:00:00Z"));
+  // CSV anglais (virgule, point decimal) et guillemets doubles echappes
+  const en = M.parseCsv('a,"b ""c""",d\n2026.11.18 16:30:05,1001,EURUSD\n');
+  assert.deepEqual(en[0], ["a", 'b "c"', "d"]);
+  assert.equal(M.parseMt5Time("18.11.2026 16:30", 0), T("2026-11-18T16:30:00Z"));
+});
+
 test("vers le journal : nouveaux trades, symboles ignores, calculs du journal", () => {
   const r = M.parseReportRows(ROWS, 2);
   const out = M.toTrades(r, "acc1", [], 1000);

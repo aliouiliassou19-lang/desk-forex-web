@@ -109,6 +109,15 @@
     return best;
   }
 
+  // ---------------------------------------------------------------- lecture d'un CSV (rapport reenregistre depuis Excel)
+  async function readCsv(file) {
+    const buf = await file.arrayBuffer(), b = new Uint8Array(buf);
+    const utf16 = (b[0] === 0xff && b[1] === 0xfe) || (b.length > 4 && b[1] === 0 && b[3] === 0);
+    let text = new TextDecoder(utf16 ? "utf-16le" : "utf-8").decode(buf);
+    if (!utf16 && text.includes("�")) text = new TextDecoder("windows-1252").decode(buf);   // CSV Excel en ANSI
+    return M.parseReportRows(M.parseCsv(text), Number($("mtOffset").value) || 0);
+  }
+
   // ---------------------------------------------------------------- lecture du rapport Excel (.xlsx) sans bibliotheque
   async function unzip(buf, wanted) {
     const dv = new DataView(buf);
@@ -162,7 +171,7 @@
     if (file.size > 30 * 1024 * 1024) { toast("Fichier trop gros (30 Mo maximum)."); return; }
     conn.offset = Number($("mtOffset").value) || 0; saveConn();
     try {
-      const norm = /\.xlsx$/i.test(file.name) ? await readXlsx(file) : await readHtml(file);
+      const norm = /\.xlsx$/i.test(file.name) ? await readXlsx(file) : /\.csv$/i.test(file.name) ? await readCsv(file) : await readHtml(file);
       norm.serverOffsetHours = conn.offset;
       await applyImport(norm, "Rapport MT5");
     } catch (err) { clear($("mtOut")).append(el("p", { class: "err" }, "Lecture impossible : " + err.message)); }

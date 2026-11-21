@@ -28,11 +28,39 @@
   }
   /** "2026.11.18 15:30:12" (heure du serveur MT5) -> ms UTC, avec le decalage du serveur en heures. */
   function parseMt5Time(s, offsetHours) {
-    const m = /^(\d{4})[.\-/](\d{2})[.\-/](\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/.exec(String(s || "").trim());
-    if (!m) return null;
-    return Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)) - (Number(offsetHours) || 0) * 3600000;
+    const str = String(s || "").trim(), off = (Number(offsetHours) || 0) * 3600000;
+    let m = /^(\d{4})[.\-/](\d{2})[.\-/](\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(str);
+    if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)) - off;
+    m = /^(\d{1,2})[./](\d{1,2})[./](\d{4})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(str);   // JJ/MM/AAAA (Excel en francais)
+    if (m) return Date.UTC(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +(m[6] || 0)) - off;
+    return null;
   }
-  const isTime = (s) => /^\d{4}[.\-/]\d{2}[.\-/]\d{2}[ T]\d{2}:\d{2}/.test(String(s || "").trim());
+  const isTime = (s) => /^(\d{4}[.\-/]\d{2}[.\-/]\d{2}|\d{1,2}[./]\d{1,2}[./]\d{4})[ T]\d{1,2}:\d{2}/.test(String(s || "").trim());
+
+  /** Texte CSV -> lignes de cellules (separateur ; , ou tabulation detecte, guillemets geres). */
+  function parseCsv(text) {
+    const src = String(text || "").replace(/^﻿/, "");
+    const firstLines = src.split(/\r?\n/).slice(0, 30).join("\n");
+    const count = (ch) => (firstLines.match(new RegExp(ch === "\t" ? "\\t" : "\\" + ch, "g")) || []).length;
+    const sep = [";", "\t", ","].sort((a, b) => count(b) - count(a))[0];
+    const rows = [];
+    let row = [], cell = "", q = false;
+    for (let i = 0; i < src.length; i++) {
+      const c = src[i];
+      if (q) {
+        if (c === '"' && src[i + 1] === '"') { cell += '"'; i++; }
+        else if (c === '"') q = false;
+        else cell += c;
+      } else if (c === '"') q = true;
+      else if (c === sep) { row.push(cell); cell = ""; }
+      else if (c === "\n" || c === "\r") {
+        if (c === "\r" && src[i + 1] === "\n") i++;
+        row.push(cell); rows.push(row); row = []; cell = "";
+      } else cell += c;
+    }
+    if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter((r) => r.some((x) => String(x).trim() !== ""));
+  }
   /** Date Excel (nombre de jours depuis le 30/12/1899) -> "AAAA.MM.JJ HH:MM:SS" ; autre valeur inchangee. */
   function fromExcelSerial(v) {
     const n = Number(String(v).trim());
@@ -131,5 +159,5 @@
   /** Compte du site lie a ce login MT5, sinon null. */
   const accountForLogin = (accounts, login) => (login ? (accounts || []).find((a) => String(a.mt5Login || "") === String(login)) || null : null);
 
-  return { mapSymbol, num, parseMt5Time, parseReportRows, normalizeExport, toTrades, accountForLogin };
+  return { mapSymbol, num, parseMt5Time, parseCsv, parseReportRows, normalizeExport, toTrades, accountForLogin };
 });

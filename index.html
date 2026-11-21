@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=17">
+  <link rel="stylesheet" href="style.css?v=19">
 </head>
 <body>
   <header class="top">
@@ -29,6 +29,7 @@
 
   <nav class="tabs" aria-label="Sections">
     <button data-tab="monitor" class="active">Moniteur</button>
+    <button data-tab="dash">Dashboard</button>
     <button data-tab="analyse">Analyse</button>
     <button data-tab="fund">Fondamental</button>
     <button data-tab="brief">Synthèse</button>
@@ -139,6 +140,36 @@
         </form>
         <div class="scroll"><table id="alTable"><thead><tr><th>Paire</th><th>Condition</th><th>Prix</th><th>Note</th><th>État</th><th></th></tr></thead><tbody></tbody></table></div>
         <div class="row"><button id="alCheck" class="btn ghost small" type="button">Vérifier maintenant</button><span id="alMsg" class="muted small"></span></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== DASHBOARD -->
+    <section id="tab-dash" class="tab hidden">
+      <div class="card">
+        <div class="row between wrap">
+          <h2>Dashboard</h2>
+          <select id="dbAccount" aria-label="Compte"></select>
+        </div>
+        <p class="muted small">Évolution de ton compte, calculée à partir du <b>journal</b> (un seul journal pour tout le site) et de tes dépôts et retraits. Lecture seule : aucun ordre n'est passé.</p>
+        <div id="dbSummary" class="grid3"></div>
+        <div class="row wrap">
+          <button id="dbAddTrade" class="btn" type="button">+ Ajouter un trade</button>
+          <button id="dbImport" class="btn ghost" type="button">Importer l'historique MT5</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Dépôts et retraits</h2>
+        <p class="muted small">Un dépôt ou un retrait change le <b>solde</b>, mais n'est pas un gain ni une perte : il n'entre ni dans le P&amp;L, ni dans les statistiques, ni dans le drawdown.</p>
+        <form id="cfForm" class="formgrid" autocomplete="off">
+          <label>Type<select id="cfType"><option value="deposit">Dépôt</option><option value="withdrawal">Retrait</option></select></label>
+          <label>Montant ($)<input id="cfAmount" type="number" step="0.01" min="0.01" required></label>
+          <label>Date (heure du Bénin)<input id="cfDate" type="datetime-local" required></label>
+          <label class="span2">Note<input id="cfNote" type="text" maxlength="120" placeholder="ex. virement, retrait de gains"></label>
+          <button class="btn" type="submit">Ajouter</button>
+        </form>
+        <div class="scroll"><table id="cfTable"><thead><tr><th>Date (Bénin)</th><th>Type</th><th>Montant</th><th>Note</th><th></th></tr></thead><tbody></tbody></table></div>
+        <p id="cfEmpty" class="muted small">Aucun dépôt ni retrait pour ce compte.</p>
       </div>
     </section>
 
@@ -600,7 +631,7 @@
           <p class="small">Dans MT5 : <b>Boîte à outils → Historique → clic droit → Rapport → HTML</b> (ou Open XML). Puis choisis le fichier :</p>
           <div class="formgrid">
             <label>Décalage horaire du serveur MT5 (heures)<input id="mtOffset" type="number" step="1" min="-12" max="14" value="2"></label>
-            <label class="btn ghost filebtn">Choisir le rapport (.html, .xlsx)<input id="mtReport" type="file" accept=".html,.htm,.xlsx,text/html"></label>
+            <label class="btn ghost filebtn">Choisir le rapport (.html, .xlsx, .csv)<input id="mtReport" type="file" accept=".html,.htm,.xlsx,.csv,text/html,text/csv"></label>
           </div>
           <p class="muted small">MT5 note les heures à l'heure du serveur de ton courtier (souvent UTC+2 en hiver, UTC+3 en été). Le script les convertit tout seul ; pour un rapport, indique le décalage.</p>
         </div>
@@ -719,16 +750,18 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=17"></script>
-  <script src="analysis.js?v=17"></script>
-  <script src="mt5-core.js?v=17"></script>
-  <script src="journal-core.js?v=17"></script>
-  <script src="challenge-core.js?v=17"></script>
-  <script src="db.js?v=17"></script>
-  <script src="app.js?v=17"></script>
-  <script src="journal.js?v=17"></script>
-  <script src="accounts.js?v=17"></script>
-  <script src="mt5-import.js?v=17"></script>
-  <script src="desk.js?v=17"></script>
+  <script src="rules.js?v=19"></script>
+  <script src="analysis.js?v=19"></script>
+  <script src="mt5-core.js?v=19"></script>
+  <script src="journal-core.js?v=19"></script>
+  <script src="challenge-core.js?v=19"></script>
+  <script src="dashboard-core.js?v=19"></script>
+  <script src="db.js?v=19"></script>
+  <script src="app.js?v=19"></script>
+  <script src="journal.js?v=19"></script>
+  <script src="accounts.js?v=19"></script>
+  <script src="mt5-import.js?v=19"></script>
+  <script src="dashboard.js?v=19"></script>
+  <script src="desk.js?v=19"></script>
 </body>
 </html>

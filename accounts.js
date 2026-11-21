@@ -62,6 +62,10 @@
       ev.alerts.forEach((x) => lists.append(el("p", { class: "warnline small" }, "Alerte : " + x)));
       if (ev.status === "EN COURS") ev.pending.forEach((x) => lists.append(el("p", { class: "muted small" }, "À atteindre : " + x)));
       ev.notes.forEach((x) => lists.append(el("p", { class: "muted small" }, x)));
+      if (window.DashboardCore && (a.cashflows || []).length) {
+        const net = window.DashboardCore.flowsOf(a).reduce((s, f) => s + window.DashboardCore.signed(f), 0);
+        lists.append(el("p", { class: "muted small" }, `Dépôts et retraits : ${net >= 0 ? "+" : ""}${net.toFixed(2)} au total. Ils sont comptés dans le solde du Dashboard ; les règles de challenge ci-dessus utilisent seulement les trades.`));
+      }
       card.append(lists);
       card.append(el("div", { class: "row wrap" },
         el("button", { class: "btn ghost small", type: "button", onclick: () => openForm(a.id) }, "Modifier"),
