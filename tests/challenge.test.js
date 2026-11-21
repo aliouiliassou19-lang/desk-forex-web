@@ -109,6 +109,26 @@ test("jour de trading avec heure de remise a zero", () => {
   assert.deepEqual([C.level(0.6), C.level(0.35), C.level(0.1), C.level(null)], ["ok", "warn", "danger", "off"]);
 });
 
+test("donnees de demo : deterministes, valides, challenge sans violation", () => {
+  const now = T("2026-11-21T12:00:00Z");
+  const a = JC.demoData(now), b = JC.demoData(now);
+  assert.deepEqual(a, b);
+  assert.equal(a.account.id, JC.DEMO_ACCOUNT_ID);
+  assert.ok(a.trades.length >= 15);
+  assert.ok(a.trades.every((t) => t.source === "demo" && t.accountId === JC.DEMO_ACCOUNT_ID && /fictif/.test(t.notes)));
+  assert.ok(a.trades.every((t) => t.entryTime < now));
+  const closed = a.trades.filter((t) => t.status === "CLOSED");
+  assert.ok(closed.every((t) => [1, 2, 3, 4, 5].includes(JC.local(t.entryTime).wd)), "pas de trade le week-end");
+  const list = JC.enrich(a.trades, [a.account], 2);
+  assert.ok(list.filter((x) => x.t.status === "CLOSED").every((x) => x.m.errors.length === 0 && x.m.net != null && x.m.r != null));
+  assert.deepEqual([...new Set(a.trades.map((t) => t.status))].sort(), ["CLOSED", "REJECT", "UNFILLED", "WATCH"]);
+  const ev = C.evaluate(a.account, list, { nowMs: now, news: [] });
+  assert.notEqual(ev.status, "RÈGLE VIOLÉE", JSON.stringify(ev.violations));
+  assert.ok(ev.daily && ev.dd && ev.target);
+  const s = JC.stats(list, a.account.startBalance);
+  assert.ok(s.errorCost.length > 0 && s.bySetup.length >= 3);
+});
+
 test("lot maximum selon la marge la plus faible", () => {
   const m = C.maxLot({ stopPips: 20, spreadPips: 1, pipValue: 10,
     limits: [{ name: "perte journalière", amount: 200 }, { name: "drawdown", amount: 500 }, { name: "risque par trade", amount: 100 }] });

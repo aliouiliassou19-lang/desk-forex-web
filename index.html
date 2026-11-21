@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=17">
 </head>
 <body>
   <header class="top">
@@ -431,7 +431,7 @@
         </div>
         <div class="card">
           <div class="scroll"><table id="jList"><thead><tr><th>Entrée (Bénin)</th><th>Symbole</th><th>Sens</th><th>Statut</th><th>Lots</th><th>Pips</th><th>Net $</th><th>R</th><th>Setup</th><th>Session</th><th>Qualité</th><th>Plan</th><th></th></tr></thead><tbody></tbody></table></div>
-          <p id="jEmpty" class="muted">Aucun trade pour ces filtres.</p>
+          <p id="jEmpty" class="muted">Aucun trade pour ces filtres. Pour découvrir le journal, charge l'exemple fictif (Journal → Réglages → Données d'exemple).</p>
         </div>
       </div>
 
@@ -503,6 +503,11 @@
           <button id="plSave" class="btn" type="button">Enregistrer les listes</button>
         </div>
         <div class="card">
+          <h2>Données d'exemple</h2>
+          <p class="muted small">Pour tout essayer sans compte : un challenge fictif de 10 000 $ avec ses règles et environ 3 semaines de trades fictifs (setups, erreurs, émotions, checklists). Marqués « Exemple », ils se suppriment en un clic sans toucher à tes propres trades.</p>
+          <div class="row wrap"><button id="demoLoad" class="btn ghost" type="button">Charger l'exemple</button><button id="demoRemove" class="btn ghost" type="button">Supprimer l'exemple</button></div>
+        </div>
+        <div class="card">
           <h2>Sauvegarde et exports</h2>
           <div class="row wrap">
             <button id="exCsv" class="btn ghost" type="button">Exporter CSV</button>
@@ -528,7 +533,8 @@
           <button id="acNew" class="btn" type="button">+ Nouveau compte</button>
         </div>
         <p class="muted small">Démo, challenge ou compte financé : chaque compte a son solde de départ et ses propres règles, que <b>tu saisis toi-même</b> (aucune règle de vraie prop firm n'est préremplie : elles changent souvent). Une limite vide est désactivée.
-          Les résultats viennent des trades CLOSED du journal pour ce compte. Montants en dollars US.</p>
+          Les résultats viennent des trades CLOSED du journal pour ce compte. Montants en dollars US.
+          Pour voir un exemple complet : Journal → Réglages → <b>Charger l'exemple</b>.</p>
       </div>
 
       <div id="acFormCard" class="card hidden">
@@ -641,7 +647,9 @@
           <li>Remplis les annonces de la semaine (onglet Annonces).</li>
           <li>Démarre la surveillance pendant une session ouverte (Londres ou New York), page ouverte.</li>
           <li>Un <b>WATCH</b> veut dire « regarde ici » : jamais « achète » ni « vends ».</li>
+          <li>Note chaque trade (ou importe-le depuis MT5) dans le <b>Journal</b>, puis fais ta revue chaque semaine.</li>
         </ol>
+        <p class="muted small">Pour tout découvrir sans compte : Journal → Réglages → <b>Charger l'exemple</b> (données fictives, supprimables en un clic).</p>
         <h3>Onglets</h3>
         <ul>
           <li><b>Moniteur</b> : surveillance EUR/USD et or, sessions de marché, alertes de prix.</li>
@@ -650,7 +658,36 @@
           <li><b>Synthèse</b> : lecture automatique du jour (contexte, agenda, amplitude habituelle, scénarios conditionnels, prudence). Pas de prédiction de direction.</li>
           <li><b>Plan</b> : plan de trade avec verdict OK / À REVOIR / NON, pré-test d'une idée, taille de position.</li>
           <li><b>Annonces</b> : fenêtres d'annonces (REJECT 15 min avant et après).</li>
-          <li><b>Journal</b> : fiche complète de chaque trade (heures UTC et Bénin, risque, pips, R, coûts, session, setup, checklist, qualité, émotions, erreurs, capture), statistiques filtrables (équité, drawdown, calendrier, par setup / session / jour / heure, coût des erreurs, plan vs hors plan), revue de la semaine, exports CSV et JSON, rapport imprimable. Données gardées dans ton navigateur (IndexedDB) : exporte une sauvegarde régulièrement.</li>
+          <li><b>Journal</b> : fiche complète de chaque trade (heures UTC et Bénin, risque, pips, R, coûts, session, setup, checklist, qualité, émotions, erreurs, capture), statistiques filtrables (équité, drawdown, calendrier, par setup / session / jour / heure, coût des erreurs, plan vs hors plan), revue de la semaine, exports CSV et JSON, rapport imprimable.</li>
+          <li><b>Comptes</b> : plusieurs comptes (démo, challenge, financé), règles de challenge que tu saisis, jauges, statut, alertes, lot maximum autorisé, modèles de règles, import MT5.</li>
+        </ul>
+        <h3>Journal : les points clés</h3>
+        <ul>
+          <li>Saisis les heures en <b>heure du Bénin</b> : le site les affiche aussi en UTC. La session (Asie, Londres, chevauchement, New York) et le jour sont calculés tout seuls.</li>
+          <li>Le <b>R</b> = résultat net ÷ risque au stop. Le risque se calcule sur le solde du compte au moment de l'entrée.</li>
+          <li>Un stop est obligatoire pour un trade OPEN ou CLOSED (note le stop de départ, même s'il a été déplacé). Au-delà de ta limite de risque, le trade compte « hors plan ».</li>
+          <li>Une checklist sans aucune case cochée est « non remplie ». Pour marquer un écart volontaire, coche l'erreur « Hors plan ».</li>
+          <li>Paires croisées (EUR/GBP, EUR/JPY, GBP/JPY) : saisis la valeur du pip ou le résultat brut du courtier.</li>
+          <li>Le résultat brut du courtier, s'il est saisi, remplace le calcul (c'est lui qui compte).</li>
+        </ul>
+        <h3>Comptes et challenges</h3>
+        <ul>
+          <li>Aucune règle de vraie prop firm n'est préremplie : saisis les tiennes (une case vide = règle désactivée) et enregistre-les comme modèle.</li>
+          <li><b>Perte journalière</b> : % du solde initial ou du solde en début de journée, avec l'heure de remise à zéro. <b>Drawdown</b> : statique ou suiveur, sur le solde ou l'équité.</li>
+          <li>Statut <b>RÈGLE VIOLÉE</b> : perte journalière, drawdown, durée dépassée ou trade pendant une annonce forte (onglet Annonces). <b>OBJECTIF ATTEINT</b> : objectif + jours minimum + consistance.</li>
+          <li>Alerte quand il reste moins de 30 % de marge. Le calculateur de lot maximum prend la marge la plus serrée, spread compris.</li>
+          <li>L'<b>équité</b> vient de ta saisie (« Saisir l'équité actuelle ») ou de l'import MT5. Sans valeur récente, le calcul se fait sur le solde.</li>
+        </ul>
+        <h3>Import MT5 (lecture seule)</h3>
+        <ul>
+          <li><b>Rapport MT5</b> : Historique → clic droit → Rapport → HTML (ou Open XML), puis Comptes → Import MT5. Indique le décalage horaire du serveur de ton courtier.</li>
+          <li><b>Script local</b> <code>outils/mt5_export.py</code> : il lit ton MT5 ouvert sans mot de passe et ne passe aucun ordre. Export en fichier, ou connexion automatique sur ce PC (code secret). Voir le <a href="outils/GUIDE-MT5.md" target="_blank" rel="noopener noreferrer">guide pas à pas</a>.</li>
+          <li>Les trades sont dédoublonnés par ticket MT5 ; ce que tu ajoutes à la main (setup, émotions, erreurs, captures) est conservé. Les indices et cryptos sont ignorés (12 paires suivies).</li>
+        </ul>
+        <h3>Sauvegarde</h3>
+        <ul>
+          <li>Tes données restent dans <b>ce navigateur</b> (IndexedDB). Changer de navigateur ou effacer ses données les fait disparaître : exporte régulièrement une <b>sauvegarde JSON</b> (Journal → Réglages) et réimporte-la au besoin.</li>
+          <li>La sauvegarde contient journal, comptes, revues, listes, annonces, alertes et réglages, <b>jamais ta clé Twelve Data</b>.</li>
         </ul>
         <h3>Décisions</h3>
         <ul>
@@ -669,8 +706,8 @@
         </ul>
         <h3>Confidentialité</h3>
         <ul>
-          <li>Ta clé, tes annonces, ton journal et tes relevés restent <b>dans ton navigateur</b> (stockage local). Aucun compte, aucun suivi, aucun script tiers.</li>
-          <li>Le navigateur contacte seulement Twelve Data (prix et bougies, avec ta clé), et sans clé : la BCE, Eurostat, la Fed de New York et le BLS américain (statistiques officielles).</li>
+          <li>Ta clé, tes annonces, ton journal, tes comptes et tes relevés restent <b>dans ton navigateur</b> (stockage local). Aucun compte, aucun suivi, aucun script tiers.</li>
+          <li>Le navigateur contacte seulement Twelve Data (prix et bougies, avec ta clé), et sans clé : la BCE, Eurostat, la Fed de New York et le BLS américain (statistiques officielles). Si tu utilises la connexion MT5 automatique : ton propre PC (<code>127.0.0.1</code>), rien d'autre.</li>
         </ul>
         <h3>Conditions</h3>
         <ul>
@@ -682,16 +719,16 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=15"></script>
-  <script src="analysis.js?v=15"></script>
-  <script src="mt5-core.js?v=15"></script>
-  <script src="journal-core.js?v=15"></script>
-  <script src="challenge-core.js?v=15"></script>
-  <script src="db.js?v=15"></script>
-  <script src="app.js?v=15"></script>
-  <script src="journal.js?v=15"></script>
-  <script src="accounts.js?v=15"></script>
-  <script src="mt5-import.js?v=15"></script>
-  <script src="desk.js?v=15"></script>
+  <script src="rules.js?v=17"></script>
+  <script src="analysis.js?v=17"></script>
+  <script src="mt5-core.js?v=17"></script>
+  <script src="journal-core.js?v=17"></script>
+  <script src="challenge-core.js?v=17"></script>
+  <script src="db.js?v=17"></script>
+  <script src="app.js?v=17"></script>
+  <script src="journal.js?v=17"></script>
+  <script src="accounts.js?v=17"></script>
+  <script src="mt5-import.js?v=17"></script>
+  <script src="desk.js?v=17"></script>
 </body>
 </html>

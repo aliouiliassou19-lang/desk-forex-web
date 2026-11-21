@@ -324,7 +324,74 @@
     }).filter(Boolean);
   }
 
-  return { LOCAL_OFFSET_MIN, STATUSES, TIMEFRAMES, QUALITIES, SESSIONS, DAYS, DEFAULT_PREFS, DEFAULT_ACCOUNT,
+  // ------------------------------------------------------------------ donnees de demonstration (FICTIVES)
+  const DEMO_ACCOUNT_ID = "demo-exemple";
+  function demoRng(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  /**
+   * Compte challenge d'exemple et ~3 semaines de trades fictifs (deterministes), tous marques source "demo".
+   * Aucun prix reel : sert seulement a decouvrir le journal, les statistiques et les jauges.
+   */
+  function demoData(nowMs, seed) {
+    const rnd = demoRng(seed || 7);
+    const pick = (a) => a[Math.floor(rnd() * a.length)];
+    const start = weekStart(nowMs) - 21 * 86400000;            // lundi d'il y a 3 semaines
+    const account = { id: DEMO_ACCOUNT_ID, name: "Exemple : challenge 10 000 $", type: "challenge", currency: "USD",
+      startBalance: 10000, startDate: start, demo: true, equitySnapshots: [],
+      rules: { profitTargetPct: 8, dailyLossPct: 5, dailyBase: "initial", maxDDPct: 10, ddMode: "static", ddBasis: "balance",
+        minTradingDays: 4, consistencyPct: 40, maxRiskPerTradePct: 1, newsBan: true, newsWindowMin: 2, dayResetHourLocal: 0 } };
+    const specs = { "EUR/USD": { px: 1.092, slPips: 15 }, "GBP/USD": { px: 1.271, slPips: 20 }, "XAU/USD": { px: 3505, slPips: 40 }, "USD/JPY": { px: 150.2, slPips: 25 } };
+    const setups = ["Price action", "Support / résistance", "SMC", "Trendline", "Cassure"];
+    const trades = [];
+    let n = 0;
+    for (let d = 0; d < 21; d++) {
+      const dayMs = start + d * 86400000, wd = local(dayMs).wd;
+      if (wd === 0 || wd === 6) continue;                       // pas de trading le week-end
+      const count = rnd() < 0.35 ? 2 : 1;
+      for (let k = 0; k < count; k++) {
+        const symbol = pick(Object.keys(specs)), sp = specs[symbol], p = A.PAIRS[symbol];
+        const entryTime = dayMs + (9 + Math.floor(rnd() * 8)) * 3600000 + Math.floor(rnd() * 50) * 60000 - LOCAL_OFFSET_MIN * 60000 + 60 * 60000;
+        if (entryTime > nowMs - 3 * 3600000) continue;
+        const side = rnd() < 0.5 ? "buy" : "sell", dir = side === "buy" ? 1 : -1;
+        const entry = +(sp.px * (1 + (rnd() - 0.5) * 0.01)).toFixed(p.dec);
+        const pv = A.pipValueUsd(symbol, entry, null);
+        const lots = Math.max(0.01, Math.floor((10000 * 0.008) / (sp.slPips * pv) / 0.01) * 0.01);   // ~0,8 % de risque
+        const errs = rnd() < 0.25 ? [pick(["FOMO", "Sortie trop tôt", "Entrée précipitée", "SL déplacé"])] : [];
+        const winP = errs.length ? 0.3 : 0.55;
+        const rr = 1.5 + Math.round(rnd() * 2) / 4;
+        const outcomeR = rnd() < winP ? (errs.includes("Sortie trop tôt") ? 0.6 : rr) : -1;
+        const exitPips = outcomeR * sp.slPips;
+        const checklist = {};
+        DEFAULT_PREFS.checklist.forEach((c) => (checklist[c] = errs.length ? rnd() < 0.6 : true));
+        trades.push({
+          id: `demo-${++n}`, accountId: DEMO_ACCOUNT_ID, status: "CLOSED", symbol, side, lots: +lots.toFixed(2),
+          entry, sl: +(entry - dir * sp.slPips * p.pip).toFixed(p.dec), tp: +(entry + dir * rr * sp.slPips * p.pip).toFixed(p.dec),
+          exit: +(entry + dir * exitPips * p.pip).toFixed(p.dec), entryTime, exitTime: entryTime + (30 + Math.floor(rnd() * 240)) * 60000,
+          commission: +(lots * 7).toFixed(2), swap: 0, setup: pick(setups), tfAnalysis: pick(["H4", "H1", "D1"]), tfEntry: pick(["M15", "M5", "H1"]),
+          checklist, quality: errs.length ? "C" : pick(["A", "B", "B"]), emotionBefore: errs.length ? pick(["Impatient", "Anxieux"]) : pick(["Calme", "Confiant", "Neutre"]),
+          emotionAfter: outcomeR > 0 ? pick(["Confiant", "Calme"]) : pick(["Frustré", "Neutre"]), errors: errs,
+          notes: "Exemple fictif (données de démonstration).", source: "demo", ticket: null, createdAt: entryTime, updatedAt: entryTime,
+        });
+      }
+    }
+    // quelques lignes non executees, pour voir tous les statuts
+    const last = trades.length ? trades[trades.length - 1].exitTime : nowMs - 86400000;
+    const extra = (id, status, symbol, side, offsetH, more) => trades.push(Object.assign({ id, accountId: DEMO_ACCOUNT_ID, status, symbol, side,
+      entryTime: Math.min(nowMs - 3600000, last + offsetH * 3600000), errors: [], checklist: {}, notes: "Exemple fictif (données de démonstration).",
+      source: "demo", ticket: null, createdAt: nowMs, updatedAt: nowMs }, more || {}));
+    extra("demo-w1", "WATCH", "EUR/USD", "buy", 2, { setup: "Cassure" });
+    extra("demo-r1", "REJECT", "XAU/USD", "sell", 3, { setup: "SMC", notes: "Exemple fictif : rejeté, annonce forte dans 10 min." });
+    extra("demo-u1", "UNFILLED", "GBP/USD", "buy", 4, { setup: "Support / résistance", entry: 1.268, sl: 1.266, lots: 0.3, notes: "Exemple fictif : ordre limite jamais atteint." });
+    return { account, trades };
+  }
+
+  return { LOCAL_OFFSET_MIN, STATUSES, DEMO_ACCOUNT_ID, demoData, TIMEFRAMES, QUALITIES, SESSIONS, DAYS, DEFAULT_PREFS, DEFAULT_ACCOUNT,
     local, localDay, fmtLocal, fmtUtc, parseLocalInput, toLocalInput, fmtDuration, weekStart, sessionOf,
     metrics, enrich, filterTrades, stats, calendar, weeklyReview, toCsv, CSV_FIELDS, sanitizeTrade, migrateV1 };
 });

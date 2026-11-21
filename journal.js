@@ -543,8 +543,34 @@
     refresh();
     return clean.length;
   }
+  /** Donnees d'exemple (fictives) : un challenge et ~3 semaines de trades, supprimables en un clic. */
+  async function loadDemo() {
+    const d = JC.demoData(Date.now());
+    await DB.put("accounts", d.account);
+    accounts = accounts.filter((a) => a.id !== d.account.id).concat([d.account]);
+    return upsertTrades(d.trades);
+  }
+  async function removeDemo() {
+    const ids = trades.filter((t) => t.source === "demo" || t.accountId === JC.DEMO_ACCOUNT_ID).map((t) => t.id);
+    for (const id of ids) await DB.del("trades", id);
+    await DB.del("accounts", JC.DEMO_ACCOUNT_ID);
+    trades = trades.filter((t) => !ids.includes(t.id));
+    accounts = accounts.filter((a) => a.id !== JC.DEMO_ACCOUNT_ID);
+    refresh();
+    return ids.length;
+  }
+  $("demoLoad").addEventListener("click", async () => {
+    if (trades.some((t) => t.source === "demo")) { toast("L'exemple est déjà chargé."); return; }
+    const n = await loadDemo();
+    toast(`Exemple chargé : ${n} trades fictifs et un challenge (onglet Comptes).`, 6000);
+  });
+  $("demoRemove").addEventListener("click", async () => {
+    if (!confirm("Supprimer toutes les données d'exemple (trades fictifs et compte « Exemple ») ? Tes propres trades ne sont pas touchés.")) return;
+    const n = await removeDemo();
+    toast(`${n} trade(s) d'exemple supprimé(s).`);
+  });
   window.Journal = {
-    openNew, reload: load, saveAccount, deleteAccount, showAccount, upsertTrades,
+    openNew, reload: load, saveAccount, deleteAccount, showAccount, upsertTrades, loadDemo, removeDemo,
     getState: () => ({ accounts: accounts.slice(), trades: trades.slice(), enriched, prefs }),
     onChange: (fn) => listeners.push(fn),
   };

@@ -138,7 +138,10 @@ td.wrap { white-space: normal; min-width: 180px; }
 /* ---------- journal de trading */
 .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .filters select, .filters input { width: auto; flex: 1 1 140px; min-height: 36px; padding: 6px 8px; font-size: 14px; }
-fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 12px; margin: 0 0 12px; }
+fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 12px; margin: 0 0 12px; min-width: 0; }
+/* une grille ne doit jamais s'elargir a cause d'un tableau ou d'une liste deroulante trop large */
+.grid2 > *, .grid3 > *, .formgrid > *, .kpis > * { min-width: 0; }
+.formgrid select { max-width: 100%; }
 legend { font-weight: 700; padding: 0 6px; }
 fieldset > label { margin-top: 8px; }
 .checkgrid { display: grid; grid-template-columns: 1fr; gap: 6px 14px; margin-top: 6px; }
