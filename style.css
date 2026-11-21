@@ -277,3 +277,10 @@ button.cal-d.sel { outline: 2px solid var(--text); outline-offset: -2px; }
 .cal-short { display: none; }
 @media (max-width: 520px) { .cal-full { display: none; } .cal-short { display: inline; } }
 @media (max-width: 520px) { .barcell { display: none; } }
+details.subdetails { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+details.subdetails > summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.rule-st { flex-shrink: 0; }
+.gauge .rule-sub { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
+.gauge .rule-fail { display: block; font-size: 12px; color: var(--reject); margin-top: 3px; }
+#dbPropRules .gauge > .row { flex-wrap: wrap; row-gap: 2px; }
+#dbPropRules .gauge > .row > span:first-child { flex: 1 1 200px; }

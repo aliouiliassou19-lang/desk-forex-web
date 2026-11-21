@@ -5,9 +5,9 @@
  */
 (function (root, factory) {
   const isNode = typeof module === "object" && module.exports;
-  const api = factory(isNode ? require("./journal-core.js") : root.JournalCore);
+  const api = factory(isNode ? require("./journal-core.js") : root.JournalCore, isNode ? require("./challenge-core.js") : root.ChallengeCore);
   if (isNode) module.exports = api; else root.DashboardCore = api;
-})(typeof self !== "undefined" ? self : this, function (JC) {
+})(typeof self !== "undefined" ? self : this, function (JC, CC) {
   "use strict";
 
   const num = (v) => (v === null || v === undefined || v === "" ? null : Number.isFinite(+v) ? +v : null);
@@ -163,5 +163,48 @@
     };
   }
 
-  return { sanitizeCashflow, signed, flowsOf, timeline, summary, periodStarts, periodPnl, accountStats, PERIODS, rangeStart, curve, monthCalendar, dayTrades, breakdowns };
+  // ------------------------------------------------------------------ etape 5 : regles prop firm
+  /**
+   * Suivi des 4 regles principales d'un challenge, a partir des regles du compte (saisies par l'utilisateur,
+   * les memes que dans l'onglet Comptes) et du moteur ChallengeCore. Trades seulement (pas les depots/retraits).
+   * Statut de chaque regle : "ok", "warn" (ATTENTION : plus de la moitie de la marge utilisee),
+   * "fail" (ECHEC : limite franchie, meme un jour passe), "progress" (EN COURS), "off" (non reglee).
+   */
+  function propRules(account, list, nowMs, news) {
+    const ev = CC.evaluate(account, list.filter((x) => x.t.accountId === account.id), { nowMs, news: news || [] });
+    const r = ev.rules, clamp = (v) => Math.max(0, Math.min(1, v));
+    const fails = (name) => ev.violations.filter((v) => v.rule === name).map((v) => v.detail);
+    const items = [];
+    // perte journaliere maximale
+    if (r.dailyLossPct) {
+      const d = ev.daily, f = fails("Perte journalière maximale"), used = clamp(1 - d.remainFrac);
+      items.push({ key: "daily", pct: r.dailyLossPct, limit: r2(d.limit), value: r2(d.todayPnl), remain: r2(d.remain), used,
+        status: f.length ? "fail" : used < 0.5 ? "ok" : "warn", fails: f });
+    } else items.push({ key: "daily", status: "off" });
+    // perte totale maximale (drawdown max du challenge : plancher statique ou suiveur)
+    if (r.maxDDPct) {
+      const d = ev.dd, f = fails("Drawdown maximal"), used = clamp(1 - d.remainFrac);
+      items.push({ key: "total", pct: r.maxDDPct, limit: r2(account.startBalance * r.maxDDPct / 100), floor: r2(d.floor), remain: r2(d.remain),
+        value: r2(ev.basisValue), mode: d.mode, basis: d.basis, used, status: f.length ? "fail" : used < 0.5 ? "ok" : "warn", fails: f });
+    } else items.push({ key: "total", status: "off" });
+    // objectif de profit
+    if (r.profitTargetPct) {
+      const done = ev.profit >= ev.target - 1e-9;
+      items.push({ key: "target", pct: r.profitTargetPct, limit: r2(ev.target), value: r2(ev.profit), used: clamp(ev.progress || 0),
+        status: done ? "ok" : "progress", fails: [] });
+    } else items.push({ key: "target", status: "off" });
+    // jours de trading minimum
+    if (r.minTradingDays) {
+      items.push({ key: "days", limit: r.minTradingDays, value: ev.tradingDays, used: clamp(ev.tradingDays / r.minTradingDays),
+        status: ev.tradingDays >= r.minTradingDays ? "ok" : "progress", fails: [] });
+    } else items.push({ key: "days", status: "off" });
+    const main = new Set(["Perte journalière maximale", "Drawdown maximal"]);
+    return {
+      status: ev.status, items, balance: r2(ev.balance), profit: r2(ev.profit), alerts: ev.alerts, notes: ev.notes,
+      otherFails: ev.violations.filter((v) => !main.has(v.rule)),     // autres regles reglees dans Comptes (duree, annonces...)
+      active: items.some((i) => i.status !== "off"),
+    };
+  }
+
+  return { sanitizeCashflow, signed, flowsOf, timeline, summary, periodStarts, periodPnl, accountStats, PERIODS, rangeStart, curve, monthCalendar, dayTrades, breakdowns, propRules };
 });

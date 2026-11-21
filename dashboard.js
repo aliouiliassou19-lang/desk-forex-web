@@ -3,8 +3,8 @@
  */
 (function () {
   "use strict";
-  const DC = window.DashboardCore, JC = window.JournalCore, J = window.Journal, D = window.DeskApp;
-  if (!DC || !JC || !J || !D) return;
+  const DC = window.DashboardCore, JC = window.JournalCore, CC = window.ChallengeCore, J = window.Journal, D = window.DeskApp;
+  if (!DC || !JC || !CC || !J || !D) return;
   const { el, clear, toast } = D;
   const $ = (id) => document.getElementById(id);
   const money = (v, sign) => (v == null || !Number.isFinite(v) ? "–" : (sign && v > 0 ? "+" : "") + v.toFixed(2) + " $");
@@ -36,6 +36,90 @@
       period("Aujourd'hui", p.day), period("Cette semaine", p.week), period("Ce mois", p.month),
       tile("Capital investi", money(s.capital), "", `dépôts ${money(s.deposits)} · retraits ${money(s.withdrawals)}`));
   }
+
+  // ---------------------------------------------------------------- regles prop firm (etape 5)
+  const ST = { ok: ["OK", "on"], warn: ["ATTENTION", "WATCH"], fail: ["ÉCHEC", "bad"], progress: ["EN COURS", "off"], off: ["non réglée", "off"] };
+  const GLOBAL = { "EN COURS": "WATCH", "OBJECTIF ATTEINT": "on", "RÈGLE VIOLÉE": "bad" };
+  const plain = (v) => (v == null || !Number.isFinite(v) ? "–" : v.toFixed(2) + " $");
+  function ruleGauge(it) {
+    const [stText, stCls] = ST[it.status];
+    let label, value, sub, fill;
+    if (it.key === "daily") {
+      label = `Perte journalière max (${it.pct} %)`;
+      value = it.status === "fail" ? `franchie (limite ${plain(it.limit)})` : `${plain(Math.max(0, -it.value))} / ${plain(it.limit)}`;
+      sub = it.status === "fail" ? "Limite franchie : le challenge est perdu selon cette règle."
+        : `Résultat du jour ${money(it.value, true)} · marge restante ${plain(Math.max(0, it.remain))}`;
+    } else if (it.key === "total") {
+      label = `Perte totale max (${it.pct} %${it.mode === "trailing" ? ", suiveuse" : ""})`;
+      value = `${plain(Math.max(0, it.limit - Math.max(0, it.remain)))} / ${plain(it.limit)}`;
+      sub = it.status === "fail" ? "Plancher franchi : le challenge est perdu selon cette règle."
+        : `${it.basis === "equity" ? "Équité" : "Solde"} ${plain(it.value)} · plancher ${plain(it.floor)} · marge ${plain(Math.max(0, it.remain))}`;
+    } else if (it.key === "target") {
+      label = `Objectif de profit (${it.pct} %)`;
+      value = `${money(it.value, true)} / ${plain(it.limit)}`;
+      sub = it.status === "ok" ? "Objectif atteint (vérifie aussi les autres règles)." : `Reste ${plain(Math.max(0, it.limit - it.value))} à gagner · ${Math.round(it.used * 100)} %`;
+    } else {
+      label = "Jours de trading minimum";
+      value = `${it.value} / ${it.limit} jour${it.limit > 1 ? "s" : ""}`;
+      sub = it.status === "ok" ? "Nombre de jours atteint." : `Encore ${it.limit - it.value} jour${it.limit - it.value > 1 ? "s" : ""} avec au moins un trade.`;
+    }
+    fill = it.status === "fail" ? "danger" : it.key === "target" || it.key === "days" ? (it.status === "ok" ? "ok" : "accent")
+      : it.used < 0.5 ? "ok" : it.used < 0.7 ? "warn" : "danger";
+    const bar = el("div", { class: "gauge-bar" }, el("div", { class: "gauge-fill " + fill }));
+    bar.firstChild.style.width = (it.status === "fail" ? 100 : Math.round(it.used * 100)) + "%";
+    return el("div", { class: "gauge" },
+      el("div", { class: "row between" }, el("span", {}, label), el("span", { class: "row" }, el("b", { class: "mono" }, value), el("span", { class: "pill tiny rule-st " + stCls }, stText))),
+      bar, el("small", { class: "rule-sub" }, sub), ...(it.fails || []).slice(0, 3).map((f) => el("small", { class: "rule-fail" }, f)));
+  }
+  function fillPropForm(acc) {
+    const r = CC.normalizeRules(acc.rules);
+    $("prDaily").value = r.dailyLossPct || ""; $("prTotal").value = r.maxDDPct || "";
+    $("prTarget").value = r.profitTargetPct || ""; $("prDays").value = r.minTradingDays || "";
+    $("dbPropHint").textContent = `Pourcentages du solde de départ (${plain(Number(acc.startBalance) || 0)}). Laisse une case vide pour ne pas suivre cette règle. ` +
+      "Ce sont les mêmes règles que dans l'onglet Comptes, où tu trouves les options avancées : perte totale suiveuse, base de la perte journalière, heure de remise à zéro, durée limite, annonces.";
+  }
+  function renderProp(acc, list) {
+    const onFlag = !!acc.dashRules;
+    $("dbPropOn").checked = onFlag;
+    $("dbPropOff").classList.toggle("hidden", onFlag);
+    $("dbPropBody").classList.toggle("hidden", !onFlag);
+    if (!onFlag) return;
+    if (document.activeElement == null || !$("dbPropForm").contains(document.activeElement)) fillPropForm(acc);
+    const p = DC.propRules(acc, list, Date.now(), D.getNews ? D.getNews() : []);
+    const head = clear($("dbPropHead")), rules = clear($("dbPropRules")), msgs = clear($("dbPropMsgs"));
+    if (!p.active) {
+      head.append(el("p", { class: "muted small" }, "Aucune limite réglée pour ce compte. Ouvre « Régler les limites » ci-dessous."));
+      $("dbPropEdit").open = true;
+      return;
+    }
+    head.append(el("span", { class: "pill " + GLOBAL[p.status] }, p.status),
+      el("span", { class: "muted small" }, `Solde des trades ${plain(p.balance)} · profit ${money(p.profit, true)} (dépôts et retraits non comptés)`));
+    p.items.filter((i) => i.status !== "off").forEach((i) => rules.append(ruleGauge(i)));
+    p.otherFails.forEach((v) => msgs.append(el("p", { class: "small down" }, `ÉCHEC – ${v.rule} : ${v.detail}`)));
+    p.alerts.forEach((a) => msgs.append(el("p", { class: "small" }, "⚠ " + a)));
+    p.notes.forEach((n) => msgs.append(el("p", { class: "muted small" }, n)));
+    msgs.append(el("p", { class: "muted small" }, "Calcul indicatif à partir de ton journal : seules les règles officielles de ta prop firm font foi. ATTENTION = plus de la moitié de la marge utilisée."));
+  }
+  $("dbPropOn").addEventListener("change", async () => {
+    const acc = currentAccount(); if (!acc) return;
+    await J.saveAccount(Object.assign({}, acc, { dashRules: $("dbPropOn").checked }));
+  });
+  $("dbPropForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const acc = currentAccount(); if (!acc) return;
+    const v = (id) => ($(id).value === "" ? null : Number($(id).value));
+    const vals = { dailyLossPct: v("prDaily"), maxDDPct: v("prTotal"), profitTargetPct: v("prTarget"), minTradingDays: v("prDays") };
+    if (Object.values(vals).some((x) => x != null && !(x >= 0))) { toast("Valeurs invalides : nombres positifs uniquement."); return; }
+    if ((vals.dailyLossPct || 0) > 100 || (vals.maxDDPct || 0) > 100) { toast("Une perte maximale ne peut pas dépasser 100 %."); return; }
+    if (vals.minTradingDays != null) vals.minTradingDays = Math.round(vals.minTradingDays);
+    if (document.activeElement) document.activeElement.blur();
+    await J.saveAccount(Object.assign({}, acc, { rules: CC.normalizeRules(Object.assign({}, acc.rules || {}, vals)) }));
+    toast("Limites enregistrées.");
+  });
+  $("dbPropMore").addEventListener("click", () => {
+    const acc = currentAccount(); D.showTab("accounts");
+    if (window.DeskAccounts && acc) window.DeskAccounts.edit(acc.id);
+  });
 
   // ---------------------------------------------------------------- courbe et drawdown (etape 3)
   let range = D.store.get("dbRange", "all"), view = null, hoverT = null;
@@ -285,6 +369,7 @@
     if (!acc) return;
     const list = J.getState().enriched;
     renderSummary(acc, list);
+    renderProp(acc, list);
     renderCurve(acc, list);
     renderStats(acc, list);
     renderCalendar(acc, list);

@@ -140,3 +140,36 @@ test("repartitions par symbole, jour et session du compte choisi", () => {
   const vide = DB.breakdowns({ id: "z", startBalance: 0 }, more);
   assert.deepEqual(vide.bySymbol, []); assert.equal(vide.scale.symbol, 0);
 });
+
+test("regles prop firm : OK, ATTENTION, ECHEC, EN COURS et non reglee", () => {
+  const pa = { id: "p1", startBalance: 10000, type: "challenge",
+    rules: { dailyLossPct: 5, maxDDPct: 10, profitTargetPct: 8, minTradingDays: 3 } };
+  const P = (id, iso, net) => tr(id, iso, net, { accountId: "p1" });
+  const base = [P("p1", "2026-11-16T10:00:00Z", 300), P("p2", "2026-11-17T10:00:00Z", -200), P("p3", "2026-11-17T14:00:00Z", -100)];
+  const st = (res, k) => res.items.find((i) => i.key === k);
+  // le 17 a 15:00 : -300 sur une limite de 500 -> 60 % utilise -> ATTENTION
+  let res = DB.propRules(pa, JC.enrich(base, [pa], 2), T("2026-11-17T15:00:00Z"));
+  assert.equal(st(res, "daily").status, "warn"); near(st(res, "daily").used, 0.6);
+  assert.equal(st(res, "daily").limit, 500); assert.equal(st(res, "daily").remain, 200);
+  assert.equal(st(res, "total").status, "ok"); assert.equal(st(res, "total").floor, 9000);
+  assert.equal(st(res, "target").status, "progress"); assert.equal(st(res, "days").status, "progress");
+  assert.equal(st(res, "days").value, 2);
+  // le 19 : nouveau jour gagnant -> perte du jour OK, 3 jours de trading -> OK, objectif encore en cours
+  res = DB.propRules(pa, JC.enrich(base.concat([P("p4", "2026-11-19T10:00:00Z", 100)]), [pa], 2), T("2026-11-19T15:00:00Z"));
+  assert.equal(st(res, "daily").status, "ok"); assert.equal(st(res, "daily").used, 0);
+  assert.equal(st(res, "days").status, "ok"); assert.equal(st(res, "days").value, 3);
+  near(st(res, "target").used, 100 / 800); assert.equal(res.status, "EN COURS"); assert.equal(res.active, true);
+  // perte de 550 le 17 : ECHEC, meme vu le 19 (la limite a ete franchie un jour passe)
+  res = DB.propRules(pa, JC.enrich(base.concat([P("p5", "2026-11-17T16:00:00Z", -250), P("p4", "2026-11-19T10:00:00Z", 100)]), [pa], 2), T("2026-11-19T15:00:00Z"));
+  assert.equal(st(res, "daily").status, "fail"); assert.ok(st(res, "daily").fails[0].includes("2026-11-17"));
+  assert.equal(res.status, "RÈGLE VIOLÉE");
+  // perte totale : le solde passe sous le plancher de 9000 -> ECHEC
+  res = DB.propRules(Object.assign({}, pa, { rules: { maxDDPct: 10 } }), JC.enrich([P("x", "2026-11-18T10:00:00Z", -1200)], [pa], 2), T("2026-11-19T15:00:00Z"));
+  assert.equal(st(res, "total").status, "fail"); assert.equal(st(res, "daily").status, "off");
+  // objectif atteint -> OK
+  res = DB.propRules(pa, JC.enrich([P("a", "2026-11-16T10:00:00Z", 400), P("b", "2026-11-17T10:00:00Z", 300), P("c", "2026-11-18T10:00:00Z", 200)], [pa], 2), T("2026-11-18T15:00:00Z"));
+  assert.equal(st(res, "target").status, "ok"); assert.equal(st(res, "target").used, 1); assert.equal(res.status, "OBJECTIF ATTEINT");
+  // aucune regle reglee
+  res = DB.propRules({ id: "p1", startBalance: 10000 }, JC.enrich(base, [pa], 2), T("2026-11-17T15:00:00Z"));
+  assert.equal(res.active, false); assert.ok(res.items.every((i) => i.status === "off"));
+});

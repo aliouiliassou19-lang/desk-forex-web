@@ -126,6 +126,7 @@
     $("acFormCard").scrollIntoView({ behavior: "smooth", block: "start" });
   }
   $("acNew").addEventListener("click", () => openForm(null));
+  window.DeskAccounts = { edit: openForm };     // utilise par le Dashboard (options avancees des regles)
   $("acfCancel").addEventListener("click", () => $("acFormCard").classList.add("hidden"));
   $("acfForm").addEventListener("submit", async (e) => {
     e.preventDefault();

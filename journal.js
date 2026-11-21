@@ -489,7 +489,7 @@
     const ac = (Array.isArray(data.accounts) ? data.accounts : []).filter((a) => a && a.id).map((a) => ({
       id: String(a.id).slice(0, 80), name: String(a.name || "Compte").slice(0, 40), type: String(a.type || "demo").slice(0, 20),
       currency: String(a.currency || "USD").slice(0, 3), startBalance: Math.max(0, Number(a.startBalance) || 0),
-      startDate: Number(a.startDate) || null, mt5Login: a.mt5Login ? String(a.mt5Login).slice(0, 20) : null,
+      startDate: Number(a.startDate) || null, mt5Login: a.mt5Login ? String(a.mt5Login).slice(0, 20) : null, dashRules: !!a.dashRules,
       cashflows: Array.isArray(a.cashflows) && window.DashboardCore ? a.cashflows.map(window.DashboardCore.sanitizeCashflow).filter(Boolean).slice(-1000) : [],
       rules: a.rules && typeof a.rules === "object" && window.ChallengeCore ? window.ChallengeCore.normalizeRules(a.rules) : undefined,
       equitySnapshots: Array.isArray(a.equitySnapshots) ? a.equitySnapshots.filter((s) => s && Number.isFinite(+s.t) && Number.isFinite(+s.equity))

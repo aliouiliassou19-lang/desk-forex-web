@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=27">
+  <link rel="stylesheet" href="style.css?v=31">
 </head>
 <body>
   <header class="top">
@@ -158,6 +158,30 @@
       </div>
 
       <div id="dbSummary" class="kpis"></div>
+
+      <div class="card" id="dbPropCard">
+        <div class="row between wrap">
+          <h2>Règles prop firm</h2>
+          <label class="check"><input id="dbPropOn" type="checkbox"> Activer pour ce compte</label>
+        </div>
+        <p id="dbPropOff" class="muted small">Optionnel : coche la case si ce compte est un challenge de prop firm. Tu saisis toi-même les limites de <b>ton</b> challenge : le site n'invente aucune règle de prop firm.</p>
+        <div id="dbPropBody" class="hidden">
+          <div id="dbPropHead" class="row wrap"></div>
+          <div id="dbPropRules" class="gauges"></div>
+          <div id="dbPropMsgs"></div>
+          <details id="dbPropEdit" class="subdetails">
+            <summary>Régler les limites</summary>
+            <form id="dbPropForm" class="formgrid" autocomplete="off">
+              <label>Perte journalière max (%)<input id="prDaily" type="number" step="0.1" min="0" inputmode="decimal"></label>
+              <label>Perte totale max (%)<input id="prTotal" type="number" step="0.1" min="0" inputmode="decimal"></label>
+              <label>Objectif de profit (%)<input id="prTarget" type="number" step="0.1" min="0" inputmode="decimal"></label>
+              <label>Jours de trading minimum<input id="prDays" type="number" step="1" min="0" inputmode="numeric"></label>
+              <div class="span2 row wrap"><button class="btn" type="submit">Enregistrer les limites</button><button id="dbPropMore" class="btn ghost small" type="button">Options avancées (onglet Comptes)</button></div>
+            </form>
+            <p id="dbPropHint" class="muted small"></p>
+          </details>
+        </div>
+      </div>
 
       <div class="card">
         <div class="row between wrap">
@@ -790,18 +814,18 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=27"></script>
-  <script src="analysis.js?v=27"></script>
-  <script src="mt5-core.js?v=27"></script>
-  <script src="journal-core.js?v=27"></script>
-  <script src="challenge-core.js?v=27"></script>
-  <script src="dashboard-core.js?v=27"></script>
-  <script src="db.js?v=27"></script>
-  <script src="app.js?v=27"></script>
-  <script src="journal.js?v=27"></script>
-  <script src="accounts.js?v=27"></script>
-  <script src="mt5-import.js?v=27"></script>
-  <script src="dashboard.js?v=27"></script>
-  <script src="desk.js?v=27"></script>
+  <script src="rules.js?v=31"></script>
+  <script src="analysis.js?v=31"></script>
+  <script src="mt5-core.js?v=31"></script>
+  <script src="journal-core.js?v=31"></script>
+  <script src="challenge-core.js?v=31"></script>
+  <script src="dashboard-core.js?v=31"></script>
+  <script src="db.js?v=31"></script>
+  <script src="app.js?v=31"></script>
+  <script src="journal.js?v=31"></script>
+  <script src="accounts.js?v=31"></script>
+  <script src="mt5-import.js?v=31"></script>
+  <script src="dashboard.js?v=31"></script>
+  <script src="desk.js?v=31"></script>
 </body>
 </html>
