@@ -393,13 +393,16 @@
     const ul = el("ul", { class: "checks" });
     r.checks.forEach((c) => ul.append(el("li", {}, el("span", { class: "pill " + (c.level === "OK" ? "on" : c.level === "NON" ? "bad" : "WATCH") }, c.level), " ", c.msg)));
     out.append(ul);
-    if (r.size && r.size.allowed && (pair === "EUR/USD" || pair === "XAU/USD")) {
+    if (window.Journal) {
       out.append(el("button", { class: "btn ghost", type: "button", onclick: () => {
-        $("jSym").value = pair; $("jSide").value = r.dir; $("jStatus").value = "OPEN";
-        $("jEntry").value = r.entry.toFixed(dec); $("jStop").value = r.stop.toFixed(dec); $("jLots").value = r.size.lots.toFixed(2);
-        $("jWhy").value = `Plan ${r.verdict} : ${r.checks.filter((c) => c.level !== "OK").map((c) => c.msg).join(" ; ")}`.slice(0, 200);
-        D.showTab("journal"); toast("Plan copié dans le formulaire du journal papier : vérifie et enregistre.");
-      } }, "Copier dans le journal papier"));
+        window.Journal.openNew({
+          symbol: pair, side: r.dir, status: "OPEN", entry: +r.entry.toFixed(dec), sl: +r.stop.toFixed(dec),
+          tp: r.targets.length ? +r.targets[0].price.toFixed(dec) : null, lots: r.size && r.size.allowed ? r.size.lots : null,
+          pipValue: Number($("pPv").value) || null, entryTime: Date.now(),
+          notes: `Plan ${r.verdict} : ${r.checks.filter((c) => c.level !== "OK").map((c) => c.msg).join(" ; ") || "toutes les vérifications OK"}`,
+        });
+        toast("Plan copié dans un nouveau trade du journal : complète-le et enregistre.");
+      } }, "Copier dans le journal"));
     }
     out.append(el("p", { class: "muted small" }, "Calcul papier. Aucun ordre n'est passé. Vérifie le prix réel (ask/bid) et le spread chez ton courtier."));
   });

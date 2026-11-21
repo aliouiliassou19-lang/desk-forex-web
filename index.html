@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
   <header class="top">
@@ -344,34 +344,186 @@
       </div>
     </section>
 
-    <!-- ======================================================== JOURNAL PAPIER -->
+    <!-- ======================================================== JOURNAL DE TRADING -->
     <section id="tab-journal" class="tab hidden">
       <div class="card">
-        <h2>Journal papier</h2>
-        <p class="muted">Trades <b>simulés</b>, aucun ordre réel. Note à égalité les WATCH, REJECT, entrées ratées, pertes et gains. N'entre jamais à un prix qui n'a jamais été disponible.</p>
-        <div class="row wrap"><label class="inline">Solde de départ ($) <input id="jStart" type="number" step="0.01" min="0" value="68"></label>
-          <span class="muted">Solde simulé actuel : <b id="jBal" class="mono">–</b></span></div>
-        <form id="jForm" class="formgrid" autocomplete="off">
-          <label>Symbole<select id="jSym"><option>EUR/USD</option><option>XAU/USD</option></select></label>
-          <label>Sens<select id="jSide"><option value="buy">achat</option><option value="sell">vente</option></select></label>
-          <label>Statut<select id="jStatus"><option>WATCH</option><option>REJECT</option><option>UNFILLED</option><option>OPEN</option><option>CLOSED</option></select></label>
-          <label>Entrée (ask/bid)<input id="jEntry" type="number" step="any"></label>
-          <label>Stop-loss<input id="jStop" type="number" step="any"></label>
-          <label>Lots<input id="jLots" type="number" step="0.01" min="0"></label>
-          <label>Sortie observée<input id="jExit" type="number" step="any"></label>
-          <label>Coûts ($)<input id="jCosts" type="number" step="0.01" min="0" placeholder="commission, swap…"></label>
-          <label class="span2">Justification<input id="jWhy" type="text" maxlength="200"></label>
-          <button class="btn" type="submit">Enregistrer</button>
-        </form>
-        <p id="jErr" class="err hidden"></p>
+        <div class="row between wrap">
+          <h2>Journal de trading</h2>
+          <div class="seg" id="jNav" role="group" aria-label="Vues du journal">
+            <button type="button" data-v="trades" class="active">Trades</button><button type="button" data-v="stats">Statistiques</button><button type="button" data-v="review">Revue</button><button type="button" data-v="prefs">Réglages</button>
+          </div>
+        </div>
+        <p class="muted small">Trades simulés ou passés par toi-même : le site ne passe aucun ordre. Heures en UTC et en heure du Bénin (UTC+1).
+          Données gardées dans ce navigateur (<span id="jStoreInfo">…</span>) : exporte une sauvegarde JSON régulièrement.</p>
+        <div id="jFilters" class="filters">
+          <select id="fPeriod" aria-label="Période">
+            <option value="all">Toute la période</option><option value="7">7 derniers jours</option><option value="30">30 derniers jours</option>
+            <option value="month">Ce mois</option><option value="year">Cette année</option><option value="custom">Dates au choix</option>
+          </select>
+          <input id="fFrom" type="date" class="hidden" aria-label="Du">
+          <input id="fTo" type="date" class="hidden" aria-label="Au">
+          <select id="fSymbol" class="pairsel-any" aria-label="Symbole"><option value="">Tous les symboles</option></select>
+          <select id="fSetup" aria-label="Setup"><option value="">Tous les setups</option></select>
+          <select id="fSession" aria-label="Session"><option value="">Toutes les sessions</option></select>
+          <select id="fAccount" aria-label="Compte"><option value="">Tous les comptes</option></select>
+          <select id="fStatus" aria-label="Statut"><option value="">Tous les statuts</option></select>
+        </div>
       </div>
-      <div class="card">
-        <div class="row between wrap"><h2>Historique</h2>
-          <button id="jExport" class="btn ghost small" type="button">Exporter CSV</button></div>
-        <p id="jStats" class="muted"></p>
-        <div class="scroll"><table id="jTable"><thead><tr><th>Date UTC</th><th>Symbole</th><th>Sens</th><th>Statut</th><th>Stop</th><th>Risque</th><th>P&amp;L net</th><th>Justification</th><th></th></tr></thead><tbody></tbody></table></div>
+
+      <!-- ----- Trades -->
+      <div id="jv-trades">
+        <div class="row wrap between">
+          <button id="jNew" class="btn" type="button">+ Nouveau trade</button>
+          <span id="jCount" class="muted small"></span>
+        </div>
+        <div id="jFormCard" class="card hidden">
+          <div class="row between wrap"><h2 id="jfTitle">Nouveau trade</h2><span id="jfSource" class="muted small"></span></div>
+          <form id="jForm" autocomplete="off">
+            <fieldset><legend>Trade</legend>
+              <div class="formgrid">
+                <label>Compte<select id="jfAccount"></select></label>
+                <label>Statut<select id="jfStatus"></select></label>
+                <label>Symbole<select id="jfSymbol" class="pairsel"></select></label>
+                <label>Sens<select id="jfSide"><option value="buy">achat</option><option value="sell">vente</option></select></label>
+                <label>Lots<input id="jfLots" type="number" step="0.01" min="0"></label>
+                <label>Entrée (heure du Bénin)<input id="jfEntryTime" type="datetime-local"></label>
+                <label>Sortie (heure du Bénin)<input id="jfExitTime" type="datetime-local"></label>
+                <label>Prix d'entrée<input id="jfEntry" type="number" step="any"></label>
+                <label>Stop-loss (SL)<input id="jfSl" type="number" step="any"></label>
+                <label>Objectif (TP)<input id="jfTp" type="number" step="any"></label>
+                <label>Prix de sortie<input id="jfExit" type="number" step="any"></label>
+                <label>Valeur du pip / lot ($)<input id="jfPipValue" type="number" step="any" placeholder="auto"></label>
+                <label>Résultat brut du courtier ($)<input id="jfGross" type="number" step="any" placeholder="facultatif"></label>
+                <label>Commission ($)<input id="jfCommission" type="number" step="any" min="0"></label>
+                <label>Swap ($, + ou -)<input id="jfSwap" type="number" step="any"></label>
+              </div>
+            </fieldset>
+            <fieldset><legend>Analyse et plan</legend>
+              <div class="formgrid">
+                <label>Setup<select id="jfSetup"></select></label>
+                <label>Unité d'analyse<select id="jfTfA"></select></label>
+                <label>Unité d'entrée<select id="jfTfE"></select></label>
+                <label>Qualité<select id="jfQuality"><option value="">–</option><option>A</option><option>B</option><option>C</option></select></label>
+              </div>
+              <p class="muted small">Checklist du plan (coche ce qui a été respecté) :</p>
+              <div id="jfChecklist" class="checkgrid"></div>
+            </fieldset>
+            <fieldset><legend>Psychologie et erreurs</legend>
+              <div class="formgrid">
+                <label>Émotion avant<select id="jfEmoBefore"></select></label>
+                <label>Émotion après<select id="jfEmoAfter"></select></label>
+              </div>
+              <div id="jfErrors" class="checkgrid"></div>
+            </fieldset>
+            <fieldset><legend>Capture et notes</legend>
+              <label>Lien vers une capture (https://…, par exemple TradingView)<input id="jfShot" type="url" maxlength="500" placeholder="https://www.tradingview.com/x/…"></label>
+              <label>Notes<textarea id="jfNotes" rows="3" maxlength="4000"></textarea></label>
+            </fieldset>
+            <div id="jfPreview" class="preview"></div>
+            <div class="row wrap">
+              <button class="btn" type="submit">Enregistrer</button>
+              <button id="jfCancel" class="btn ghost" type="button">Annuler</button>
+              <button id="jfDup" class="btn ghost hidden" type="button">Dupliquer</button>
+              <button id="jfDelete" class="btn danger hidden" type="button">Supprimer</button>
+            </div>
+          </form>
+        </div>
+        <div class="card">
+          <div class="scroll"><table id="jList"><thead><tr><th>Entrée (Bénin)</th><th>Symbole</th><th>Sens</th><th>Statut</th><th>Lots</th><th>Pips</th><th>Net $</th><th>R</th><th>Setup</th><th>Session</th><th>Qualité</th><th>Plan</th><th></th></tr></thead><tbody></tbody></table></div>
+          <p id="jEmpty" class="muted">Aucun trade pour ces filtres.</p>
+        </div>
+      </div>
+
+      <!-- ----- Statistiques -->
+      <div id="jv-stats" class="hidden">
+        <div id="sKpis" class="kpis"></div>
+        <div class="grid2">
+          <div class="card"><h2>Courbe d'équité</h2><canvas id="sEquity" class="chart small-chart" role="img" aria-label="Courbe d'équité"></canvas></div>
+          <div class="card"><h2>Drawdown</h2><canvas id="sDD" class="chart small-chart" role="img" aria-label="Courbe de drawdown"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="row between wrap"><h2>Calendrier</h2>
+            <div class="row"><button id="calPrev" class="btn ghost small" type="button" aria-label="Mois précédent">‹</button><b id="calTitle"></b><button id="calNext" class="btn ghost small" type="button" aria-label="Mois suivant">›</button></div></div>
+          <div id="sCal" class="cal"></div>
+        </div>
+        <div class="grid2">
+          <div class="card"><h2>Par setup</h2><div id="sBySetup"></div></div>
+          <div class="card"><h2>Par session</h2><div id="sBySession"></div></div>
+          <div class="card"><h2>Par jour</h2><div id="sByWeekday"></div></div>
+          <div class="card"><h2>Par heure (Bénin)</h2><div id="sByHour"></div></div>
+          <div class="card"><h2>Par symbole</h2><div id="sBySymbol"></div></div>
+          <div class="card"><h2>Coût des erreurs</h2><div id="sErrors"></div></div>
+        </div>
+        <div class="card"><h2>Respect du plan</h2><div id="sPlan"></div></div>
+        <div class="row wrap"><button id="sPrint" class="btn ghost" type="button">Rapport imprimable (PDF)</button>
+          <span class="muted small">Statistiques sur les trades CLOSED avec un résultat net connu, selon les filtres. Un petit échantillon ne prouve aucun avantage.</span></div>
+      </div>
+
+      <!-- ----- Revue de la semaine -->
+      <div id="jv-review" class="hidden">
+        <div class="card">
+          <div class="row between wrap"><h2>Revue de la semaine</h2>
+            <div class="row"><button id="rvPrev" class="btn ghost small" type="button" aria-label="Semaine précédente">‹</button><b id="rvTitle"></b><button id="rvNext" class="btn ghost small" type="button" aria-label="Semaine suivante">›</button></div></div>
+          <div id="rvKpis" class="kpis"></div>
+        </div>
+        <div class="grid2">
+          <div class="card"><h2>3 meilleurs trades</h2><div id="rvBest"></div></div>
+          <div class="card"><h2>3 pires trades</h2><div id="rvWorst"></div></div>
+          <div class="card"><h2>Erreurs les plus fréquentes</h2><div id="rvErrors"></div></div>
+          <div class="card"><h2>Activité</h2><div id="rvActivity"></div></div>
+        </div>
+        <div class="card">
+          <h2>Leçons et objectif</h2>
+          <label>Leçons de la semaine<textarea id="rvLessons" rows="4" maxlength="4000"></textarea></label>
+          <label>Objectif de la semaine prochaine<textarea id="rvGoal" rows="2" maxlength="1000"></textarea></label>
+          <button id="rvSave" class="btn" type="button">Enregistrer la revue</button> <span id="rvSaved" class="muted small"></span>
+        </div>
+      </div>
+
+      <!-- ----- Reglages du journal -->
+      <div id="jv-prefs" class="hidden">
+        <div class="card">
+          <h2>Compte</h2>
+          <form id="acForm" class="formgrid" autocomplete="off">
+            <label>Nom<input id="acName" type="text" maxlength="40"></label>
+            <label>Solde de départ<input id="acStart" type="number" step="0.01" min="0"></label>
+            <label>Devise<select id="acCcy"><option>USD</option><option>EUR</option><option>XOF</option></select></label>
+            <label>Risque max par trade (%)<input id="prMaxRisk" type="number" step="0.1" min="0.1" max="20"></label>
+            <button class="btn" type="submit">Enregistrer</button>
+          </form>
+          <p class="muted small">Plusieurs comptes (démo, challenge, financé) arrivent en Phase 3. Les montants sont calculés en dollars US.</p>
+        </div>
+        <div class="card">
+          <h2>Listes</h2>
+          <p class="muted small">Un élément par ligne.</p>
+          <div class="grid2">
+            <label>Setups<textarea id="plSetups" rows="7"></textarea></label>
+            <label>Erreurs<textarea id="plErrors" rows="7"></textarea></label>
+            <label>Émotions<textarea id="plEmotions" rows="7"></textarea></label>
+            <label>Checklist du plan<textarea id="plChecklist" rows="7"></textarea></label>
+          </div>
+          <button id="plSave" class="btn" type="button">Enregistrer les listes</button>
+        </div>
+        <div class="card">
+          <h2>Sauvegarde et exports</h2>
+          <div class="row wrap">
+            <button id="exCsv" class="btn ghost" type="button">Exporter CSV</button>
+            <button id="exJson" class="btn ghost" type="button">Sauvegarde JSON complète</button>
+            <label class="btn ghost filebtn">Importer une sauvegarde JSON<input id="imJson" type="file" accept="application/json,.json"></label>
+          </div>
+          <p class="muted small">La sauvegarde JSON contient le journal, les comptes, les revues, les listes, les annonces, les alertes et les réglages — <b>jamais ta clé Twelve Data</b>. L'import ajoute ou met à jour les trades (même identifiant), sans rien supprimer.</p>
+          <p id="exMsg" class="muted small"></p>
+        </div>
+        <div class="card">
+          <h2>Zone dangereuse</h2>
+          <button id="jWipe" class="btn danger" type="button">Effacer tout le journal de ce navigateur</button>
+          <p class="muted small">Irréversible. Exporte d'abord une sauvegarde JSON.</p>
+        </div>
       </div>
     </section>
+
+    <!-- rapport imprimable (rempli a la demande) -->
+    <section id="printReport" class="print-only" aria-hidden="true"></section>
 
     <!-- ======================================================== AIDE -->
     <section id="tab-help" class="tab hidden">
@@ -390,7 +542,8 @@
           <li><b>Fondamental</b> : taux directeurs, inflation et chômage aux États-Unis et en zone euro (sources officielles datées), écart de taux, tes annonces, liens vers les banques centrales et l'actualité.</li>
           <li><b>Synthèse</b> : lecture automatique du jour (contexte, agenda, amplitude habituelle, scénarios conditionnels, prudence). Pas de prédiction de direction.</li>
           <li><b>Plan</b> : plan de trade avec verdict OK / À REVOIR / NON, pré-test d'une idée, taille de position.</li>
-          <li><b>Annonces</b> et <b>Journal</b> : fenêtres d'annonces et journal papier.</li>
+          <li><b>Annonces</b> : fenêtres d'annonces (REJECT 15 min avant et après).</li>
+          <li><b>Journal</b> : fiche complète de chaque trade (heures UTC et Bénin, risque, pips, R, coûts, session, setup, checklist, qualité, émotions, erreurs, capture), statistiques filtrables (équité, drawdown, calendrier, par setup / session / jour / heure, coût des erreurs, plan vs hors plan), revue de la semaine, exports CSV et JSON, rapport imprimable. Données gardées dans ton navigateur (IndexedDB) : exporte une sauvegarde régulièrement.</li>
         </ul>
         <h3>Décisions</h3>
         <ul>
@@ -422,9 +575,12 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=8"></script>
-  <script src="analysis.js?v=8"></script>
-  <script src="app.js?v=8"></script>
-  <script src="desk.js?v=8"></script>
+  <script src="rules.js?v=11"></script>
+  <script src="analysis.js?v=11"></script>
+  <script src="journal-core.js?v=11"></script>
+  <script src="db.js?v=11"></script>
+  <script src="app.js?v=11"></script>
+  <script src="journal.js?v=11"></script>
+  <script src="desk.js?v=11"></script>
 </body>
 </html>

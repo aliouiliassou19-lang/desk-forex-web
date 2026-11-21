@@ -436,52 +436,10 @@
   ["sSym", "sBal", "sRisk", "sStop", "sPv", "sMin"].forEach((id) => $(id).addEventListener("input", renderSize));
   $("sSym").addEventListener("change", () => { $("sPv").value = cfg.symbols[$("sSym").value].pipValuePerLot; renderSize(); });
 
-  // ---------------------------------------------------------------- journal papier
-  let journal = store.get("journal", []);
-  const startBal = () => Number(store.get("jStart", 68)) || 0;
-  const balance = () => startBal() + journal.reduce((a, t) => a + (t.status === "CLOSED" && t.pnl != null ? t.pnl : 0), 0);
-  $("jStart").value = startBal();
-  $("jStart").addEventListener("change", () => { store.set("jStart", Number($("jStart").value) || 0); renderJournal(); });
-  $("jForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const t = { symbol: $("jSym").value, side: $("jSide").value, status: $("jStatus").value, entry: $("jEntry").value,
-      stop: $("jStop").value, lots: $("jLots").value, exit: $("jExit").value, costs: $("jCosts").value, why: $("jWhy").value.trim().slice(0, 200) };
-    const c = R.paperTradeCalc(t, cfg, balance());
-    if (c.errors.length) { $("jErr").textContent = "Refusé : " + c.errors.join(" ; "); $("jErr").classList.remove("hidden"); return; }
-    $("jErr").classList.add("hidden");
-    journal.push(Object.assign(t, c, { id: Date.now(), date: R.isoUtc(Date.now()) }));
-    store.set("journal", journal); $("jForm").reset(); renderJournal(); toast("Ligne ajoutée au journal papier.");
-  });
-  function renderJournal() {
-    $("jBal").textContent = balance().toFixed(2) + " $";
-    const tb = clear($("jTable").querySelector("tbody"));
-    [...journal].reverse().forEach((t) => tb.append(el("tr", {},
-      el("td", { class: "mono" }, t.date.slice(0, 16).replace("T", " ")), el("td", {}, t.symbol), el("td", {}, t.side === "sell" ? "vente" : "achat"),
-      el("td", {}, el("span", { class: "pill " + (t.status === "CLOSED" ? "on" : t.status === "OPEN" ? "WATCH" : "off") }, t.status)),
-      el("td", { class: "mono" }, t.stopPips != null ? t.stopPips + " p" : "–"),
-      el("td", { class: "mono" }, t.riskUsd != null ? `${t.riskUsd} $ (${t.riskPct} %)` : "–"),
-      el("td", { class: "mono " + (t.pnl > 0 ? "up" : t.pnl < 0 ? "down" : "") }, t.pnl != null ? (t.pnl > 0 ? "+" : "") + t.pnl + " $" : "INCONNU"),
-      el("td", { class: "wrap" }, t.why || ""),
-      el("td", {}, el("button", { class: "btn ghost small", type: "button", onclick: () => {
-        if (!confirm("Supprimer cette ligne du journal ?")) return;
-        journal = journal.filter((x) => x.id !== t.id); store.set("journal", journal); renderJournal(); } }, "Supprimer")))));
-    const by = {}; journal.forEach((t) => (by[t.status] = (by[t.status] || 0) + 1));
-    const closed = journal.filter((t) => t.status === "CLOSED" && t.pnl != null);
-    $("jStats").textContent = journal.length
-      ? `${journal.length} lignes · ` + Object.entries(by).map(([k, v]) => `${k} ${v}`).join(" · ") +
-        ` · P&L net papier (sorties observées) : ${closed.reduce((a, t) => a + t.pnl, 0).toFixed(2)} $ sur ${closed.length} trade(s). Un petit échantillon ne prouve aucun avantage.`
-      : "Aucune ligne pour l'instant.";
-  }
-  $("jExport").addEventListener("click", () => {
-    if (!journal.length) { toast("Journal vide."); return; }
-    download(`journal-papier-${R.isoUtc(Date.now()).slice(0, 10)}.csv`, R.toCsv(journal,
-      ["date", "symbol", "side", "status", "entry", "stop", "stopPips", "lots", "pipValue", "riskUsd", "riskPct", "exit", "costs", "pnl", "why"]));
-  });
-
-  // ---------------------------------------------------------------- outils partages avec desk.js
+  // ---------------------------------------------------------------- outils partages avec desk.js et journal.js
   const priceHooks = [];
   window.DeskApp = {
-    cfg, store, getKey, credits, fetchJson, toast, notify, el, clear, showTab, renderCredits,
+    cfg, store, getKey, credits, fetchJson, toast, notify, el, clear, showTab, renderCredits, download,
     getNews: () => news.slice(),
     onPrices: (fn) => priceHooks.push(fn),
     fmtUtc, fmtLocal,
@@ -489,7 +447,7 @@
 
   // ---------------------------------------------------------------- demarrage
   showTab(store.get("tab", "monitor"));
-  renderKey(); renderCredits(); renderNews(); renderCards(); renderLog(); renderSize(); renderJournal(); renderNotifBtn(); renderSettingsForm();
+  renderKey(); renderCredits(); renderNews(); renderCards(); renderLog(); renderSize(); renderNotifBtn(); renderSettingsForm();
   tick(); setInterval(tick, 30000);
   window.addEventListener("beforeunload", (e) => { if (mon.running && mon.mode === "live") { e.preventDefault(); e.returnValue = ""; } });
 })();
