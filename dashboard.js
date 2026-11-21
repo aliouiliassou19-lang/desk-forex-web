@@ -309,7 +309,8 @@
   // largeur par le CSSOM (la CSP interdit l'attribut style)
   const bar = (c, w) => { const s = el("span", { class: c }); s.style.width = w.toFixed(1) + "%"; return s; };
   function splitTable(rows, label, max) {
-    if (!rows.length) return el("p", { class: "muted small" }, "Pas encore de trade clôturé.");
+    if (!rows.length) return el("div", { class: "empty" }, el("p", {}, "Pas encore de trade clôturé sur ce compte."),
+      el("button", { class: "btn small", type: "button", onclick: () => J.openNew({ accountId: currentAccount().id }) }, "+ Ajouter un trade"));
     const t = el("table", {}, el("thead", {}, el("tr", {}, ...[label, "Trades", "Réussite", "Net"].map((h) => el("th", {}, h)), el("th", { class: "barcell" }, "Graphique"))));
     const tb = el("tbody"); t.append(tb);
     rows.forEach((g) => {
@@ -341,6 +342,7 @@
         toast("Mouvement supprimé.");
       } }, "Supprimer")))));
     $("cfEmpty").classList.toggle("hidden", flows.length > 0);
+    $("cfTable").parentElement.classList.toggle("hidden", !flows.length);
   }
   $("cfForm").addEventListener("submit", async (e) => {
     e.preventDefault();

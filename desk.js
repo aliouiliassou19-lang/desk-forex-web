@@ -51,6 +51,8 @@
   const saveAlerts = () => store.set("alerts", alerts);
   function renderAlerts() {
     const tb = clear($("alTable").querySelector("tbody"));
+    $("alEmpty").classList.toggle("hidden", alerts.length > 0);
+    $("alTable").parentElement.classList.toggle("hidden", !alerts.length);
     alerts.forEach((a) => tb.append(el("tr", {},
       el("td", {}, a.pair), el("td", {}, a.side === "above" ? "au-dessus" : "en dessous"),
       el("td", { class: "mono" }, a.price), el("td", {}, a.note || ""),

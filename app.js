@@ -104,6 +104,7 @@
       if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
     $("subNav").classList.toggle("single", GROUPS[g].length < 2);
+    if (name === "monitor") autoDemo();
     document.querySelectorAll(".tab").forEach((s) => s.classList.toggle("hidden", s.id !== "tab-" + name));
     store.set("tab", name);
     const tabOf = store.get("tabOf", {}); if (tabOf && typeof tabOf === "object") { tabOf[g] = name; store.set("tabOf", tabOf); }
@@ -131,8 +132,11 @@
   }
 
   // ---------------------------------------------------------------- cle
+  const KEY_RE = /^[A-Za-z0-9]{16,64}$/;
   function renderKey() {
     const has = !!getKey();
+    $("demoGlobal").classList.toggle("hidden", has);     // bandeau « Données de démo » tant qu'aucune cle n'est enregistree
+    $("logEmptyBtn").textContent = has ? "Démarrer la surveillance" : "Voir la démo";
     $("keyCard").classList.toggle("hidden", has);
     $("keyOk").classList.toggle("hidden", !has);
     $("keyWhere").textContent = has ? "(" + keyWhere() + ")" : "";
@@ -140,12 +144,27 @@
   $("keyForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const k = $("keyInput").value.trim();
-    if (!/^[A-Za-z0-9]{16,64}$/.test(k)) { toast("Clé invalide : colle la clé affichée sur ton tableau de bord Twelve Data."); return; }
+    if (!KEY_RE.test(k)) { toast("Clé invalide : colle la clé affichée sur ton tableau de bord Twelve Data."); return; }
     saveKey(k, $("keyRemember").checked);
     $("keyInput").value = "";
-    renderKey(); toast("Clé enregistrée dans ton navigateur.");
+    keySaved(); toast("Clé enregistrée dans ton navigateur.");
+  });
+  function keySaved() {
+    if (mon.running && mon.mode === "demo") stopMonitor("Démo arrêtée : ta clé est enregistrée. Tu peux démarrer la surveillance.");
+    renderKey();
+  }
+  $("demoAddKey").addEventListener("click", () => {
+    showTab("monitor");
+    $("keyCard").scrollIntoView({ block: "center" }); $("keyInput").focus();
   });
   $("keyForget").addEventListener("click", () => { if (mon.running && mon.mode === "live") stopMonitor("Arrêt : clé oubliée."); forgetKey(); renderKey(); toast("Clé oubliée."); });
+
+  // boutons des messages « tableau vide » : data-focus = aller au champ, data-click = cliquer un bouton existant
+  document.addEventListener("click", (e) => {
+    const f = e.target.closest("[data-focus]"), c = e.target.closest("[data-click]");
+    if (f) { const t = $(f.dataset.focus); if (t) { t.scrollIntoView({ block: "center" }); t.focus(); } }
+    if (c) { const t = $(c.dataset.click); if (t) t.click(); }
+  });
 
   // ---------------------------------------------------------------- credits
   const storageAdapter = { get: (k) => store.get(k, null), set: (k, v) => store.set(k, v) };
@@ -177,6 +196,7 @@
       el("td", {}, el("button", { class: "btn ghost small", type: "button", "aria-label": "Supprimer", onclick: () => {
         news = news.filter((n) => n !== e); saveNews(); renderNews(); } }, "Supprimer")))));
     $("newsEmpty").classList.toggle("hidden", up.length > 0);
+    $("newsTable").parentElement.classList.toggle("hidden", !up.length);
   }
   $("newsForm").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -364,13 +384,15 @@
     }
     return out;
   }
-  $("demoBtn").addEventListener("click", async () => {
+  $("demoBtn").addEventListener("click", () => runDemo());
+  async function runDemo() {
+    if (mon.running) return;
     $("demoBtn").disabled = true;
     const starts = R.demoStartPrices(cfg.settings, await lastRealPrices());
     const sid = startCommon("demo");
     const start = Date.parse("2026-11-18T13:00:00Z");
     const feed = R.SyntheticFeed(cfg, 42, Object.fromEntries(Object.entries(starts).map(([s, v]) => [s, v.price])));
-    $("demoBanner").textContent = "DÉMO : données SYNTHÉTIQUES, aucun prix réel. Départ : " +
+    $("demoBanner").textContent = "Données de démo : prix SIMULÉS, aucun prix réel. Départ : " +
       SYMS.map((s) => `${s} ${starts[s].price.toFixed(cfg.symbols[s].decimals)} (${starts[s].source})`).join(", ") +
       ". Un mouvement brusque, une donnée périmée et une donnée manquante sont injectés exprès.";
     const demoNews = [{ timeMs: Date.parse("2026-11-18T13:40:00Z"), currency: "USD", event: "EXEMPLE_SYNTHETIQUE_CPI", impact: "high" }];
@@ -386,7 +408,7 @@
       i++; mon.timer = setTimeout(step, 600);
     };
     step();
-  });
+  }
 
   // ----- rendu
   function renderCards() {
@@ -445,6 +467,8 @@
   function renderLog() {
     const tb = clear($("logTable").querySelector("tbody"));
     const rows = (mon.rows.length ? mon.rows : liveLog).slice(-60).reverse();
+    $("logEmpty").classList.toggle("hidden", rows.length > 0);
+    $("logTable").parentElement.classList.toggle("hidden", !rows.length);
     rows.forEach((r) => tb.append(el("tr", {},
       el("td", { class: "mono" }, r.fetched_at_utc.slice(5, 16).replace("T", " ")), el("td", {}, r.symbol),
       el("td", { class: "mono" }, r.price), el("td", { class: "mono" }, r.change_1m_pips), el("td", { class: "mono" }, r.change_5m_pips),
@@ -490,6 +514,48 @@
   };
 
   // ---------------------------------------------------------------- demarrage
+  // ---------------------------------------------------------------- prise en main
+  // sans cle : la demo se lance toute seule (une fois par visite), avec le bandeau « Données de démo »
+  let autoDemoDone = false;
+  function autoDemo() {
+    if (autoDemoDone || typeof mon === "undefined" || mon.running || getKey()) return;
+    autoDemoDone = true;
+    setTimeout(() => { if (!getKey() && !mon.running) runDemo(); }, 400);
+  }
+  $("logEmptyBtn").addEventListener("click", () => (getKey() ? $("startBtn").click() : runDemo()));
+  // ecran d'accueil en 3 etapes (premiere visite), bouton « Passer », Echap = passer
+  const W = { step: 1, dlg: $("welcome") };
+  function wShow(n) {
+    W.step = n;
+    W.dlg.querySelectorAll(".w-step").forEach((sec) => sec.classList.toggle("hidden", Number(sec.dataset.step) !== n));
+    W.dlg.querySelectorAll(".w-dots li").forEach((li, i) => li.classList.toggle("on", i < n));
+    $("wPrev").classList.toggle("hidden", n === 1);
+    $("wNext").textContent = n < 3 ? "Suivant" : getKey() ? "Démarrer la surveillance" : "Voir la démo";
+    if (n === 2) $("wKeyMsg").textContent = getKey() ? "✓ Une clé est déjà enregistrée sur cet appareil." : "";
+    if (n === 3) $("wStartInfo").textContent = getKey() ? "Ta clé est enregistrée : la surveillance utilisera de vrais prix."
+      : "Pas encore de clé : tu verras d'abord la démo (prix simulés). Tu pourras ajouter ta clé plus tard dans Accueil → Moniteur.";
+    const h = W.dlg.querySelector(`.w-step[data-step="${n}"] h3`); if (h) { h.setAttribute("tabindex", "-1"); h.focus(); }
+  }
+  function wClose() { store.set("welcomeDone", true); if (W.dlg.open) W.dlg.close(); }
+  function wOpen() { if (typeof W.dlg.showModal !== "function") return; if (!W.dlg.open) W.dlg.showModal(); wShow(1); }
+  $("wSkip").addEventListener("click", wClose);
+  W.dlg.addEventListener("cancel", () => store.set("welcomeDone", true));
+  $("wPrev").addEventListener("click", () => wShow(Math.max(1, W.step - 1)));
+  $("wNext").addEventListener("click", () => {
+    if (W.step < 3) return wShow(W.step + 1);
+    wClose(); showTab("monitor");
+    if (getKey()) { if (mon.running) stopMonitor("Démo arrêtée."); $("startBtn").click(); } else runDemo();
+  });
+  $("wKeyForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const k = $("wKey").value.trim();
+    if (!KEY_RE.test(k)) { $("wKeyMsg").textContent = "Clé invalide : colle la clé affichée sur ton tableau de bord Twelve Data (16 à 64 lettres et chiffres)."; return; }
+    saveKey(k, $("wRemember").checked); $("wKey").value = "";
+    keySaved(); toast("Clé enregistrée dans ton navigateur.");
+    wShow(3);
+  });
+  $("wAgain").addEventListener("click", wOpen);
+
   // chaque partie demarre seule : une erreur dans l'une n'empeche pas les autres de s'afficher
   const safe = (name, fn) => { try { fn(); } catch (e) { console.error(`Desk Forex : erreur au démarrage (${name})`, e); } };
   safe("taille du texte", () => applyFontSize(store.get("fontSize", 0)));
@@ -498,5 +564,6 @@
     ["taille de position", renderSize], ["notifications", renderNotifBtn], ["réglages", renderSettingsForm], ["marché", tick]]
     .forEach(([name, fn]) => safe(name, fn));
   setInterval(() => safe("marché", tick), 30000);
+  safe("accueil", () => { if (!store.get("welcomeDone", false)) wOpen(); });
   window.addEventListener("beforeunload", (e) => { if (mon.running && mon.mode === "live") { e.preventDefault(); e.returnValue = ""; } });
 })();

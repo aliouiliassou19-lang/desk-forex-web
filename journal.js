@@ -147,6 +147,7 @@
       tb.append(tr);
     });
     $("jEmpty").classList.toggle("hidden", list.length > 0);
+    $("jList").parentElement.classList.toggle("hidden", !list.length);
     const closed = list.filter((x) => x.t.status === "CLOSED" && x.m.net != null);
     $("jCount").textContent = `${list.length} ligne(s) · ${closed.length} clôturée(s) · net ${money(closed.reduce((s, x) => s + x.m.net, 0))}`;
   }
@@ -279,7 +280,8 @@
 
   // ---------------------------------------------------------------- statistiques
   function groupTable(rows, keyLabel) {
-    if (!rows.length) return el("p", { class: "muted" }, "Pas encore de trade clôturé.");
+    if (!rows.length) return el("div", { class: "empty" }, el("p", {}, "Pas encore de trade clôturé."),
+      el("button", { class: "btn small", type: "button", onclick: () => openNew() }, "+ Nouveau trade"));
     const t = el("table", {}, el("thead", {}, el("tr", {}, ...[keyLabel || "Groupe", "Trades", "Réussite", "Net", "R moyen"].map((h) => el("th", {}, h)))));
     const tb = el("tbody"); t.append(tb);
     rows.forEach((g) => tb.append(el("tr", {}, el("td", {}, g.key), el("td", { class: "mono" }, g.n), el("td", { class: "mono" }, pct(g.winRate)),

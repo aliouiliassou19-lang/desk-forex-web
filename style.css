@@ -326,3 +326,29 @@ details.subdetails > summary { cursor: pointer; font-weight: 600; color: var(--a
 .gauge .rule-fail { display: block; font-size: 0.75rem; color: var(--reject); margin-top: 3px; }
 #dbPropRules .gauge > .row { flex-wrap: wrap; row-gap: 2px; }
 #dbPropRules .gauge > .row > span:first-child { flex: 1 1 200px; }
+
+/* ---------- prise en main : bandeau demo, tableaux vides, ecran d'accueil */
+.demo-global {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  background: var(--watch-bg); color: var(--text); border-bottom: 2px solid var(--watch); padding: 8px 16px;
+}
+.demo-global b { color: var(--watch); }
+.empty { border: 1px dashed var(--line); border-radius: 10px; padding: 12px 14px; margin: 8px 0; background: var(--surface2); }
+.empty p { margin: 0 0 8px; }
+dialog.welcome {
+  width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 24px); overflow-x: hidden; overflow-y: auto; border: 0; border-radius: 16px;
+  padding: 18px 20px; background: var(--surface); color: var(--text); box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+}
+dialog.welcome::backdrop { background: rgba(15, 23, 42, .55); }
+.w-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.w-head h2 { margin: 0; font-size: 1.25rem; }
+.w-dots { display: flex; gap: 6px; list-style: none; padding: 0; margin: 10px 0; }
+.w-dots li { flex: 1; height: 6px; border-radius: 99px; background: var(--surface2); }
+.w-dots li.on { background: var(--accent); }
+.w-num { color: var(--muted); font-weight: 700; font-size: 0.8125rem; margin: 8px 0 0; text-transform: uppercase; letter-spacing: .03em; }
+.w-step h3 { margin-top: 4px; }
+.w-step a.btn { text-decoration: none; display: inline-flex; }
+.w-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; }
+.w-nav .btn { min-height: 44px; }
+#wNext { margin-left: auto; }
+#wKey { flex: 1 1 200px; }

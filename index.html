@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=37">
+  <link rel="stylesheet" href="style.css?v=39">
 </head>
 <body>
   <header class="top">
@@ -51,6 +51,11 @@
       <button type="button" id="fsDown" aria-label="Réduire la taille du texte">A-</button>
       <button type="button" id="fsUp" aria-label="Agrandir la taille du texte">A+</button>
     </div>
+  </div>
+
+  <div id="demoGlobal" class="demo-global hidden" role="status">
+    <span><b>Données de démo</b> : aucune clé Twelve Data n'est enregistrée, donc les prix du Moniteur sont <b>simulés</b>, pas réels.</span>
+    <button id="demoAddKey" class="btn small" type="button">Ajouter ma clé</button>
   </div>
 
   <main>
@@ -116,6 +121,8 @@
           </div>
         </div>
         <div class="scroll"><table id="logTable"><thead><tr><th>Heure UTC</th><th>Symbole</th><th>Prix</th><th>1 min</th><th>5 min</th><th>Marché</th><th>Décision</th><th>Raisons</th></tr></thead><tbody></tbody></table></div>
+        <div id="logEmpty" class="empty hidden"><p>Aucun relevé pour l'instant : les prix s'affichent ici pendant la surveillance.</p>
+          <button id="logEmptyBtn" class="btn small" type="button">Démarrer la surveillance</button></div>
         <p class="muted small">Prix = clôture 1 min (milieu de marché), <b>pas ton prix d'exécution</b>. Chez un courtier tu achètes à l'ask et vends au bid. bid/ask non fournis : spread <b>supposé</b> (réglable).</p>
       </div>
 
@@ -152,6 +159,8 @@
           <button class="btn" type="submit">Ajouter</button>
         </form>
         <div class="scroll"><table id="alTable"><thead><tr><th>Paire</th><th>Condition</th><th>Prix</th><th>Note</th><th>État</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+        <div id="alEmpty" class="empty hidden"><p>Aucune alerte de prix. Une alerte te prévient quand un prix est atteint pendant la surveillance.</p>
+          <button class="btn small" type="button" data-focus="alPrice">+ Créer une alerte</button></div>
         <div class="row"><button id="alCheck" class="btn ghost small" type="button">Vérifier maintenant</button><span id="alMsg" class="muted small"></span></div>
       </div>
     </section>
@@ -246,7 +255,8 @@
           <button class="btn" type="submit">Ajouter</button>
         </form>
         <div class="scroll"><table id="cfTable"><thead><tr><th>Date (Bénin)</th><th>Type</th><th>Montant</th><th>Note</th><th>Action</th></tr></thead><tbody></tbody></table></div>
-        <p id="cfEmpty" class="muted small">Aucun dépôt ni retrait pour ce compte.</p>
+        <div id="cfEmpty" class="empty"><p>Aucun dépôt ni retrait pour ce compte.</p>
+          <button class="btn small" type="button" data-focus="cfAmount">+ Ajouter un dépôt ou un retrait</button></div>
       </div>
 
       <div class="card" id="dbBackupCard">
@@ -454,7 +464,8 @@
       <div class="card">
         <h2>À venir</h2>
         <div class="scroll"><table id="newsTable"><thead><tr><th>Heure locale</th><th>UTC</th><th>Devise</th><th>Annonce</th><th>Impact</th><th>Action</th></tr></thead><tbody></tbody></table></div>
-        <p id="newsEmpty" class="muted">Aucune annonce enregistrée.</p>
+        <div id="newsEmpty" class="empty"><p>Aucune annonce enregistrée. Ajoute les annonces fortes de la semaine (NFP, CPI, banques centrales) : le Moniteur refuse les signaux autour.</p>
+          <button class="btn small" type="button" data-focus="nDate">+ Ajouter une annonce</button></div>
       </div>
       <div class="card">
         <h2>Importer (CSV)</h2>
@@ -550,7 +561,8 @@
         </div>
         <div class="card">
           <div class="scroll"><table id="jList"><thead><tr><th>Entrée (Bénin)</th><th>Symbole</th><th>Sens</th><th>Statut</th><th>Lots</th><th>Pips</th><th>Net $</th><th>R</th><th>Setup</th><th>Session</th><th>Qualité</th><th>Plan</th><th>Action</th></tr></thead><tbody></tbody></table></div>
-          <p id="jEmpty" class="muted">Aucun trade pour ces filtres. Pour découvrir le journal, charge l'exemple fictif (Journal → Réglages → Données d'exemple).</p>
+          <div id="jEmpty" class="empty"><p>Aucun trade à afficher (journal vide ou filtres trop stricts). Pour découvrir le journal, tu peux charger un exemple fictif.</p>
+            <div class="row wrap"><button class="btn small" type="button" data-click="jNew">+ Nouveau trade</button><button class="btn ghost small" type="button" data-click="demoLoad">Charger l'exemple</button></div></div>
         </div>
       </div>
 
@@ -769,6 +781,7 @@
           <li>Note chaque trade (ou importe-le depuis MT5) dans le <b>Journal</b>, puis fais ta revue chaque semaine.</li>
         </ol>
         <p class="muted small">Pour tout découvrir sans compte : Journal → Réglages → <b>Charger l'exemple</b> (données fictives, supprimables en un clic).</p>
+        <p><button id="wAgain" class="btn ghost small" type="button">Revoir l'écran d'accueil</button></p>
         <h3>Onglets</h3>
         <ul>
           <li><b>Moniteur</b> : surveillance EUR/USD et or, sessions de marché, alertes de prix.</li>
@@ -861,19 +874,56 @@
     </section>
   </main>
 
+  <dialog id="welcome" class="welcome" aria-labelledby="wTitle">
+    <div class="w-head">
+      <h2 id="wTitle">Bienvenue sur Desk Forex</h2>
+      <button id="wSkip" class="btn ghost small" type="button">Passer</button>
+    </div>
+    <p class="muted">Un outil éducatif pour surveiller l'euro-dollar et l'or. Il ne passe <b>aucun ordre</b> et ne donne aucun conseil. 3 étapes pour commencer :</p>
+    <ol class="w-dots" aria-hidden="true"><li></li><li></li><li></li></ol>
+    <section class="w-step" data-step="1">
+      <p class="w-num">Étape 1 sur 3</p>
+      <h3>Crée ta clé gratuite Twelve Data</h3>
+      <p>Twelve Data fournit les prix. L'offre <b>Basic</b> est gratuite, sans carte bancaire. Une fois inscrit, ta clé (une suite de lettres et de chiffres) est sur ton tableau de bord Twelve Data.</p>
+      <p><a class="btn ghost" href="https://twelvedata.com/register" target="_blank" rel="noopener noreferrer">Créer ma clé sur twelvedata.com ↗</a></p>
+      <p class="muted small">Sans clé, le site marche en <b>mode démo</b> avec des prix simulés.</p>
+    </section>
+    <section class="w-step hidden" data-step="2">
+      <p class="w-num">Étape 2 sur 3</p>
+      <h3>Colle ta clé</h3>
+      <p>Elle reste dans ton navigateur et n'est envoyée qu'à Twelve Data.</p>
+      <form id="wKeyForm" class="row wrap" autocomplete="off">
+        <input id="wKey" type="password" placeholder="Colle ta clé ici" aria-label="Clé Twelve Data" spellcheck="false">
+        <label class="check"><input id="wRemember" type="checkbox"> Se souvenir sur cet appareil</label>
+        <button class="btn" type="submit">Enregistrer la clé</button>
+      </form>
+      <p id="wKeyMsg" class="small" role="status"></p>
+    </section>
+    <section class="w-step hidden" data-step="3">
+      <p class="w-num">Étape 3 sur 3</p>
+      <h3>Lance la surveillance</h3>
+      <p>Pendant une session ouverte (Londres ou New York), clique sur <b>Démarrer la surveillance</b> et garde la page ouverte. « À surveiller » veut dire « regarde ce prix » : jamais « achète » ni « vends ».</p>
+      <p id="wStartInfo" class="muted small"></p>
+    </section>
+    <div class="w-nav">
+      <button id="wPrev" class="btn ghost" type="button">Précédent</button>
+      <button id="wNext" class="btn" type="button">Suivant</button>
+    </div>
+  </dialog>
+
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=37"></script>
-  <script src="analysis.js?v=37"></script>
-  <script src="mt5-core.js?v=37"></script>
-  <script src="journal-core.js?v=37"></script>
-  <script src="challenge-core.js?v=37"></script>
-  <script src="dashboard-core.js?v=37"></script>
-  <script src="db.js?v=37"></script>
-  <script src="app.js?v=37"></script>
-  <script src="journal.js?v=37"></script>
-  <script src="accounts.js?v=37"></script>
-  <script src="mt5-import.js?v=37"></script>
-  <script src="dashboard.js?v=37"></script>
-  <script src="desk.js?v=37"></script>
+  <script src="rules.js?v=39"></script>
+  <script src="analysis.js?v=39"></script>
+  <script src="mt5-core.js?v=39"></script>
+  <script src="journal-core.js?v=39"></script>
+  <script src="challenge-core.js?v=39"></script>
+  <script src="dashboard-core.js?v=39"></script>
+  <script src="db.js?v=39"></script>
+  <script src="app.js?v=39"></script>
+  <script src="journal.js?v=39"></script>
+  <script src="accounts.js?v=39"></script>
+  <script src="mt5-import.js?v=39"></script>
+  <script src="dashboard.js?v=39"></script>
+  <script src="desk.js?v=39"></script>
 </body>
 </html>
