@@ -22,15 +22,36 @@
   }
   $("dbAccount").addEventListener("change", () => { D.store.set("dbAccount", $("dbAccount").value); render(); });
 
-  // ---------------------------------------------------------------- resume (etape 1)
+  // ---------------------------------------------------------------- cartes du haut (etape 2)
+  const tile = (label, value, c, sub) => el("div", { class: "kpi" }, el("span", {}, label), el("b", { class: "mono " + (c || "") }, value), sub ? el("small", {}, sub) : null);
+  const pct = (v) => (v == null || !Number.isFinite(v) ? "" : `${v > 0 ? "+" : ""}${v.toFixed(2)} %`);
+  const fix = (v, d) => (v == null || !Number.isFinite(v) ? "–" : (v > 0 ? "+" : "") + v.toFixed(d));
+  const pl = (n, w) => `${n} ${w}${n > 1 ? "s" : ""}`;
   function renderSummary(acc, list) {
-    const s = DC.summary(acc, list);
-    const box = clear($("dbSummary"));
-    const kv = (label, value, c, sub) => el("div", { class: "kvbox" }, el("span", {}, label), el("b", { class: "mono " + (c || "") }, value), sub ? el("small", {}, sub) : null);
-    box.append(
-      kv("Solde actuel", money(s.balance), "", `départ ${money(s.start)}`),
-      kv("Profit / perte total", money(s.pnl, true), cls(s.pnl), s.pnlPct == null ? "" : `${s.pnlPct > 0 ? "+" : ""}${s.pnlPct.toFixed(2)} % du capital investi`),
-      kv("Capital investi", money(s.capital), "", `dépôts ${money(s.deposits)} · retraits ${money(s.withdrawals)}`));
+    const s = DC.summary(acc, list), p = DC.periodPnl(acc, list, Date.now());
+    const period = (label, x) => tile(label, money(x.net, true), cls(x.net), `${pct(x.pct)}${x.pct != null ? " · " : ""}${pl(x.n, "trade")} clôturé${x.n > 1 ? "s" : ""}`);
+    clear($("dbSummary")).append(
+      tile("Solde actuel", money(s.balance), "", `départ ${money(s.start)}`),
+      tile("Profit / perte total", money(s.pnl, true), cls(s.pnl), s.pnlPct == null ? "" : `${pct(s.pnlPct)} du capital investi`),
+      period("Aujourd'hui", p.day), period("Cette semaine", p.week), period("Ce mois", p.month),
+      tile("Capital investi", money(s.capital), "", `dépôts ${money(s.deposits)} · retraits ${money(s.withdrawals)}`));
+  }
+
+  // ---------------------------------------------------------------- statistiques (etape 2)
+  function renderStats(acc, list) {
+    const s = DC.accountStats(acc, list);
+    const pf = s.profitFactor === Infinity ? "∞" : s.profitFactor == null ? "–" : s.profitFactor.toFixed(2);
+    clear($("dbStats")).append(
+      tile("Trades clôturés", String(s.n), "", `${pl(s.wins, "gagnant")} · ${pl(s.losses, "perdant")}`),
+      tile("Taux de réussite", s.winRate == null ? "–" : (s.winRate * 100).toFixed(0) + " %"),
+      tile("Gain moyen", money(s.avgWin, true), "up"),
+      tile("Perte moyenne", money(s.avgLoss, true), "down"),
+      tile("Ratio gain/perte", s.payoffRatio == null ? "–" : s.payoffRatio.toFixed(2), "", "gain moyen ÷ perte moyenne"),
+      tile("Profit factor", pf, s.profitFactor > 1 ? "up" : s.profitFactor != null && s.profitFactor < 1 ? "down" : "", "total des gains ÷ total des pertes"),
+      tile("Espérance par trade", money(s.expectancyUsd, true), cls(s.expectancyUsd), s.expectancyR != null ? `${fix(s.expectancyR, 2)} R` : "R inconnu (stop manquant)"),
+      tile("R moyen", fix(s.expectancyR, 2), cls(s.expectancyR), `gains ${fix(s.avgWinR, 2)} · pertes ${fix(s.avgLossR, 2)}`),
+      tile("Plus longue série de gains", pl(s.longestWin, "trade")),
+      tile("Plus longue série de pertes", pl(s.longestLoss, "trade")));
   }
 
   // ---------------------------------------------------------------- depots et retraits
@@ -74,6 +95,7 @@
     if (!acc) return;
     const list = J.getState().enriched;
     renderSummary(acc, list);
+    renderStats(acc, list);
     renderFlows(acc);
   }
   $("cfDate").value = JC.toLocalInput(Date.now());

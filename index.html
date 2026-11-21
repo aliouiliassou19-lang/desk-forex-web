@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=19">
+  <link rel="stylesheet" href="style.css?v=21">
 </head>
 <body>
   <header class="top">
@@ -151,11 +151,18 @@
           <select id="dbAccount" aria-label="Compte"></select>
         </div>
         <p class="muted small">Évolution de ton compte, calculée à partir du <b>journal</b> (un seul journal pour tout le site) et de tes dépôts et retraits. Lecture seule : aucun ordre n'est passé.</p>
-        <div id="dbSummary" class="grid3"></div>
         <div class="row wrap">
           <button id="dbAddTrade" class="btn" type="button">+ Ajouter un trade</button>
           <button id="dbImport" class="btn ghost" type="button">Importer l'historique MT5</button>
         </div>
+      </div>
+
+      <div id="dbSummary" class="kpis"></div>
+
+      <div class="card">
+        <h2>Statistiques</h2>
+        <div id="dbStats" class="kpis flat"></div>
+        <p class="muted small">Calculées sur les trades CLOSED de ce compte dont le résultat net est connu (dépôts et retraits exclus). Un petit nombre de trades ne prouve aucun avantage.</p>
       </div>
 
       <div class="card">
@@ -750,18 +757,18 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=19"></script>
-  <script src="analysis.js?v=19"></script>
-  <script src="mt5-core.js?v=19"></script>
-  <script src="journal-core.js?v=19"></script>
-  <script src="challenge-core.js?v=19"></script>
-  <script src="dashboard-core.js?v=19"></script>
-  <script src="db.js?v=19"></script>
-  <script src="app.js?v=19"></script>
-  <script src="journal.js?v=19"></script>
-  <script src="accounts.js?v=19"></script>
-  <script src="mt5-import.js?v=19"></script>
-  <script src="dashboard.js?v=19"></script>
-  <script src="desk.js?v=19"></script>
+  <script src="rules.js?v=21"></script>
+  <script src="analysis.js?v=21"></script>
+  <script src="mt5-core.js?v=21"></script>
+  <script src="journal-core.js?v=21"></script>
+  <script src="challenge-core.js?v=21"></script>
+  <script src="dashboard-core.js?v=21"></script>
+  <script src="db.js?v=21"></script>
+  <script src="app.js?v=21"></script>
+  <script src="journal.js?v=21"></script>
+  <script src="accounts.js?v=21"></script>
+  <script src="mt5-import.js?v=21"></script>
+  <script src="dashboard.js?v=21"></script>
+  <script src="desk.js?v=21"></script>
 </body>
 </html>

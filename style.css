@@ -196,6 +196,11 @@ tr.tap:hover td { background: var(--surface2); }
 .gauge-fill.accent { background: var(--accent); }
 .gauge-fill.off { background: var(--off); }
 
+/* ---------- dashboard */
+.kpis.flat { margin-bottom: 6px; }
+.kpis.flat .kpi { background: var(--surface2); border-color: transparent; }
+@media (min-width: 760px) { #dbSummary { grid-template-columns: repeat(3, 1fr); } }
+
 /* ---------- import MT5 */
 .mt5seg { margin: 12px 0 4px; flex-wrap: wrap; }
 .mt5pane { margin-top: 8px; }

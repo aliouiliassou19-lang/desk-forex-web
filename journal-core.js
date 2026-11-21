@@ -344,13 +344,13 @@
     const start = weekStart(nowMs) - 21 * 86400000;            // lundi d'il y a 3 semaines
     const account = { id: DEMO_ACCOUNT_ID, name: "Exemple : challenge 10 000 $", type: "challenge", currency: "USD",
       startBalance: 10000, startDate: start, demo: true, equitySnapshots: [],
-      rules: { profitTargetPct: 8, dailyLossPct: 5, dailyBase: "initial", maxDDPct: 10, ddMode: "static", ddBasis: "balance",
+      rules: { profitTargetPct: 10, dailyLossPct: 5, dailyBase: "initial", maxDDPct: 10, ddMode: "static", ddBasis: "balance",
         minTradingDays: 4, consistencyPct: 40, maxRiskPerTradePct: 1, newsBan: true, newsWindowMin: 2, dayResetHourLocal: 0 } };
     const specs = { "EUR/USD": { px: 1.092, slPips: 15 }, "GBP/USD": { px: 1.271, slPips: 20 }, "XAU/USD": { px: 3505, slPips: 40 }, "USD/JPY": { px: 150.2, slPips: 25 } };
     const setups = ["Price action", "Support / résistance", "SMC", "Trendline", "Cassure"];
     const trades = [];
     let n = 0;
-    for (let d = 0; d < 21; d++) {
+    for (let d = 0; d <= 27; d++) {                              // 4 semaines, jusqu'a aujourd'hui
       const dayMs = start + d * 86400000, wd = local(dayMs).wd;
       if (wd === 0 || wd === 6) continue;                       // pas de trading le week-end
       const count = rnd() < 0.35 ? 2 : 1;

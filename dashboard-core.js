@@ -60,5 +60,32 @@
     };
   }
 
-  return { sanitizeCashflow, signed, flowsOf, timeline, summary };
+  // ------------------------------------------------------------------ etape 2 : cartes et statistiques
+  /** Debuts du jour, de la semaine (lundi) et du mois en cours, heure du Benin, en ms UTC. */
+  function periodStarts(nowMs) {
+    const l = JC.local(nowMs), off = JC.LOCAL_OFFSET_MIN * 60000;
+    return { day: Date.UTC(l.y, l.m - 1, l.d) - off, week: JC.weekStart(nowMs), month: Date.UTC(l.y, l.m - 1, 1) - off };
+  }
+  /** Resultat net des trades CLOSED du compte depuis le debut du jour, de la semaine et du mois. */
+  function periodPnl(account, list, nowMs) {
+    const p = periodStarts(nowMs);
+    const closed = list.filter((x) => x.t.accountId === account.id && x.t.status === "CLOSED" && x.m.net != null && x.t.exitTime && x.t.exitTime <= nowMs);
+    const out = {};
+    Object.entries(p).forEach(([k, from]) => {
+      const items = closed.filter((x) => x.t.exitTime >= from);
+      const balStart = summary(account, list, from - 1).balance;
+      const net = items.reduce((s, x) => s + x.m.net, 0);
+      out[k] = { net, n: items.length, from, pct: balStart > 0 ? net / balStart * 100 : null };
+    });
+    return out;
+  }
+  /** Statistiques des trades du compte (moteur du journal) + ratio gain moyen / perte moyenne. */
+  function accountStats(account, list) {
+    const mine = list.filter((x) => x.t.accountId === account.id);
+    const s = JC.stats(mine, num(account.startBalance) || 0);
+    s.payoffRatio = s.avgWin != null && s.avgLoss != null && s.avgLoss < 0 ? s.avgWin / -s.avgLoss : null;
+    return s;
+  }
+
+  return { sanitizeCashflow, signed, flowsOf, timeline, summary, periodStarts, periodPnl, accountStats };
 });

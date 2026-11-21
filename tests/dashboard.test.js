@@ -35,6 +35,31 @@ test("chronologie : trades du compte et mouvements, dans l'ordre", () => {
   assert.deepEqual(tl.map((e) => e.flows), [500, 500, 500, 300, 300]);
 });
 
+test("profit du jour, de la semaine et du mois (heure du Benin)", () => {
+  const now = T("2026-11-20T15:00:00Z");                    // vendredi 20/11, 16:00 au Benin
+  const p = DB.periodStarts(now);
+  assert.equal(p.day, T("2026-11-19T23:00:00Z"));          // 20/11 00:00 au Benin
+  assert.equal(p.week, T("2026-11-15T23:00:00Z"));         // lundi 16/11 00:00
+  assert.equal(p.month, T("2026-10-31T23:00:00Z"));        // 01/11 00:00
+  const r = DB.periodPnl(acc, list, now);
+  assert.deepEqual([r.day.net, r.day.n], [30, 1]);          // t3 seulement
+  assert.deepEqual([r.week.net, r.week.n], [-20, 2]);       // t2 (-50) + t3 (+30)
+  assert.deepEqual([r.month.net, r.month.n], [100, 3]);
+  near(r.day.pct, 30 / 1370 * 100);                         // solde au debut du jour : 1370 (apres le retrait)
+  // un trade clos a 23:30 UTC le 19/11 = 00:30 le 20/11 au Benin : il compte pour le 20
+  const late = JC.enrich(trades.concat([tr("tard", "2026-11-19T23:30:00Z", 5)]), [acc], 2);
+  assert.equal(DB.periodPnl(acc, late, now).day.n, 2);
+});
+
+test("statistiques du compte et ratio gain/perte", () => {
+  const s = DB.accountStats(acc, list);
+  assert.equal(s.n, 3);                                     // les trades de l'autre compte sont exclus
+  assert.deepEqual([s.wins, s.losses, s.longestWin, s.longestLoss], [2, 1, 1, 1]);
+  near(s.avgWin, 75); near(s.avgLoss, -50); near(s.payoffRatio, 1.5);
+  near(s.profitFactor, 150 / 50); near(s.expectancyUsd, 100 / 3);
+  assert.equal(DB.accountStats({ id: "vide", startBalance: 0 }, list).payoffRatio, null);
+});
+
 test("resume : solde avec mouvements, P&L et % sur le capital investi", () => {
   const s = DB.summary(acc, list);
   assert.deepEqual([s.start, s.balance, s.pnl, s.netFlows, s.capital, s.deposits, s.withdrawals, s.tradesClosed],
