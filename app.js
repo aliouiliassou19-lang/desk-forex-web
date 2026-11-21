@@ -60,6 +60,7 @@
   // ---------------------------------------------------------------- onglets, horloge, marche
   document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
   function showTab(name) {
+    if (!document.getElementById("tab-" + name)) name = "monitor";
     document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
     document.querySelectorAll(".tab").forEach((s) => s.classList.toggle("hidden", s.id !== "tab-" + name));
     store.set("tab", name);
@@ -177,7 +178,10 @@
   }
   function notify(title, body) {
     try { if ("Notification" in window && Notification.permission === "granted") new Notification(title, { body, icon: "icon.svg", tag: title }); } catch (e) { /* */ }
-    try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) { /* */ }
+    try {
+      const active = !navigator.userActivation || navigator.userActivation.hasBeenActive;
+      if (navigator.vibrate && active) navigator.vibrate([200, 100, 200]);
+    } catch (e) { /* */ }
   }
   $("notifBtn").addEventListener("click", async () => {
     if (!("Notification" in window)) { toast("Ce navigateur ne gère pas les notifications."); return; }
@@ -269,6 +273,9 @@
     const obs = SYMS.map((s) => R.quoteToObservation(s, quotes[s]));
     addRows(obs.map((o) => R.evaluate(mon.engine, o, t, cfg, news, mon.controls,
       { mode: "live", creditsUsed: 1, creditsToday: credits.usedToday(t) })));
+    const prices = {};
+    obs.forEach((o) => { if (o.price != null) prices[o.symbol] = o.price; });
+    priceHooks.forEach((fn) => { try { fn(prices, t); } catch (e) { /* un module ne bloque pas la surveillance */ } });
     const future = obs.some((o) => o.sourceMs && o.sourceMs - t > 120000);
     setStatus(future ? "Attention : l'horloge de ton appareil semble en retard (données marquées périmées). Règle l'heure automatique."
       : `Dernier relevé ${R.isoUtc(t).slice(11, 19)} UTC · prochain dans ${cfg.intervalSeconds} s · fin à ${new Date(mon.endAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}. Garde la page ouverte.`);
@@ -401,6 +408,15 @@
     download(`journal-papier-${R.isoUtc(Date.now()).slice(0, 10)}.csv`, R.toCsv(journal,
       ["date", "symbol", "side", "status", "entry", "stop", "stopPips", "lots", "pipValue", "riskUsd", "riskPct", "exit", "costs", "pnl", "why"]));
   });
+
+  // ---------------------------------------------------------------- outils partages avec desk.js
+  const priceHooks = [];
+  window.DeskApp = {
+    cfg, store, getKey, credits, fetchJson, toast, notify, el, clear, showTab, renderCredits,
+    getNews: () => news.slice(),
+    onPrices: (fn) => priceHooks.push(fn),
+    fmtUtc, fmtLocal,
+  };
 
   // ---------------------------------------------------------------- demarrage
   showTab(store.get("tab", "monitor"));

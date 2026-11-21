@@ -1,16 +1,16 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="fr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://api.twelvedata.com https://data-api.ecb.europa.eu; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://api.twelvedata.com https://data-api.ecb.europa.eu https://markets.newyorkfed.org https://api.bls.gov https://ec.europa.eu; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <meta name="referrer" content="no-referrer">
   <meta name="description" content="Desk forex éducatif en lecture seule : surveillance EUR/USD et or avec ta propre clé Twelve Data gratuite. Aucun ordre, aucun conseil.">
   <meta name="theme-color" content="#0f172a">
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=1">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <header class="top">
@@ -29,8 +29,10 @@
 
   <nav class="tabs" aria-label="Sections">
     <button data-tab="monitor" class="active">Moniteur</button>
+    <button data-tab="analyse">Analyse</button>
+    <button data-tab="fund">Fondamental</button>
+    <button data-tab="plan">Plan</button>
     <button data-tab="news">Annonces</button>
-    <button data-tab="size">Position</button>
     <button data-tab="journal">Journal</button>
     <button data-tab="help">Aide</button>
   </nav>
@@ -79,6 +81,12 @@
         <p class="muted small" id="creditTxt"></p>
       </div>
 
+      <div class="card">
+        <h2>Sessions de marché</h2>
+        <div id="sessPills" class="pills"></div>
+        <ul id="sessNotes" class="notes small"></ul>
+      </div>
+
       <div id="demoBanner" class="banner hidden">DÉMO : données SYNTHÉTIQUES, aucun prix réel. Un mouvement brusque, une donnée périmée et une donnée manquante sont injectés exprès.</div>
 
       <div class="grid2" id="cards"></div>
@@ -93,6 +101,170 @@
         </div>
         <div class="scroll"><table id="logTable"><thead><tr><th>Heure UTC</th><th>Symbole</th><th>Prix</th><th>1 min</th><th>5 min</th><th>Marché</th><th>Décision</th><th>Raisons</th></tr></thead><tbody></tbody></table></div>
         <p class="muted small">Prix = clôture 1 min (milieu de marché), <b>pas ton prix d'exécution</b>. Chez un courtier tu achètes à l'ask et vends au bid. bid/ask non fournis : spread <b>supposé</b> (réglable).</p>
+      </div>
+
+      <div class="card">
+        <h2>Alertes de prix</h2>
+        <p class="muted small">Vérifiées à chaque relevé pour EUR/USD et l'or pendant la surveillance, ou à la demande (1 crédit par paire). Seulement tant que la page est ouverte.</p>
+        <form id="alForm" class="formgrid" autocomplete="off">
+          <label>Paire<select id="alPair" class="pairsel"></select></label>
+          <label>Condition<select id="alSide"><option value="above">au-dessus de</option><option value="below">en dessous de</option></select></label>
+          <label>Prix<input id="alPrice" type="number" step="any" required></label>
+          <label class="span2">Note<input id="alNote" type="text" maxlength="80"></label>
+          <button class="btn" type="submit">Ajouter</button>
+        </form>
+        <div class="scroll"><table id="alTable"><thead><tr><th>Paire</th><th>Condition</th><th>Prix</th><th>Note</th><th>État</th><th></th></tr></thead><tbody></tbody></table></div>
+        <div class="row"><button id="alCheck" class="btn ghost small" type="button">Vérifier maintenant</button><span id="alMsg" class="muted small"></span></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== ANALYSE TECHNIQUE -->
+    <section id="tab-analyse" class="tab hidden">
+      <div class="card">
+        <div class="row between wrap">
+          <div class="row wrap">
+            <select id="aPair" class="pairsel" aria-label="Paire"></select>
+            <button id="aRun" class="btn" type="button">Analyser (3 crédits)</button>
+          </div>
+          <div class="seg" id="aTf" role="group" aria-label="Unité de temps du graphique">
+            <button type="button" data-tf="H1" class="active">H1</button><button type="button" data-tf="H4">H4</button><button type="button" data-tf="D1">D1</button>
+          </div>
+        </div>
+        <p id="aStatus" class="muted small">Bougies H1, H4 et D1 de Twelve Data avec ta clé (3 crédits, résultat gardé 5 min). Indicateurs calculés dans ton navigateur.</p>
+      </div>
+      <div id="aOut" class="hidden">
+        <div class="card">
+          <div class="row between wrap">
+            <div><div id="aPrice" class="bigprice mono"></div><div id="aTime" class="muted small"></div></div>
+            <div id="aBias" class="bias"></div>
+          </div>
+          <canvas id="aChart" class="chart" role="img" aria-label="Graphique en chandeliers"></canvas>
+          <p class="muted small legend"><span class="sw ema20"></span>EMA20 <span class="sw ema50"></span>EMA50 <span class="sw res"></span>résistances <span class="sw sup"></span>supports proches</p>
+        </div>
+        <div class="card"><h2>Lecture</h2><ul id="aNotes" class="notes"></ul></div>
+        <div class="card"><h2>Unités de temps</h2>
+          <div class="scroll"><table id="aTfs"><thead><tr><th></th><th>Tendance</th><th>RSI</th><th>ATR (pips)</th><th>Efficacité</th><th>EMA20</th><th>EMA50</th><th>EMA200</th></tr></thead><tbody></tbody></table></div>
+        </div>
+        <div class="grid2">
+          <div class="card"><h2>Résistances</h2><div id="aRes" class="levels"></div></div>
+          <div class="card"><h2>Supports</h2><div id="aSup" class="levels"></div></div>
+        </div>
+        <p class="muted small">Touche un niveau pour créer une alerte de prix.</p>
+        <div class="card"><h2>Plages</h2><div id="aRanges" class="grid3"></div></div>
+        <div class="row wrap"><button id="aToBuy" class="btn" type="button">Plan d'achat</button><button id="aToSell" class="btn danger" type="button">Plan de vente</button></div>
+        <p class="muted small">Lecture technique automatique, pas un conseil. Un indicateur ne prédit pas le prochain mouvement.</p>
+      </div>
+    </section>
+
+    <!-- ======================================================== FONDAMENTAL -->
+    <section id="tab-fund" class="tab hidden">
+      <div class="card">
+        <div class="row between wrap"><h2>Dollar US et euro : contexte macro</h2><button id="fRefresh" class="btn ghost small" type="button">Actualiser</button></div>
+        <p id="fStatus" class="muted small">Sources officielles, sans clé ni crédit Twelve Data. Résultat gardé 6 h sur cet appareil.</p>
+        <div class="scroll"><table id="fTable"><thead><tr><th>Indicateur</th><th>États-Unis (USD)</th><th>Zone euro (EUR)</th></tr></thead><tbody></tbody></table></div>
+        <ul id="fNotes" class="notes"></ul>
+        <p class="muted small">Sources : Fed de New York (taux effectif des Fed Funds), BLS (inflation CPI sur 1 an, chômage), BCE (taux de dépôt, chômage), Eurostat (inflation HICP sur 1 an). La date de chaque chiffre est affichée ; « ancien » signale une donnée à vérifier.
+          Derniers chiffres officiels : <a href="https://ec.europa.eu/eurostat/web/euro-indicators" target="_blank" rel="noopener noreferrer">Eurostat (euro indicators)</a> ·
+          <a href="https://www.bls.gov/cpi/" target="_blank" rel="noopener noreferrer">BLS (CPI)</a>.</p>
+      </div>
+      <div class="card">
+        <h2>Tes annonces à venir</h2>
+        <div id="fNews"></div>
+      </div>
+      <div class="card">
+        <h2>Autres banques centrales</h2>
+        <p class="muted small">Pas de source officielle lisible directement par un site pour ces banques : consulte leurs pages.</p>
+        <ul class="links">
+          <li><a href="https://www.bankofengland.co.uk/monetary-policy/the-interest-rate-bank-rate" target="_blank" rel="noopener noreferrer">Banque d'Angleterre (GBP) : Bank Rate</a></li>
+          <li><a href="https://www.boj.or.jp/en/mopo/index.htm" target="_blank" rel="noopener noreferrer">Banque du Japon (JPY) : politique monétaire</a></li>
+          <li><a href="https://www.snb.ch/en/the-snb/mandates-goals/monetary-policy" target="_blank" rel="noopener noreferrer">Banque nationale suisse (CHF)</a></li>
+          <li><a href="https://www.rba.gov.au/statistics/cash-rate/" target="_blank" rel="noopener noreferrer">Banque de réserve d'Australie (AUD) : cash rate</a></li>
+          <li><a href="https://www.bankofcanada.ca/core-functions/monetary-policy/key-interest-rate/" target="_blank" rel="noopener noreferrer">Banque du Canada (CAD) : taux directeur</a></li>
+          <li><a href="https://www.rbnz.govt.nz/monetary-policy/official-cash-rate-decisions" target="_blank" rel="noopener noreferrer">Banque de réserve de Nouvelle-Zélande (NZD) : OCR</a></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Actualités, calendrier et analyses</h2>
+        <ul class="links">
+          <li><a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer">ForexFactory : calendrier, réel / prévision / précédent</a></li>
+          <li><a href="https://www.investing.com/economic-calendar/" target="_blank" rel="noopener noreferrer">Investing.com : calendrier économique</a></li>
+          <li><a href="https://www.financialjuice.com/home" target="_blank" rel="noopener noreferrer">FinancialJuice : fil en temps réel</a></li>
+          <li><a href="https://www.fxstreet.com/news" target="_blank" rel="noopener noreferrer">FXStreet : actualités forex</a></li>
+          <li><a href="https://think.ing.com/" target="_blank" rel="noopener noreferrer">ING THINK : analyses macro et FX</a></li>
+          <li><a href="https://tradingeconomics.com/united-states/indicators" target="_blank" rel="noopener noreferrer">Trading Economics : indicateurs par pays</a></li>
+          <li><a href="https://www.federalreserve.gov/newsevents/pressreleases.htm" target="_blank" rel="noopener noreferrer">Fed : communiqués et minutes du FOMC</a></li>
+          <li><a href="https://www.ecb.europa.eu/press/pr/html/index.en.html" target="_blank" rel="noopener noreferrer">BCE : communiqués et décisions</a></li>
+        </ul>
+      </div>
+      <div class="card prose">
+        <h2>Lire le fondamental d'une paire</h2>
+        <ol>
+          <li><b>Taux directeur et biais</b> de chaque banque centrale : hausse, pause ou baisse ? Lis les derniers discours.</li>
+          <li><b>Inflation</b> par rapport à la cible de 2 % : une inflation haute pousse à garder des taux élevés.</li>
+          <li><b>Emploi et croissance</b> : un marché du travail solide soutient la devise.</li>
+          <li><b>Écart entre les deux devises</b> : la paire reflète la différence. Un écart qui se creuse ou se resserre compte plus que son niveau.</li>
+          <li><b>Annonces à venir</b> : le prix bouge surtout sur la <i>surprise</i> (réel par rapport à la prévision).</li>
+        </ol>
+        <p class="muted small">Une opinion n'est jamais une certitude. Ce site ne donne pas de conseil.</p>
+      </div>
+    </section>
+
+    <!-- ======================================================== PLAN -->
+    <section id="tab-plan" class="tab hidden">
+      <div class="card">
+        <h2>Plan de trade (papier)</h2>
+        <p class="muted">Stop défini avant l'entrée, spread compris, taille arrondie vers le bas, puis vérifications : risque, gain/risque, spread, stop trop serré, week-end, rollover, annonces. Verdict <b>OK / À REVOIR / NON</b>.</p>
+        <form id="pForm" class="formgrid" autocomplete="off">
+          <label>Paire<select id="pPair" class="pairsel"></select></label>
+          <label>Sens<select id="pDir"><option value="buy">achat</option><option value="sell">vente</option></select></label>
+          <label>Entrée<input id="pEntry" type="number" step="any" required></label>
+          <label>Stop (prix)<input id="pStop" type="number" step="any" placeholder="ou multiple d'ATR"></label>
+          <label>Stop en ATR H1<input id="pStopAtr" type="number" step="0.1" min="0" value="1.5"></label>
+          <label>ATR H1 (prix)<input id="pAtr" type="number" step="any" placeholder="rempli par l'analyse"></label>
+          <label>Objectifs (R)<input id="pRR" type="text" value="1.5 2 3"></label>
+          <label>Objectif (prix)<input id="pTarget" type="number" step="any"></label>
+          <label>Spread (pips)<input id="pSpread" type="number" step="0.1" min="0"></label>
+          <label>Solde ($)<input id="pBal" type="number" step="0.01" min="0" value="68"></label>
+          <label>Risque max (%)<input id="pRisk" type="number" step="0.1" min="0.1" value="2"></label>
+          <label>Valeur du pip / lot ($)<input id="pPv" type="number" step="any"></label>
+          <label id="pConvWrap" class="hidden">Cours de conversion <span id="pConvName"></span><input id="pConv" type="number" step="any"></label>
+          <label>Gain/risque minimal<input id="pMinRR" type="number" step="0.1" min="0" value="1.5"></label>
+          <button class="btn" type="submit">Calculer le plan</button>
+        </form>
+        <div id="pOut"></div>
+        <p class="muted small">Spread par défaut = ordre de grandeur : remplace-le par celui de ton courtier. Aucun ordre n'est passé : tu décides et tu exécutes toi-même, de préférence en compte démo.</p>
+      </div>
+
+      <div class="card">
+        <h2>Pré-test d'une idée</h2>
+        <p class="muted">Avant de coder ou de backtester : combien coûte un trade, et quel taux de réussite il faudrait pour ne pas perdre.</p>
+        <form id="prForm" class="formgrid" autocomplete="off">
+          <label>ATR (pips)<input id="prAtr" type="number" step="0.1" min="0" placeholder="ex. ATR H1"></label>
+          <label>Stop (× ATR)<input id="prStopAtr" type="number" step="0.1" min="0" value="1.5"></label>
+          <label>Objectif (R)<input id="prRR" type="number" step="0.1" min="0" value="2"></label>
+          <label>Spread (pips)<input id="prSpread" type="number" step="0.1" min="0" value="1.2"></label>
+          <label>Glissement (pips)<input id="prSlip" type="number" step="0.1" min="0" value="0.5"></label>
+          <label>Commission / lot ($)<input id="prComm" type="number" step="0.1" min="0" value="0"></label>
+          <label>Valeur du pip / lot ($)<input id="prPv" type="number" step="any" value="10"></label>
+          <label>Taux de réussite espéré (%)<input id="prWin" type="number" step="1" min="1" max="99" placeholder="facultatif"></label>
+          <button class="btn" type="submit">Calculer</button>
+        </form>
+        <div id="prOut"></div>
+      </div>
+
+      <div class="card">
+        <h2>Taille de position rapide</h2>
+        <p class="muted">Risque d'un trade = distance du stop (pips) × valeur du pip × lots. Le résultat est <b>arrondi vers le bas</b>. Vérifie la taille de lot et la valeur du pip chez ton courtier.</p>
+        <form id="sizeForm" class="formgrid" autocomplete="off">
+          <label>Symbole<select id="sSym"><option>EUR/USD</option><option>XAU/USD</option></select></label>
+          <label>Solde ($)<input id="sBal" type="number" step="0.01" min="0" value="68"></label>
+          <label>Risque max (%)<input id="sRisk" type="number" step="0.1" min="0.1" max="10" value="2"></label>
+          <label>Stop (pips)<input id="sStop" type="number" step="0.1" min="0" value="13"></label>
+          <label>Valeur du pip par lot ($)<input id="sPv" type="number" step="0.01" min="0" value="10"></label>
+          <label>Lot minimal<input id="sMin" type="number" step="0.01" min="0.01" value="0.01"></label>
+        </form>
+        <div id="sizeOut" class="result"></div>
+        <p class="warnline small">Levier : 0,01 lot d'EUR/USD ≈ 1 000 € de position. Un stop non respecté ou un écart d'ouverture peut faire perdre bien plus que prévu.</p>
       </div>
     </section>
 
@@ -120,25 +292,6 @@
         <p class="muted small">Format : <code>datetime_utc,currency,event,impact</code>, une ligne par annonce, heure UTC (ex. <code>2026-11-25T13:30:00Z,USD,Core PCE,high</code>).</p>
         <textarea id="newsCsv" rows="4" spellcheck="false" aria-label="CSV des annonces"></textarea>
         <div class="row"><button id="newsImport" class="btn ghost" type="button">Importer</button><span id="newsImportMsg" class="muted small"></span></div>
-      </div>
-    </section>
-
-    <!-- ======================================================== POSITION -->
-    <section id="tab-size" class="tab hidden">
-      <div class="card">
-        <h2>Taille de position</h2>
-        <p class="muted">Risque d'un trade = distance du stop (pips) × valeur du pip × lots. Le résultat est <b>arrondi vers le bas</b>. Vérifie la taille de lot et la valeur du pip chez ton courtier.</p>
-        <form id="sizeForm" class="formgrid" autocomplete="off">
-          <label>Symbole<select id="sSym"><option>EUR/USD</option><option>XAU/USD</option></select></label>
-          <label>Solde ($)<input id="sBal" type="number" step="0.01" min="0" value="68"></label>
-          <label>Risque max (%)<input id="sRisk" type="number" step="0.1" min="0.1" max="10" value="2"></label>
-          <label>Stop (pips)<input id="sStop" type="number" step="0.1" min="0" value="13"></label>
-          <label>Valeur du pip par lot ($)<input id="sPv" type="number" step="0.01" min="0" value="10"></label>
-          <label>Lot minimal<input id="sMin" type="number" step="0.01" min="0.01" value="0.01"></label>
-        </form>
-        <div id="sizeOut" class="result"></div>
-        <p class="muted small">EUR/USD : 1 pip = 0,0001. Or : 1 pip = 0,10 $ ici (contrat de 100 oz : 10 $ par pip et par lot). Certains courtiers définissent le pip de l'or autrement.</p>
-        <p class="warnline small">Levier : 0,01 lot d'EUR/USD ≈ 1 000 € de position. Un stop non respecté ou un écart d'ouverture peut faire perdre bien plus que prévu.</p>
       </div>
     </section>
 
@@ -181,6 +334,14 @@
           <li>Démarre la surveillance pendant une session ouverte (Londres ou New York), page ouverte.</li>
           <li>Un <b>WATCH</b> veut dire « regarde ici » : jamais « achète » ni « vends ».</li>
         </ol>
+        <h3>Onglets</h3>
+        <ul>
+          <li><b>Moniteur</b> : surveillance EUR/USD et or, sessions de marché, alertes de prix.</li>
+          <li><b>Analyse</b> : graphique H1/H4/D1, EMA 20/50/200, RSI, ATR, efficacité, biais, supports et résistances (sommets/creux, pivots, Fibonacci, chiffres ronds), plages. 3 crédits par analyse.</li>
+          <li><b>Fondamental</b> : taux directeurs, inflation et chômage aux États-Unis et en zone euro (sources officielles datées), écart de taux, tes annonces, liens vers les banques centrales et l'actualité.</li>
+          <li><b>Plan</b> : plan de trade avec verdict OK / À REVOIR / NON, pré-test d'une idée, taille de position.</li>
+          <li><b>Annonces</b> et <b>Journal</b> : fenêtres d'annonces et journal papier.</li>
+        </ul>
         <h3>Décisions</h3>
         <ul>
           <li><b>WATCH</b> : mouvement brusque sur 5 min (≥ 15 pips EUR/USD, ≥ 3 $ sur l'or), données fraîches, marché ouvert, aucune annonce proche. Aucune direction ni profit implicite.</li>
@@ -197,7 +358,7 @@
         <h3>Confidentialité</h3>
         <ul>
           <li>Ta clé, tes annonces, ton journal et tes relevés restent <b>dans ton navigateur</b> (stockage local). Aucun compte, aucun suivi, aucun script tiers.</li>
-          <li>Le navigateur contacte seulement Twelve Data (prix) et la BCE (taux de référence).</li>
+          <li>Le navigateur contacte seulement Twelve Data (prix et bougies, avec ta clé), et sans clé : la BCE, Eurostat, la Fed de New York et le BLS américain (statistiques officielles).</li>
         </ul>
         <h3>Conditions</h3>
         <ul>
@@ -209,7 +370,9 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=1"></script>
-  <script src="app.js?v=1"></script>
+  <script src="rules.js?v=5"></script>
+  <script src="analysis.js?v=5"></script>
+  <script src="app.js?v=5"></script>
+  <script src="desk.js?v=5"></script>
 </body>
 </html>

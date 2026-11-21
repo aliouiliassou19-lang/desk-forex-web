@@ -14,9 +14,11 @@ Twelve Data**. Il ne passe aucun ordre, ne se connecte à aucun courtier et ne d
 ## Fonctions
 | Onglet | Contenu |
 |---|---|
-| Moniteur | Un relevé par minute (2 crédits), décisions **WATCH / REJECT / DATA_MISSING** avec les mêmes règles que `monitor.py`, notifications du navigateur, export CSV, démo synthétique |
+| Moniteur | Un relevé par minute (2 crédits), décisions **WATCH / REJECT / DATA_MISSING** avec les mêmes règles que `monitor.py`, notifications du navigateur, export CSV, démo synthétique, **sessions de marché** (Sydney, Tokyo, Londres, New York, chevauchements, rollover), **alertes de prix** |
+| Analyse | 12 paires (majeures, croisées, or, argent) : graphique en chandeliers H1/H4/D1 dessiné sans bibliothèque, EMA 20/50/200, RSI, ATR, efficacité, biais multi-unités, lecture (étirement, Bollinger, surachat/survente, régime), supports et résistances (sommets/creux D1 et H4, pivots, Fibonacci, chiffres ronds), plages 5/20/60 jours. 3 crédits par analyse, résultat gardé 5 min. Un niveau touché crée une alerte |
+| Fondamental | Taux directeur, inflation sur 1 an et chômage aux États-Unis et en zone euro, à partir de **sources officielles datées** (Fed de New York, BLS, BCE, Eurostat), avec une étiquette « ancien » si la donnée est vieille ; écart de taux, taux réels, annonces à venir, liens vers les autres banques centrales et l'actualité |
+| Plan | Plan de trade : entrée, stop (prix ou ATR), objectifs en R, spread compris, valeur du pip convertie en USD, taille arrondie vers le bas, vérifications et verdict **OK / À REVOIR / NON** ; **pré-test d'une idée** (coût d'un trade, taux de réussite minimal, nombre de trades pour prouver un avantage) ; taille de position rapide |
 | Annonces | Fenêtres d'annonces saisies en heure locale, enregistrées en UTC, import CSV ; REJECT 15 min avant et après |
-| Position | Taille en lots arrondie vers le bas, refus si même le lot minimal dépasse le risque |
 | Journal | Journal papier : stop obligatoire, risque max 2 %, P&L seulement si la sortie a été observée |
 | Aide | Règles, limites, confidentialité, conditions |
 
@@ -27,16 +29,23 @@ sans direction ni profit implicite. bid/ask non fournis par `/quote` : le spread
 
 ## Sécurité et confidentialité
 - Aucun script tiers, aucun suivi, aucun compte. Une politique CSP stricte n'autorise que
-  `api.twelvedata.com` et `data-api.ecb.europa.eu`.
+  `api.twelvedata.com` (avec la clé du visiteur), et sans clé `data-api.ecb.europa.eu`,
+  `ec.europa.eu` (Eurostat), `markets.newyorkfed.org` et `api.bls.gov`.
 - Tout le texte est inséré sans `innerHTML`. Les exports CSV sont protégés contre l'injection de formules.
 
 ## Fichiers
-- `index.html`, `style.css`, `app.js` (interface), `rules.js` (moteur pur, sans DOM ni réseau)
-- `tests/rules.test.js` : `node --test tests/`
+- `index.html`, `style.css`, `app.js` (moniteur, annonces, journal), `desk.js` (analyse, fondamental, plan, alertes, sessions)
+- `rules.js` et `analysis.js` : moteurs purs, sans DOM ni réseau
+- `tests/` : `node --test tests/` (25 tests)
 
 ## Limites
 - La surveillance ne tourne que **tant que la page est ouverte**.
-- Le calendrier ForexFactory ne peut pas être lu par un site tiers : les annonces se saisissent à la main.
+- Le calendrier ForexFactory et les flux d'actualités des banques centrales ne peuvent pas être lus
+  par un site tiers : les annonces se saisissent à la main, et l'actualité passe par des liens.
+- Fondamental : seulement USD et EUR (les autres banques centrales n'ont pas de source lisible
+  directement). En novembre 2026, la série d'inflation de la zone euro (Eurostat) s'arrête à
+  décembre 2025 : elle est marquée « ancien ». Le BLS a des mois manquants (octobre 2025) : l'inflation
+  US est calculée sur le dernier mois comparable, avec sa date.
 - Jours fériés non gérés. Prix = clôture 1 min (milieu de marché), pas un prix d'exécution.
 - Avantage d'un WATCH : **INCONNU** sans backtest coûts compris.
 
