@@ -1,3 +1,8 @@
 .claude/
 node_modules/
 *.log
+
+# Script MT5 : configuration locale (code secret, identifiants eventuels) et exports de tes trades
+outils/mt5_config.json
+outils/desk-forex-mt5*.json
+outils/__pycache__/

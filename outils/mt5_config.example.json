@@ -1,0 +1,13 @@
+{
+  "_aide": "Exemple. Le script cree tout seul outils/mt5_config.json (ignore par Git) au premier lancement. Laisse login, server et investorPassword vides.",
+  "port": 8790,
+  "token": "",
+  "allowedOrigins": ["https://aliouiliassou19-lang.github.io", "http://127.0.0.1:8780", "http://localhost:8780"],
+  "outputFile": "desk-forex-mt5.json",
+  "daysOfHistory": 365,
+  "serverOffsetHours": null,
+  "terminalPath": "",
+  "login": "",
+  "server": "",
+  "investorPassword": ""
+}
