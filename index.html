@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://api.twelvedata.com https://data-api.ecb.europa.eu; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="Desk forex éducatif en lecture seule : surveillance EUR/USD et or avec ta propre clé Twelve Data gratuite. Aucun ordre, aucun conseil.">
+  <meta name="theme-color" content="#0f172a">
+  <title>Desk Forex</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img src="icon.svg" alt="" width="28" height="28">
+      <div>
+        <h1>Desk Forex</h1>
+        <p class="tag">Lecture seule · aucun ordre · outil éducatif</p>
+      </div>
+    </div>
+    <div class="top-right">
+      <span id="mktPill" class="pill off">…</span>
+      <span id="clock" class="clock mono">--:--</span>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Sections">
+    <button data-tab="monitor" class="active">Moniteur</button>
+    <button data-tab="news">Annonces</button>
+    <button data-tab="size">Position</button>
+    <button data-tab="journal">Journal</button>
+    <button data-tab="help">Aide</button>
+  </nav>
+
+  <main>
+    <!-- ======================================================== MONITEUR -->
+    <section id="tab-monitor" class="tab">
+      <div id="keyCard" class="card">
+        <h2>Ta clé Twelve Data</h2>
+        <p class="muted">Ce site n'a pas de clé : chacun utilise <b>sa propre clé gratuite</b>. Elle reste dans ton navigateur et n'est envoyée qu'à Twelve Data.
+          <a href="https://twelvedata.com/register" target="_blank" rel="noopener noreferrer">Créer une clé gratuite</a> (offre Basic, sans carte bancaire).</p>
+        <form id="keyForm" class="row wrap" autocomplete="off">
+          <input id="keyInput" type="password" placeholder="Colle ta clé ici" aria-label="Clé Twelve Data" spellcheck="false">
+          <label class="check"><input id="keyRemember" type="checkbox"> Se souvenir sur cet appareil</label>
+          <button class="btn" type="submit">Enregistrer</button>
+        </form>
+        <p class="muted small">Sur un appareil partagé, ne coche pas la case : la clé sera oubliée à la fermeture de l'onglet.</p>
+      </div>
+
+      <div id="keyOk" class="card hidden">
+        <div class="row between">
+          <span>Clé enregistrée <span id="keyWhere" class="muted small"></span></span>
+          <button id="keyForget" class="btn ghost small" type="button">Oublier la clé</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row between wrap">
+          <div class="row wrap">
+            <button id="startBtn" class="btn" type="button">Démarrer la surveillance</button>
+            <button id="stopBtn" class="btn danger hidden" type="button">Arrêter</button>
+            <select id="duration" aria-label="Durée">
+              <option value="15">15 min</option>
+              <option value="30" selected>30 min</option>
+              <option value="60">1 h</option>
+              <option value="120">2 h</option>
+            </select>
+          </div>
+          <div class="row wrap">
+            <button id="demoBtn" class="btn ghost" type="button">Essayer la démo</button>
+            <button id="notifBtn" class="btn ghost" type="button">Activer les notifications</button>
+          </div>
+        </div>
+        <p id="status" class="status">Prêt. Un relevé par minute : 2 crédits (EUR/USD + or). 30 min = 60 crédits sur 800 par jour.</p>
+        <div class="meter" aria-hidden="true"><div id="creditBar"></div></div>
+        <p class="muted small" id="creditTxt"></p>
+      </div>
+
+      <div id="demoBanner" class="banner hidden">DÉMO : données SYNTHÉTIQUES, aucun prix réel. Un mouvement brusque, une donnée périmée et une donnée manquante sont injectés exprès.</div>
+
+      <div class="grid2" id="cards"></div>
+
+      <div class="card">
+        <div class="row between wrap">
+          <h2>Journal des relevés</h2>
+          <div class="row">
+            <button id="exportLog" class="btn ghost small" type="button">Exporter CSV</button>
+            <button id="clearLog" class="btn ghost small" type="button">Effacer</button>
+          </div>
+        </div>
+        <div class="scroll"><table id="logTable"><thead><tr><th>Heure UTC</th><th>Symbole</th><th>Prix</th><th>1 min</th><th>5 min</th><th>Marché</th><th>Décision</th><th>Raisons</th></tr></thead><tbody></tbody></table></div>
+        <p class="muted small">Prix = clôture 1 min (milieu de marché), <b>pas ton prix d'exécution</b>. Chez un courtier tu achètes à l'ask et vends au bid. bid/ask non fournis : spread <b>supposé</b> (réglable).</p>
+      </div>
+    </section>
+
+    <!-- ======================================================== ANNONCES -->
+    <section id="tab-news" class="tab hidden">
+      <div class="card">
+        <h2>Annonces économiques</h2>
+        <p class="muted">Le moniteur rejette (REJECT) les 15 minutes avant et après chaque annonce. Ajoute celles de la semaine (NFP, Fed, BCE, CPI…) depuis un calendrier, par exemple
+          <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer">ForexFactory</a>. L'heure se saisit dans <b>ton heure locale</b> ; elle est enregistrée en UTC.</p>
+        <form id="newsForm" class="formgrid" autocomplete="off">
+          <label>Date et heure (locale)<input id="nDate" type="datetime-local" required></label>
+          <label>Devise<select id="nCcy"><option>USD</option><option>EUR</option></select></label>
+          <label>Annonce<input id="nEvent" type="text" maxlength="80" placeholder="ex. NFP" required></label>
+          <label>Impact<select id="nImpact"><option value="high">fort</option><option value="medium">moyen</option></select></label>
+          <button class="btn" type="submit">Ajouter</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>À venir</h2>
+        <div class="scroll"><table id="newsTable"><thead><tr><th>Heure locale</th><th>UTC</th><th>Devise</th><th>Annonce</th><th>Impact</th><th></th></tr></thead><tbody></tbody></table></div>
+        <p id="newsEmpty" class="muted">Aucune annonce enregistrée.</p>
+      </div>
+      <div class="card">
+        <h2>Importer (CSV)</h2>
+        <p class="muted small">Format : <code>datetime_utc,currency,event,impact</code>, une ligne par annonce, heure UTC (ex. <code>2026-11-25T13:30:00Z,USD,Core PCE,high</code>).</p>
+        <textarea id="newsCsv" rows="4" spellcheck="false" aria-label="CSV des annonces"></textarea>
+        <div class="row"><button id="newsImport" class="btn ghost" type="button">Importer</button><span id="newsImportMsg" class="muted small"></span></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== POSITION -->
+    <section id="tab-size" class="tab hidden">
+      <div class="card">
+        <h2>Taille de position</h2>
+        <p class="muted">Risque d'un trade = distance du stop (pips) × valeur du pip × lots. Le résultat est <b>arrondi vers le bas</b>. Vérifie la taille de lot et la valeur du pip chez ton courtier.</p>
+        <form id="sizeForm" class="formgrid" autocomplete="off">
+          <label>Symbole<select id="sSym"><option>EUR/USD</option><option>XAU/USD</option></select></label>
+          <label>Solde ($)<input id="sBal" type="number" step="0.01" min="0" value="68"></label>
+          <label>Risque max (%)<input id="sRisk" type="number" step="0.1" min="0.1" max="10" value="2"></label>
+          <label>Stop (pips)<input id="sStop" type="number" step="0.1" min="0" value="13"></label>
+          <label>Valeur du pip par lot ($)<input id="sPv" type="number" step="0.01" min="0" value="10"></label>
+          <label>Lot minimal<input id="sMin" type="number" step="0.01" min="0.01" value="0.01"></label>
+        </form>
+        <div id="sizeOut" class="result"></div>
+        <p class="muted small">EUR/USD : 1 pip = 0,0001. Or : 1 pip = 0,10 $ ici (contrat de 100 oz : 10 $ par pip et par lot). Certains courtiers définissent le pip de l'or autrement.</p>
+        <p class="warnline small">Levier : 0,01 lot d'EUR/USD ≈ 1 000 € de position. Un stop non respecté ou un écart d'ouverture peut faire perdre bien plus que prévu.</p>
+      </div>
+    </section>
+
+    <!-- ======================================================== JOURNAL PAPIER -->
+    <section id="tab-journal" class="tab hidden">
+      <div class="card">
+        <h2>Journal papier</h2>
+        <p class="muted">Trades <b>simulés</b>, aucun ordre réel. Note à égalité les WATCH, REJECT, entrées ratées, pertes et gains. N'entre jamais à un prix qui n'a jamais été disponible.</p>
+        <div class="row wrap"><label class="inline">Solde de départ ($) <input id="jStart" type="number" step="0.01" min="0" value="68"></label>
+          <span class="muted">Solde simulé actuel : <b id="jBal" class="mono">–</b></span></div>
+        <form id="jForm" class="formgrid" autocomplete="off">
+          <label>Symbole<select id="jSym"><option>EUR/USD</option><option>XAU/USD</option></select></label>
+          <label>Sens<select id="jSide"><option value="buy">achat</option><option value="sell">vente</option></select></label>
+          <label>Statut<select id="jStatus"><option>WATCH</option><option>REJECT</option><option>UNFILLED</option><option>OPEN</option><option>CLOSED</option></select></label>
+          <label>Entrée (ask/bid)<input id="jEntry" type="number" step="any"></label>
+          <label>Stop-loss<input id="jStop" type="number" step="any"></label>
+          <label>Lots<input id="jLots" type="number" step="0.01" min="0"></label>
+          <label>Sortie observée<input id="jExit" type="number" step="any"></label>
+          <label>Coûts ($)<input id="jCosts" type="number" step="0.01" min="0" placeholder="commission, swap…"></label>
+          <label class="span2">Justification<input id="jWhy" type="text" maxlength="200"></label>
+          <button class="btn" type="submit">Enregistrer</button>
+        </form>
+        <p id="jErr" class="err hidden"></p>
+      </div>
+      <div class="card">
+        <div class="row between wrap"><h2>Historique</h2>
+          <button id="jExport" class="btn ghost small" type="button">Exporter CSV</button></div>
+        <p id="jStats" class="muted"></p>
+        <div class="scroll"><table id="jTable"><thead><tr><th>Date UTC</th><th>Symbole</th><th>Sens</th><th>Statut</th><th>Stop</th><th>Risque</th><th>P&amp;L net</th><th>Justification</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== AIDE -->
+    <section id="tab-help" class="tab hidden">
+      <div class="card prose">
+        <h2>Comment ça marche</h2>
+        <ol>
+          <li>Crée ta clé gratuite Twelve Data et colle-la dans l'onglet Moniteur.</li>
+          <li>Remplis les annonces de la semaine (onglet Annonces).</li>
+          <li>Démarre la surveillance pendant une session ouverte (Londres ou New York), page ouverte.</li>
+          <li>Un <b>WATCH</b> veut dire « regarde ici » : jamais « achète » ni « vends ».</li>
+        </ol>
+        <h3>Décisions</h3>
+        <ul>
+          <li><b>WATCH</b> : mouvement brusque sur 5 min (≥ 15 pips EUR/USD, ≥ 3 $ sur l'or), données fraîches, marché ouvert, aucune annonce proche. Aucune direction ni profit implicite.</li>
+          <li><b>REJECT</b> : marché fermé, donnée périmée (&gt; 3 min), annonce à moins de 15 min, spread trop large, ou prix trop éloigné du taux de référence de la BCE (EUR/USD).</li>
+          <li><b>DATA_MISSING</b> : prix absent, quota atteint, erreur réseau. Une valeur manquante n'est jamais un zéro.</li>
+        </ul>
+        <h3>Limites</h3>
+        <ul>
+          <li>La surveillance ne tourne que <b>tant que la page est ouverte</b>.</li>
+          <li>Prix = milieu de marché sur 1 minute, pas ton prix d'exécution. Spread supposé, pas observé.</li>
+          <li>Heures de marché calculées sur New York (heure d'été gérée) ; jours fériés non gérés.</li>
+          <li>Avantage estimé : <b>INCONNU</b> tant qu'une règle n'a pas été testée sur un historique avec spread, commission, glissement et swap.</li>
+        </ul>
+        <h3>Confidentialité</h3>
+        <ul>
+          <li>Ta clé, tes annonces, ton journal et tes relevés restent <b>dans ton navigateur</b> (stockage local). Aucun compte, aucun suivi, aucun script tiers.</li>
+          <li>Le navigateur contacte seulement Twelve Data (prix) et la BCE (taux de référence).</li>
+        </ul>
+        <h3>Conditions</h3>
+        <ul>
+          <li>La clé gratuite Twelve Data est personnelle : ne la partage pas, et n'affiche pas ses données à d'autres personnes.</li>
+          <li>Outil éducatif. <b>Ce n'est pas un conseil en investissement</b> et rien n'est exécuté. Le trading avec effet de levier peut faire perdre plus que la mise : entraîne-toi en compte démo.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <script src="rules.js?v=1"></script>
+  <script src="app.js?v=1"></script>
+</body>
+</html>
