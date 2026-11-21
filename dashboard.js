@@ -177,6 +177,73 @@
       tile("Plus longue série de pertes", pl(s.longestLoss, "trade")));
   }
 
+  // ---------------------------------------------------------------- calendrier et repartitions (etape 4)
+  const nowL = JC.local(Date.now());
+  let calY = nowL.y, calM = nowL.m, selDay = null;
+  const dayKey = (y, m, d) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  const longDay = (k) => new Date(k + "T12:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+  function renderCalendar(acc, list) {
+    const m = DC.monthCalendar(acc, list, calY, calM), today = JC.localDay(Date.now());
+    $("dbCalTitle").textContent = new Date(Date.UTC(calY, calM - 1, 1)).toLocaleDateString("fr-FR", { month: "long", year: "numeric", timeZone: "UTC" });
+    const box = clear($("dbCal"));
+    ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"].forEach((d) => box.append(el("div", { class: "cal-h" }, d)));
+    const offset = (new Date(Date.UTC(calY, calM - 1, 1)).getUTCDay() + 6) % 7, days = new Date(Date.UTC(calY, calM, 0)).getUTCDate();
+    for (let i = 0; i < offset; i++) box.append(el("div", { class: "cal-d empty" }));
+    for (let d = 1; d <= days; d++) {
+      const k = dayKey(calY, calM, d), c = m.days[k];
+      const kind = c ? (c.net > 0 ? " win" : c.net < 0 ? " loss" : " flat") : "";
+      const extra = (k === today ? " today" : "") + (k === selDay ? " sel" : "");
+      const inner = [el("span", { class: "cal-n" }, d), c ? el("b", { class: "mono" }, el("span", { class: "cal-full" }, money(c.net, true)),
+          el("span", { class: "cal-short" }, (c.net > 0 ? "+" : "") + Math.round(c.net))) : null,
+        c ? el("small", {}, `${c.n} trade${c.n > 1 ? "s" : ""}`) : null];
+      box.append(c ? el("button", { type: "button", class: "cal-d" + kind + extra, "aria-label": `${longDay(k)} : ${money(c.net, true)}`,
+        onclick: () => { selDay = selDay === k ? null : k; render(); } }, ...inner) : el("div", { class: "cal-d" + extra }, ...inner));
+    }
+    const sum = el("div", { class: "cal-total" }, "Total du mois : ", el("b", { class: "mono " + cls(m.total) }, money(m.total, true)),
+      ` · ${pl(m.trades, "trade")} · ${m.green} jour${m.green > 1 ? "s" : ""} vert${m.green > 1 ? "s" : ""}, ${m.red} rouge${m.red > 1 ? "s" : ""}`);
+    if (m.best) sum.append(` · meilleur jour : ${longDay(m.best.day)} (${money(m.best.net, true)})`);
+    if (m.worst) sum.append(` · pire jour : ${longDay(m.worst.day)} (${money(m.worst.net, true)})`);
+    box.append(sum);
+    // trades du jour choisi
+    const items = selDay ? DC.dayTrades(acc, list, selDay) : [];
+    $("dbDay").classList.toggle("hidden", !items.length);
+    if (!items.length) { selDay = null; return; }
+    $("dbDayTitle").textContent = `Trades du ${longDay(selDay)}`;
+    const t = el("table", {}, el("thead", {}, el("tr", {}, ...["Clôture", "Symbole", "Sens", "Lots", "Net", "R"].map((h) => el("th", {}, h)))));
+    const tb = el("tbody"); t.append(tb);
+    items.forEach((x) => tb.append(el("tr", {},
+      el("td", { class: "mono" }, JC.fmtLocal(x.t.exitTime).slice(11)), el("td", {}, x.t.symbol), el("td", {}, x.t.side === "sell" ? "Vente" : "Achat"),
+      el("td", { class: "mono" }, x.t.lots != null ? String(x.t.lots) : "–"), el("td", { class: "mono " + cls(x.m.net) }, money(x.m.net, true)),
+      el("td", { class: "mono " + cls(x.m.r) }, fix(x.m.r, 2)))));
+    clear($("dbDayList")).append(el("div", { class: "scroll" }, t));
+  }
+  const moveMonth = (delta) => { calM += delta; if (calM < 1) { calM = 12; calY--; } if (calM > 12) { calM = 1; calY++; } selDay = null; render(); };
+  $("dbCalPrev").addEventListener("click", () => moveMonth(-1));
+  $("dbCalNext").addEventListener("click", () => moveMonth(1));
+  $("dbCalNow").addEventListener("click", () => { const l = JC.local(Date.now()); calY = l.y; calM = l.m; selDay = null; render(); });
+
+  // largeur par le CSSOM (la CSP interdit l'attribut style)
+  const bar = (c, w) => { const s = el("span", { class: c }); s.style.width = w.toFixed(1) + "%"; return s; };
+  function splitTable(rows, label, max) {
+    if (!rows.length) return el("p", { class: "muted small" }, "Pas encore de trade clôturé.");
+    const t = el("table", {}, el("thead", {}, el("tr", {}, ...[label, "Trades", "Réussite", "Net"].map((h) => el("th", {}, h)), el("th", { class: "barcell" }, ""))));
+    const tb = el("tbody"); t.append(tb);
+    rows.forEach((g) => {
+      const w = max > 0 ? Math.abs(g.net) / max * 50 : 0;
+      tb.append(el("tr", {}, el("td", {}, g.key), el("td", { class: "mono" }, String(g.n)),
+        el("td", { class: "mono" }, g.winRate == null ? "–" : (g.winRate * 100).toFixed(0) + " %"),
+        el("td", { class: "mono " + cls(g.net) }, money(g.net, true)),
+        el("td", { class: "barcell" }, el("div", { class: "nbar", "aria-hidden": "true" }, g.net ? bar(g.net > 0 ? "up" : "down", w) : null))));
+    });
+    return el("div", { class: "scroll" }, t);
+  }
+  function renderBreakdowns(acc, list) {
+    const b = DC.breakdowns(acc, list);
+    clear($("dbBySymbol")).append(splitTable(b.bySymbol, "Symbole", b.scale.symbol));
+    clear($("dbByWeekday")).append(splitTable(b.byWeekday, "Jour", b.scale.weekday));
+    clear($("dbBySession")).append(splitTable(b.bySession, "Session", b.scale.session));
+  }
+
   // ---------------------------------------------------------------- depots et retraits
   function renderFlows(acc) {
     const tb = clear($("cfTable").querySelector("tbody"));
@@ -220,6 +287,8 @@
     renderSummary(acc, list);
     renderCurve(acc, list);
     renderStats(acc, list);
+    renderCalendar(acc, list);
+    renderBreakdowns(acc, list);
     renderFlows(acc);
   }
   $("cfDate").value = JC.toLocalInput(Date.now());

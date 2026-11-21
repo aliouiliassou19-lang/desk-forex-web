@@ -133,5 +133,35 @@
     };
   }
 
-  return { sanitizeCashflow, signed, flowsOf, timeline, summary, periodStarts, periodPnl, accountStats, PERIODS, rangeStart, curve };
+  // ------------------------------------------------------------------ etape 4 : calendrier et repartitions
+  const closedOf = (account, list) => list.filter((x) => x.t.accountId === account.id && x.t.status === "CLOSED" && x.m.net != null && x.t.exitTime);
+  /** Calendrier d'un mois (heure du Benin) pour un compte : resultat net par jour et resume du mois. */
+  function monthCalendar(account, list, year, month) {
+    const days = JC.calendar(closedOf(account, list), year, month);
+    const rawTotal = Object.values(days).reduce((s, d) => s + d.net, 0);   // total avant arrondi des jours (comme la carte "Ce mois")
+    Object.values(days).forEach((d) => { d.net = r2(d.net); });
+    const rows = Object.keys(days).sort().map((k) => Object.assign({ day: k }, days[k]));
+    const best = rows.reduce((b, d) => (d.net > 0 && (!b || d.net > b.net) ? d : b), null);
+    const worst = rows.reduce((w, d) => (d.net < 0 && (!w || d.net < w.net) ? d : w), null);
+    return {
+      year, month, days, total: r2(rawTotal), trades: rows.reduce((s, d) => s + d.n, 0),
+      green: rows.filter((d) => d.net > 0).length, red: rows.filter((d) => d.net < 0).length, best, worst,
+    };
+  }
+  /** Trades clotures d'un jour donne ("AAAA-MM-JJ", heure du Benin), dans l'ordre de cloture. */
+  function dayTrades(account, list, dayKey) {
+    return closedOf(account, list).filter((x) => JC.localDay(x.t.exitTime) === dayKey).sort((a, b) => a.t.exitTime - b.t.exitTime);
+  }
+  /** Repartitions par symbole, jour de la semaine et session (avec l'echelle commune des barres). */
+  function breakdowns(account, list) {
+    const s = accountStats(account, list);
+    const scale = (rows) => Math.max(0, ...rows.map((g) => Math.abs(g.net)));
+    const bySymbol = s.bySymbol.slice().sort((a, b) => b.net - a.net);
+    return {
+      bySymbol, byWeekday: s.byWeekday, bySession: s.bySession,
+      scale: { symbol: scale(bySymbol), weekday: scale(s.byWeekday), session: scale(s.bySession) },
+    };
+  }
+
+  return { sanitizeCashflow, signed, flowsOf, timeline, summary, periodStarts, periodPnl, accountStats, PERIODS, rangeStart, curve, monthCalendar, dayTrades, breakdowns };
 });

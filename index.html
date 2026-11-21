@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=23">
+  <link rel="stylesheet" href="style.css?v=27">
 </head>
 <body>
   <header class="top">
@@ -178,6 +178,24 @@
         <h2>Statistiques</h2>
         <div id="dbStats" class="kpis flat"></div>
         <p class="muted small">Calculées sur les trades CLOSED de ce compte dont le résultat net est connu (dépôts et retraits exclus). Un petit nombre de trades ne prouve aucun avantage.</p>
+      </div>
+
+      <div class="card">
+        <div class="row between wrap"><h2>Calendrier des résultats</h2>
+          <div class="row"><button id="dbCalPrev" class="btn ghost small" type="button" aria-label="Mois précédent">‹</button><b id="dbCalTitle"></b><button id="dbCalNext" class="btn ghost small" type="button" aria-label="Mois suivant">›</button><button id="dbCalNow" class="btn ghost small" type="button">Ce mois</button></div></div>
+        <div id="dbCal" class="cal"></div>
+        <div id="dbDay" class="hidden"><h3 id="dbDayTitle"></h3><div id="dbDayList"></div></div>
+        <p class="muted small">Vert : journée gagnante. Rouge : journée perdante. Chaque trade compte le jour de sa clôture, en heure du Bénin. Touche un jour coloré pour voir ses trades.</p>
+      </div>
+
+      <div class="card">
+        <h2>Répartition des résultats</h2>
+        <div class="split3">
+          <div><h3>Par symbole</h3><div id="dbBySymbol"></div></div>
+          <div><h3>Par jour de la semaine</h3><div id="dbByWeekday"></div></div>
+          <div><h3>Par session</h3><div id="dbBySession"></div></div>
+        </div>
+        <p class="muted small">Session selon l'heure d'<b>ouverture</b> du trade. « Chevauchement » : Londres et New York ouverts en même temps. Les jours et les sessions sans trade n'apparaissent pas. Un petit nombre de trades ne prouve rien.</p>
       </div>
 
       <div class="card">
@@ -772,18 +790,18 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=23"></script>
-  <script src="analysis.js?v=23"></script>
-  <script src="mt5-core.js?v=23"></script>
-  <script src="journal-core.js?v=23"></script>
-  <script src="challenge-core.js?v=23"></script>
-  <script src="dashboard-core.js?v=23"></script>
-  <script src="db.js?v=23"></script>
-  <script src="app.js?v=23"></script>
-  <script src="journal.js?v=23"></script>
-  <script src="accounts.js?v=23"></script>
-  <script src="mt5-import.js?v=23"></script>
-  <script src="dashboard.js?v=23"></script>
-  <script src="desk.js?v=23"></script>
+  <script src="rules.js?v=27"></script>
+  <script src="analysis.js?v=27"></script>
+  <script src="mt5-core.js?v=27"></script>
+  <script src="journal-core.js?v=27"></script>
+  <script src="challenge-core.js?v=27"></script>
+  <script src="dashboard-core.js?v=27"></script>
+  <script src="db.js?v=27"></script>
+  <script src="app.js?v=27"></script>
+  <script src="journal.js?v=27"></script>
+  <script src="accounts.js?v=27"></script>
+  <script src="mt5-import.js?v=27"></script>
+  <script src="dashboard.js?v=27"></script>
+  <script src="desk.js?v=27"></script>
 </body>
 </html>

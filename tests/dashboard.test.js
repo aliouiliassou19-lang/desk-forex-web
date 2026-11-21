@@ -106,3 +106,37 @@ test("courbe : le drawdown ignore les depots et retraits", () => {
   const vide = DB.curve({ id: "z", startBalance: 500 }, list, null);
   assert.equal(vide.points.length, 1); assert.equal(vide.maxDD, 0); assert.equal(vide.endBalance, 500);
 });
+
+test("calendrier du mois : jours verts et rouges, heure du Benin, trades d'un jour", () => {
+  const more = JC.enrich(trades.concat([tr("t4", "2026-11-20T23:30:00Z", -15), tr("t5", "2026-11-12T16:00:00Z", -20, { symbol: "XAU/USD" }),
+    tr("oct", "2026-10-31T23:30:00Z", 40)]), [acc, { id: "a2", startBalance: 0 }], 2);
+  const m = DB.monthCalendar(acc, more, 2026, 11);
+  assert.deepEqual(Object.keys(m.days).sort(), ["2026-11-01", "2026-11-12", "2026-11-18", "2026-11-20", "2026-11-21"]);
+  assert.deepEqual(m.days["2026-11-12"], { net: 100, n: 2 });     // 120 - 20 le meme jour
+  assert.equal(m.days["2026-11-18"].net, -50);                     // le trade de l'autre compte (999) est exclu
+  assert.equal(m.days["2026-11-21"].net, -15);                     // 23:30 UTC = 00:30 le lendemain au Benin
+  assert.equal(m.days["2026-11-01"].net, 40);                      // 31/10 23:30 UTC = 1er novembre 00:30 au Benin
+  assert.equal(m.total, 105); assert.equal(m.trades, 6);
+  assert.equal(m.green, 3); assert.equal(m.red, 2);
+  assert.equal(m.best.day, "2026-11-12"); assert.equal(m.worst.day, "2026-11-18");
+  assert.equal(DB.monthCalendar(acc, more, 2026, 10).trades, 0);
+  assert.equal(DB.monthCalendar(acc, more, 2026, 10).best, null);
+  assert.deepEqual(DB.dayTrades(acc, more, "2026-11-12").map((x) => x.t.id), ["t1", "t5"]);
+  assert.deepEqual(DB.dayTrades(acc, more, "2026-11-19"), []);
+  // le total du mois egale le resultat du mois des cartes du haut (pas d'erreur d'arrondi jour par jour)
+  const cents = JC.enrich([tr("c1", "2026-11-02T10:00:00Z", 0.004), tr("c2", "2026-11-03T10:00:00Z", 0.004), tr("c3", "2026-11-04T10:00:00Z", 0.004)], [acc], 2);
+  assert.equal(DB.monthCalendar(acc, cents, 2026, 11).total, Math.round(cents.reduce((s, x) => s + x.m.net, 0) * 100) / 100);
+});
+
+test("repartitions par symbole, jour et session du compte choisi", () => {
+  const more = JC.enrich(trades.concat([tr("t5", "2026-11-12T16:00:00Z", -20, { symbol: "XAU/USD" })]), [acc, { id: "a2", startBalance: 0 }], 2);
+  const b = DB.breakdowns(acc, more);
+  assert.deepEqual(b.bySymbol.map((g) => [g.key, g.n, g.net]), [["EUR/USD", 3, 100], ["XAU/USD", 1, -20]]);   // trie du meilleur au pire
+  assert.deepEqual(b.byWeekday.map((g) => g.key), ["mercredi", "jeudi", "vendredi"]);                            // ordre de la semaine
+  assert.equal(b.byWeekday.find((g) => g.key === "jeudi").net, 100);
+  assert.equal(b.bySession.reduce((s, g) => s + g.n, 0), 4);
+  assert.ok(b.bySession.every((g) => JC.SESSIONS.includes(g.key)));
+  assert.equal(b.scale.symbol, 100); assert.equal(b.scale.weekday, 100);
+  const vide = DB.breakdowns({ id: "z", startBalance: 0 }, more);
+  assert.deepEqual(vide.bySymbol, []); assert.equal(vide.scale.symbol, 0);
+});
