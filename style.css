@@ -258,3 +258,7 @@ details.card[open] > summary::before { content: "▾"; }
   background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 10px; z-index: 20;
   box-shadow: 0 6px 24px rgba(0, 0, 0, .25); font-weight: 600;
 }
+.chart.dd-chart { height: 140px; }
+@media (min-width: 760px) { .chart.dd-chart { height: 170px; } }
+.chart-info { min-height: 1.4em; margin: 4px 0 8px; }
+#dbCurve, #dbDD { touch-action: pan-y; cursor: crosshair; }

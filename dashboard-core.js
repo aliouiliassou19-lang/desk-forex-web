@@ -87,5 +87,51 @@
     return s;
   }
 
-  return { sanitizeCashflow, signed, flowsOf, timeline, summary, periodStarts, periodPnl, accountStats };
+  // ------------------------------------------------------------------ etape 3 : courbe et drawdown
+  const PERIODS = { "7d": "7 jours", "30d": "30 jours", "3m": "3 mois", all: "Tout" };
+  /** Debut d'une periode ("7d", "30d", "3m", "all") en ms UTC ; null pour "all". */
+  function rangeStart(key, nowMs) {
+    if (key === "7d") return nowMs - 7 * 86400000;
+    if (key === "30d") return nowMs - 30 * 86400000;
+    if (key === "3m") {                                           // meme jour, 3 mois plus tot (heure du Benin)
+      const off = JC.LOCAL_OFFSET_MIN * 60000, l = JC.local(nowMs);
+      let y = l.y, m = l.m - 3; if (m < 1) { m += 12; y--; }
+      const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
+      return Date.UTC(y, m - 1, Math.min(l.d, days), l.h, l.min) - off;
+    }
+    return null;
+  }
+  const r2 = (v) => Math.round(v * 100) / 100;
+  /**
+   * Courbe du solde sur une periode, avec son drawdown.
+   * Le drawdown ne compte que les trades : un depot ou un retrait deplace aussi le sommet,
+   * donc il ne cree ni ne cache aucun drawdown. Sommet de depart = solde au debut de la periode.
+   */
+  function curve(account, list, fromMs) {
+    const start = num(account.startBalance) || 0;
+    const from = fromMs == null ? -Infinity : fromMs;
+    const tl = timeline(account, list);
+    const before = tl.filter((e) => e.t < from), inside = tl.filter((e) => e.t >= from);
+    const b0 = before.length ? before[before.length - 1].balance : start;
+    const t0 = from === -Infinity ? (inside.length ? inside[0].t : null) : from;
+    let peak = b0, maxDD = 0, maxDDPct = 0, troughT = null, pnl = 0, flows = 0;
+    const points = [{ t: t0, balance: b0, kind: "start", amount: 0, dd: 0, ddPct: 0, peak }];
+    inside.forEach((e) => {
+      if (e.kind === "trade") pnl += e.amount; else { flows += e.amount; peak += e.amount; }
+      peak = Math.max(peak, e.balance);
+      const dd = r2(Math.min(0, e.balance - peak)), ddPct = peak > 0 ? dd / peak * 100 : 0;
+      if (dd < maxDD) { maxDD = dd; troughT = e.t; }
+      maxDDPct = Math.min(maxDDPct, ddPct);
+      points.push({ t: e.t, balance: e.balance, kind: e.kind, amount: e.amount, symbol: e.symbol, note: e.note, dd, ddPct, peak });
+    });
+    const last = points[points.length - 1];
+    // % du resultat : comme la carte du haut, divise par le capital engage (solde de depart + mouvements de la periode)
+    return {
+      points, startBalance: b0, endBalance: last.balance, pnl: r2(pnl), flows: r2(flows),
+      pnlPct: b0 + flows > 0 ? pnl / (b0 + flows) * 100 : null, trades: inside.filter((e) => e.kind === "trade").length,
+      maxDD, maxDDPct, troughT, currentDD: last.dd, currentDDPct: last.ddPct,
+    };
+  }
+
+  return { sanitizeCashflow, signed, flowsOf, timeline, summary, periodStarts, periodPnl, accountStats, PERIODS, rangeStart, curve };
 });

@@ -37,6 +37,129 @@
       tile("Capital investi", money(s.capital), "", `dépôts ${money(s.deposits)} · retraits ${money(s.withdrawals)}`));
   }
 
+  // ---------------------------------------------------------------- courbe et drawdown (etape 3)
+  let range = D.store.get("dbRange", "all"), view = null, hoverT = null;
+  const ddate = (ms) => { const l = JC.local(ms); return `${String(l.d).padStart(2, "0")}/${String(l.m).padStart(2, "0")}`; };
+  const short = (v) => (Math.abs(v) >= 10000 ? (v / 1000).toFixed(1) + " k" : v.toFixed(0));
+  /** Graphique en escalier dans le temps (canvas, sans bibliotheque). pts = [{t, v}] tries par t. */
+  function timeChart(cv, pts, t0, t1, opts) {
+    const css = getComputedStyle(document.documentElement), col = (v) => css.getPropertyValue(v).trim();
+    const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+    if (!w || !h) return;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+    ctx.font = "11px system-ui, sans-serif"; ctx.fillStyle = col("--muted");
+    cv._layout = null;
+    if (opts.empty) { ctx.textBaseline = "middle"; ctx.fillText(opts.empty, 8, h / 2); return; }
+    const vals = pts.map((p) => p.v).concat(opts.base != null ? [opts.base] : []);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    if (opts.zeroTop) hi = 0;
+    if (hi - lo < 1e-9) { const m = Math.max(1, Math.abs(hi) * 0.01); if (!opts.zeroTop) hi += m; lo -= m; }
+    const pad = (hi - lo) * 0.08; if (!opts.zeroTop) hi += pad; lo -= pad;
+    const padL = 50, padR = 10, padT = 8, padB = 20, pw = w - padL - padR, ph = h - padT - padB;
+    const x = (t) => padL + (t1 > t0 ? (t - t0) / (t1 - t0) : 1) * pw, y = (v) => padT + (hi - v) / (hi - lo) * ph;
+    // grille et valeurs
+    ctx.strokeStyle = col("--line"); ctx.lineWidth = 1; ctx.textBaseline = "middle";
+    const rows = h < 180 ? 2 : 4;
+    for (let i = 0; i <= rows; i++) {
+      const v = lo + (hi - lo) * i / rows, yy = Math.round(y(v)) + 0.5;
+      ctx.beginPath(); ctx.moveTo(padL, yy); ctx.lineTo(w - padR, yy); ctx.stroke();
+      ctx.fillText(opts.fmt(v), 2, yy);
+    }
+    // dates
+    ctx.textBaseline = "alphabetic";
+    [t0, (t0 + t1) / 2, t1].forEach((t, i) => {
+      const s = ddate(t), tw = ctx.measureText(s).width;
+      ctx.fillText(s, i === 0 ? padL : i === 1 ? x(t) - tw / 2 : w - padR - tw, h - 4);
+    });
+    if (opts.base != null) {
+      ctx.setLineDash([4, 4]); ctx.strokeStyle = col("--muted");
+      ctx.beginPath(); ctx.moveTo(padL, y(opts.base)); ctx.lineTo(w - padR, y(opts.base)); ctx.stroke(); ctx.setLineDash([]);
+    }
+    // courbe en escalier : le solde ne change qu'a la cloture d'un trade ou a un mouvement d'argent
+    const color = col(opts.color);
+    ctx.beginPath();
+    pts.forEach((p, i) => { if (!i) ctx.moveTo(x(p.t), y(p.v)); else { ctx.lineTo(x(p.t), y(pts[i - 1].v)); ctx.lineTo(x(p.t), y(p.v)); } });
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.stroke();
+    if (opts.fillTo != null) {
+      ctx.lineTo(x(pts[pts.length - 1].t), y(opts.fillTo)); ctx.lineTo(x(pts[0].t), y(opts.fillTo)); ctx.closePath();
+      ctx.globalAlpha = 0.18; ctx.fillStyle = color; ctx.fill(); ctx.globalAlpha = 1;
+    }
+    // reperes (depots, retraits, point le plus bas)
+    (opts.marks || []).forEach((m) => {
+      ctx.beginPath(); ctx.arc(x(m.t), y(m.v), 4, 0, Math.PI * 2);
+      ctx.fillStyle = col(m.color); ctx.fill(); ctx.strokeStyle = col("--surface"); ctx.lineWidth = 1.5; ctx.stroke();
+    });
+    // curseur
+    if (opts.hoverT != null && opts.hoverT >= t0 && opts.hoverT <= t1) {
+      const hx = Math.round(x(opts.hoverT)) + 0.5;
+      ctx.strokeStyle = col("--text"); ctx.globalAlpha = 0.5; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(hx, padT); ctx.lineTo(hx, padT + ph); ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    cv._layout = { padL, pw, t0, t1 };
+  }
+  function drawCharts() {
+    if (!view) return;
+    const { c, t0, t1, empty } = view;
+    const pts = c.points.slice();
+    if (!empty && pts[pts.length - 1].t < t1) pts.push(Object.assign({}, pts[pts.length - 1], { t: t1, kind: "now" }));
+    const marks = c.points.filter((p) => p.kind === "deposit" || p.kind === "withdrawal")
+      .map((p) => ({ t: p.t, v: p.balance, color: p.kind === "deposit" ? "--ok" : "--watch" }));
+    timeChart($("dbCurve"), pts.map((p) => ({ t: p.t, v: p.balance })), t0, t1,
+      { color: c.endBalance >= c.startBalance ? "--ok" : "--reject", fmt: short, base: c.startBalance, marks, hoverT, empty });
+    const low = c.troughT != null ? c.points.find((p) => p.t === c.troughT && p.dd === c.maxDD) : null;
+    timeChart($("dbDD"), pts.map((p) => ({ t: p.t, v: p.ddPct })), t0, t1,
+      { color: "--reject", fmt: (v) => v.toFixed(1) + " %", zeroTop: true, fillTo: 0, hoverT, empty,
+        marks: low ? [{ t: low.t, v: low.ddPct, color: "--reject" }] : [] });
+  }
+  const INFO = "Passe le doigt ou la souris sur la courbe pour voir le détail.";
+  function hoverInfo(t) {
+    const ps = view.c.points; let p = ps[0];
+    for (const q of ps) { if (q.t <= t) p = q; else break; }
+    const what = p.kind === "trade" ? `trade ${p.symbol || ""} ${money(p.amount, true)}` : p.kind === "deposit" ? `dépôt ${money(p.amount, true)}`
+      : p.kind === "withdrawal" ? `retrait ${money(p.amount, true)}` : "début de la période";
+    $("dbCurveInfo").textContent = `${JC.fmtLocal(p.t)} · ${what} · solde ${money(p.balance)} · drawdown ${money(p.dd)} (${p.ddPct.toFixed(2)} %)`;
+  }
+  function onPointer(e) {
+    const cv = e.currentTarget, L = cv._layout; if (!L || !view || view.empty) return;
+    const r = cv.getBoundingClientRect(), f = Math.min(1, Math.max(0, (e.clientX - r.left - L.padL) / L.pw));
+    hoverT = L.t0 + f * (L.t1 - L.t0); hoverInfo(hoverT); drawCharts();
+  }
+  ["dbCurve", "dbDD"].forEach((id) => {
+    $(id).addEventListener("pointermove", onPointer);
+    $(id).addEventListener("pointerdown", onPointer);
+    $(id).addEventListener("pointerleave", () => { hoverT = null; $("dbCurveInfo").textContent = INFO; drawCharts(); });
+  });
+  $("dbRange").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-range]"); if (!b) return;
+    range = b.dataset.range; D.store.set("dbRange", range); render();
+  });
+  function renderCurve(acc, list) {
+    if (!DC.PERIODS[range]) range = "all";
+    const now = Date.now(), from = DC.rangeStart(range, now);
+    $("dbRange").querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.range === range));
+    const c = DC.curve(acc, list, from), all = range === "all" ? c : DC.curve(acc, list, null);
+    const empty = c.points.length < 2 && range === "all" ? "Pas encore de trade clôturé ni de mouvement sur ce compte." : null;
+    const t0 = c.points[0].t != null ? c.points[0].t : now - 86400000;
+    view = { c, t0, t1: Math.max(now, c.points[c.points.length - 1].t || now), empty };
+    hoverT = null; $("dbCurveInfo").textContent = empty ? "" : INFO;
+    drawCharts();
+    const label = DC.PERIODS[range].toLowerCase();
+    const ddSub = (v, at) => `${v.toFixed(2)} %${at ? " · le " + JC.fmtLocal(at).slice(0, 10) : ""}`;
+    clear($("dbCurveKpis")).append(
+      tile(`Résultat (${label})`, money(c.pnl, true), cls(c.pnl), `${pct(c.pnlPct)}${c.pnlPct != null ? " · " : ""}${pl(c.trades, "trade")}` +
+        (c.flows ? ` · mouvements ${money(c.flows, true)}` : "")),
+      tile("Solde début → fin", `${money(c.startBalance)} → ${money(c.endBalance)}`),
+      tile(`Drawdown max (${label})`, money(c.maxDD), c.maxDD < 0 ? "down" : "", ddSub(c.maxDDPct, c.troughT)),
+      tile("Drawdown actuel", money(all.currentDD), all.currentDD < 0 ? "down" : "", `${all.currentDDPct.toFixed(2)} % sous le plus haut`),
+      tile("Drawdown max (tout l'historique)", money(all.maxDD), all.maxDD < 0 ? "down" : "", ddSub(all.maxDDPct, all.troughT)));
+  }
+  let resizeT = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => { if (!$("tab-dash").classList.contains("hidden")) drawCharts(); }, 150);
+  });
+
   // ---------------------------------------------------------------- statistiques (etape 2)
   function renderStats(acc, list) {
     const s = DC.accountStats(acc, list);
@@ -95,6 +218,7 @@
     if (!acc) return;
     const list = J.getState().enriched;
     renderSummary(acc, list);
+    renderCurve(acc, list);
     renderStats(acc, list);
     renderFlows(acc);
   }

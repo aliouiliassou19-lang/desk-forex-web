@@ -70,3 +70,39 @@ test("resume : solde avec mouvements, P&L et % sur le capital investi", () => {
   const empty = DB.summary({ id: "x", startBalance: 0 }, list);
   assert.deepEqual([empty.balance, empty.pnlPct], [0, null]);
 });
+
+test("debut des periodes du graphique (7 jours, 30 jours, 3 mois, tout)", () => {
+  const now = T("2026-11-20T15:00:00Z");
+  assert.equal(DB.rangeStart("7d", now), T("2026-11-13T15:00:00Z"));
+  assert.equal(DB.rangeStart("30d", now), T("2026-10-21T15:00:00Z"));
+  assert.equal(DB.rangeStart("3m", now), T("2026-08-20T15:00:00Z"));
+  assert.equal(DB.rangeStart("3m", T("2026-05-31T10:00:00Z")), T("2026-02-28T10:00:00Z"));   // fevrier plus court
+  assert.equal(DB.rangeStart("3m", T("2026-01-15T10:00:00Z")), T("2025-10-15T10:00:00Z"));   // changement d'annee
+  assert.equal(DB.rangeStart("all", now), null);
+});
+
+test("courbe : le drawdown ignore les depots et retraits", () => {
+  const c = DB.curve(acc, list, null);
+  assert.deepEqual(c.points.map((p) => p.balance), [1000, 1500, 1620, 1570, 1370, 1400]);
+  assert.deepEqual(c.points.map((p) => p.dd), [0, 0, 0, -50, -50, -20]);   // le retrait de 200 ne compte pas comme une perte
+  assert.equal(c.maxDD, -50);
+  near(c.maxDDPct, -50 / 1420 * 100);
+  assert.equal(c.troughT, T("2026-11-18T10:00:00Z"));
+  assert.equal(c.currentDD, -20);
+  assert.equal(c.pnl, 100); assert.equal(c.flows, 300); assert.equal(c.trades, 3);
+  // periode a partir du 15/11 : depart au solde de ce jour-la
+  const p = DB.curve(acc, list, T("2026-11-15T00:00:00Z"));
+  assert.equal(p.startBalance, 1620); assert.equal(p.points[0].t, T("2026-11-15T00:00:00Z"));
+  assert.equal(p.pnl, -20); assert.equal(p.trades, 2); assert.equal(p.maxDD, -50);
+  near(p.pnlPct, -20 / 1420 * 100);                  // solde de depart + mouvements de la periode
+  near(c.pnlPct, DB.summary(acc, list).pnlPct);       // sur tout l'historique : meme % que la carte du haut
+  // a partir du 19/11 : le sommet repart du solde de ce jour, aucun drawdown
+  assert.equal(DB.curve(acc, list, T("2026-11-19T00:00:00Z")).maxDD, 0);
+  // un depot pendant un drawdown ne l'efface pas
+  const a3 = { id: "a3", startBalance: 1000, cashflows: [{ id: "d", t: T("2026-11-11T09:00:00Z"), type: "deposit", amount: 500 }] };
+  const l3 = JC.enrich([tr("x1", "2026-11-10T10:00:00Z", -100, { accountId: "a3" }), tr("x2", "2026-11-12T10:00:00Z", 50, { accountId: "a3" })], [a3], 2);
+  assert.deepEqual(DB.curve(a3, l3, null).points.map((q) => q.dd), [0, -100, -100, -50]);
+  // compte sans trade
+  const vide = DB.curve({ id: "z", startBalance: 500 }, list, null);
+  assert.equal(vide.points.length, 1); assert.equal(vide.maxDD, 0); assert.equal(vide.endBalance, 500);
+});

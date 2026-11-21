@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=21">
+  <link rel="stylesheet" href="style.css?v=23">
 </head>
 <body>
   <header class="top">
@@ -158,6 +158,21 @@
       </div>
 
       <div id="dbSummary" class="kpis"></div>
+
+      <div class="card">
+        <div class="row between wrap">
+          <h2>Évolution du solde</h2>
+          <div class="seg" id="dbRange" role="group" aria-label="Période du graphique">
+            <button type="button" data-range="7d">7 jours</button><button type="button" data-range="30d">30 jours</button><button type="button" data-range="3m">3 mois</button><button type="button" data-range="all" class="active">Tout</button>
+          </div>
+        </div>
+        <canvas id="dbCurve" class="chart" role="img" aria-label="Courbe du solde du compte"></canvas>
+        <p id="dbCurveInfo" class="muted small chart-info">Passe le doigt ou la souris sur la courbe pour voir le détail.</p>
+        <div id="dbCurveKpis" class="kpis flat"></div>
+        <h3>Drawdown</h3>
+        <canvas id="dbDD" class="chart dd-chart" role="img" aria-label="Courbe du drawdown"></canvas>
+        <p class="muted small">Le drawdown est la baisse depuis le plus haut atteint par le solde. Seuls les trades comptent : un dépôt ou un retrait ne crée ni n'efface de drawdown. Sur une période, le plus haut de départ est le solde au début de cette période.</p>
+      </div>
 
       <div class="card">
         <h2>Statistiques</h2>
@@ -757,18 +772,18 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=21"></script>
-  <script src="analysis.js?v=21"></script>
-  <script src="mt5-core.js?v=21"></script>
-  <script src="journal-core.js?v=21"></script>
-  <script src="challenge-core.js?v=21"></script>
-  <script src="dashboard-core.js?v=21"></script>
-  <script src="db.js?v=21"></script>
-  <script src="app.js?v=21"></script>
-  <script src="journal.js?v=21"></script>
-  <script src="accounts.js?v=21"></script>
-  <script src="mt5-import.js?v=21"></script>
-  <script src="dashboard.js?v=21"></script>
-  <script src="desk.js?v=21"></script>
+  <script src="rules.js?v=23"></script>
+  <script src="analysis.js?v=23"></script>
+  <script src="mt5-core.js?v=23"></script>
+  <script src="journal-core.js?v=23"></script>
+  <script src="challenge-core.js?v=23"></script>
+  <script src="dashboard-core.js?v=23"></script>
+  <script src="db.js?v=23"></script>
+  <script src="app.js?v=23"></script>
+  <script src="journal.js?v=23"></script>
+  <script src="accounts.js?v=23"></script>
+  <script src="mt5-import.js?v=23"></script>
+  <script src="dashboard.js?v=23"></script>
+  <script src="desk.js?v=23"></script>
 </body>
 </html>
