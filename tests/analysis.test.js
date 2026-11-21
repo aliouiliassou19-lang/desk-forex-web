@@ -148,6 +148,38 @@ test("pre-test : cout, taux de reussite minimal, trades necessaires", () => {
   assert.equal(A.pretest({ atrPips: 0, stopAtr: 1, rr: 1 }).error, "ATR, multiple de stop et objectif (R) requis.");
 });
 
+test("synthese du jour : contexte, agenda, prudence, scenarios, jamais d'ordre", () => {
+  const fund = { usdRate: { value: 3.88, date: "2026-11-19" }, eurRate: { value: 2.5, date: "2026-11-21" },
+    usdCpi: { value: 3.74, date: "2026-09" }, eurCpi: { value: 2.0, date: "2025-12" },
+    usdUnemp: { value: 4.1, date: "2026-10" }, eurUnemp: { value: 6.6, date: "2026-09" } };
+  const wed = T("2026-11-18T10:00:00Z");
+  const news = [{ timeMs: T("2026-11-18T13:30:00Z"), currency: "USD", event: "CPI", impact: "high" },
+    { timeMs: T("2026-11-19T20:00:00Z"), currency: "USD", event: "Plus tard", impact: "high" }];
+  const b = A.dailyBrief({ pair: "EUR/USD", nowMs: wed, fund, tech: null, news });
+  const text = (x) => x.sections.map((s) => s.title + " " + s.items.join(" ")).join(" ");
+  assert.equal(b.caution, "élevée");
+  assert.match(text(b), /contexte équilibré/);          // taux : +1 dollar ; taux reels : +1 euro
+  assert.match(text(b), /13:30 UTC : USD CPI \(impact fort\)/);
+  assert.doesNotMatch(text(b), /Plus tard/);              // hors des 24 h
+  assert.match(text(b), /donnée ancienne/);
+  assert.match(text(b), /Lance l'analyse technique/);
+  const strongUsd = Object.assign({}, fund, { eurCpi: { value: 2.6, date: "2026-10" } });
+  assert.match(text(A.dailyBrief({ pair: "EUR/USD", nowMs: wed, fund: strongUsd, news: [] })), /favorable au dollar .* baissier pour EUR\/USD/);
+  const end = T("2026-11-18T09:00:00Z");
+  const d1 = trendBars(300, end - 300 * 86400000, 86400000, 1.0, 0.0004, 0.002);
+  const h4 = trendBars(300, end - 300 * 14400000, 14400000, d1[200].c, 0.0003, 0.0008);
+  const h1 = trendBars(500, end - 500 * 3600000, 3600000, h4[250].c, 0.0001, 0.0002);
+  const tech = A.technical("EUR/USD", { h1, h4, d1 });
+  const bt = A.dailyBrief({ pair: "EUR/USD", nowMs: wed, fund, tech, news: [] });
+  assert.match(text(bt), /Amplitude habituelle d'une journée : environ \d+ pips/);
+  assert.match(text(bt), /Si le prix dépasse .* S'il passe sous/);
+  assert.equal(bt.caution, "normale");
+  const we = A.dailyBrief({ pair: "EUR/USD", nowMs: T("2026-11-21T12:00:00Z"), fund, news: [] });
+  assert.equal(we.caution, "marché fermé");
+  assert.match(text(A.dailyBrief({ pair: "GBP/JPY", nowMs: wed, fund, news: [] })), /Pas de données fondamentales officielles lisibles pour GBP, JPY/);
+  for (const x of [b, bt, we]) assert.doesNotMatch(text(x), /\b(BUY|SELL)\b|achète|vends|achetez|vendez/i);
+});
+
 test("alertes de prix", () => {
   const al = [{ pair: "EUR/USD", side: "above", price: 1.09 }, { pair: "XAU/USD", side: "below", price: 2600 }];
   assert.equal(A.checkAlerts(al, { "EUR/USD": 1.085 }, 1).length, 0);

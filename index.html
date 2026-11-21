@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
   <header class="top">
@@ -31,6 +31,7 @@
     <button data-tab="monitor" class="active">Moniteur</button>
     <button data-tab="analyse">Analyse</button>
     <button data-tab="fund">Fondamental</button>
+    <button data-tab="brief">Synthèse</button>
     <button data-tab="plan">Plan</button>
     <button data-tab="news">Annonces</button>
     <button data-tab="journal">Journal</button>
@@ -209,6 +210,32 @@
       </div>
     </section>
 
+    <!-- ======================================================== SYNTHESE DU JOUR -->
+    <section id="tab-brief" class="tab hidden">
+      <div class="card">
+        <h2>Synthèse du jour</h2>
+        <p class="muted">Une lecture automatique, construite avec <b>tes</b> données selon des règles explicites : contexte fondamental, agenda, amplitude habituelle, scénarios conditionnels et niveau de prudence.
+          <b>Ce n'est ni une prédiction, ni un signal, ni un conseil</b> : personne ne connaît la direction du jour.</p>
+        <div class="row wrap">
+          <select id="bPair" class="pairsel" aria-label="Paire"></select>
+          <button id="bRun" class="btn" type="button">Générer la synthèse</button>
+          <button id="bTech" class="btn ghost" type="button">Analyse technique d'abord (3 crédits)</button>
+        </div>
+        <p id="bStatus" class="muted small">Le fondamental est gratuit (sources officielles). La partie technique utilise la dernière analyse de la paire, si elle a moins de 30 min.</p>
+      </div>
+      <div id="bOut" class="hidden">
+        <div class="card">
+          <div class="row between wrap">
+            <div><div id="bTitle" class="bigprice"></div><div id="bTime" class="muted small"></div></div>
+            <div><div class="muted small">Niveau de prudence</div><div id="bCaution" class="verdict"></div></div>
+          </div>
+          <p id="bWhy" class="muted small"></p>
+        </div>
+        <div id="bSections"></div>
+        <p class="muted small">Règles appliquées : écart de taux et taux réels (Fed, BCE), inflation par rapport à la cible de 2 %, annonces des 24 prochaines heures, ATR 14 jours, efficacité sur 20 jours, supports et résistances les plus proches, sessions. Tu peux tout vérifier dans les autres onglets.</p>
+      </div>
+    </section>
+
     <!-- ======================================================== PLAN -->
     <section id="tab-plan" class="tab hidden">
       <div class="card">
@@ -339,6 +366,7 @@
           <li><b>Moniteur</b> : surveillance EUR/USD et or, sessions de marché, alertes de prix.</li>
           <li><b>Analyse</b> : graphique H1/H4/D1, EMA 20/50/200, RSI, ATR, efficacité, biais, supports et résistances (sommets/creux, pivots, Fibonacci, chiffres ronds), plages. 3 crédits par analyse.</li>
           <li><b>Fondamental</b> : taux directeurs, inflation et chômage aux États-Unis et en zone euro (sources officielles datées), écart de taux, tes annonces, liens vers les banques centrales et l'actualité.</li>
+          <li><b>Synthèse</b> : lecture automatique du jour (contexte, agenda, amplitude habituelle, scénarios conditionnels, prudence). Pas de prédiction de direction.</li>
           <li><b>Plan</b> : plan de trade avec verdict OK / À REVOIR / NON, pré-test d'une idée, taille de position.</li>
           <li><b>Annonces</b> et <b>Journal</b> : fenêtres d'annonces et journal papier.</li>
         </ul>
@@ -370,9 +398,9 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=5"></script>
-  <script src="analysis.js?v=5"></script>
-  <script src="app.js?v=5"></script>
-  <script src="desk.js?v=5"></script>
+  <script src="rules.js?v=7"></script>
+  <script src="analysis.js?v=7"></script>
+  <script src="app.js?v=7"></script>
+  <script src="desk.js?v=7"></script>
 </body>
 </html>

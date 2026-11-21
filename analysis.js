@@ -396,6 +396,106 @@
     return out;
   }
 
+  // ------------------------------------------------------------------ synthese du jour (regles explicites, pas d'opinion)
+  /**
+   * Assemble une lecture du jour a partir des donnees du visiteur. Aucune prediction de direction,
+   * aucun signal : contexte, agenda, amplitude habituelle, scenarios conditionnels, prudence.
+   * i : {pair, nowMs, fund (valeurs {value,date}), tech (resultat de technical() ou null), news:[...]}
+   */
+  function dailyBrief(i) {
+    const now = i.nowMs, pair = i.pair || "EUR/USD";
+    const [base, quote] = ccys(pair);
+    const ok = (x) => x && Number.isFinite(x.value);
+    const sess = sessionsAt(now);
+    const out = { pair, generatedAt: now, sections: [], caution: "normale", cautionWhy: [] };
+    const sec = (title, items) => { if (items.length) out.sections.push({ title, items }); };
+
+    // 1. lecture fondamentale (USD et EUR seulement : sources officielles disponibles)
+    const f = i.fund || {};
+    const fundItems = [];
+    const covered = new Set(["USD", "EUR"]);
+    const pairCcys = pair.startsWith("XA") ? ["USD"] : [base, quote];
+    if (pairCcys.every((c) => covered.has(c)) && (ok(f.usdRate) || ok(f.eurRate))) {
+      let usd = 0, eur = 0;
+      if (ok(f.usdRate) && ok(f.eurRate)) {
+        const d = f.usdRate.value - f.eurRate.value;
+        if (d > 0.25) { usd++; fundItems.push(`Taux : le dollar rapporte ${d.toFixed(2)} point de plus que l'euro (Fed ${f.usdRate.value.toFixed(2)} % contre BCE ${f.eurRate.value.toFixed(2)} %). Cet écart soutient en général le dollar face à l'euro.`); }
+        else if (d < -0.25) { eur++; fundItems.push(`Taux : l'euro rapporte ${(-d).toFixed(2)} point de plus que le dollar.`); }
+        else fundItems.push("Taux : écart faible entre la Fed et la BCE ; pas d'avantage net de rendement.");
+        if (ok(f.usdCpi) && ok(f.eurCpi)) {
+          const ru = f.usdRate.value - f.usdCpi.value, re = f.eurRate.value - f.eurCpi.value;
+          if (ru - re > 0.25) usd++; else if (re - ru > 0.25) eur++;
+          fundItems.push(`Taux réels (taux - inflation) : États-Unis ${ru.toFixed(2)} %, zone euro ${re.toFixed(2)} %${Math.abs(ru - re) <= 0.25 ? " : proches" : ru > re ? " : avantage au dollar" : " : avantage à l'euro"}.`);
+        }
+      }
+      if (ok(f.usdCpi)) fundItems.push(f.usdCpi.value > 2.5
+        ? `Inflation US à ${f.usdCpi.value.toFixed(1)} % (${f.usdCpi.date}), au-dessus de la cible de 2 % : la Fed a peu de marge pour baisser ses taux rapidement.`
+        : `Inflation US à ${f.usdCpi.value.toFixed(1)} % (${f.usdCpi.date}), proche de la cible : la Fed garde de la marge.`);
+      if (ok(f.eurCpi)) fundItems.push(`Inflation zone euro à ${f.eurCpi.value.toFixed(1)} % (${f.eurCpi.date})${ageDays(f.eurCpi.date, now) > 75 ? ", donnée ancienne : vérifie le dernier chiffre" : ""}.`);
+      if (ok(f.usdUnemp) && ok(f.eurUnemp)) fundItems.push(`Chômage : ${f.usdUnemp.value.toFixed(1)} % aux États-Unis, ${f.eurUnemp.value.toFixed(1)} % en zone euro.`);
+      const usdSide = pair === "EUR/USD" ? "baissier pour EUR/USD" : pair === "XAU/USD" ? "plutôt défavorable à l'or (dollar et taux réels)" : "favorable au dollar";
+      const eurSide = pair === "EUR/USD" ? "haussier pour EUR/USD" : pair === "XAU/USD" ? "plutôt favorable à l'or" : "favorable à l'euro";
+      fundItems.push(usd > eur ? `Bilan : contexte plutôt favorable au dollar (${usd} facteur(s) contre ${eur}), donc fond ${usdSide}.`
+        : eur > usd ? `Bilan : contexte plutôt favorable à l'euro (${eur} facteur(s) contre ${usd}), donc fond ${eurSide}.`
+          : "Bilan : contexte équilibré, pas de biais fondamental net.");
+      fundItems.push("Ces chiffres sont connus de tous et déjà intégrés dans le prix. Ce qui fait bouger le marché dans la journée, c'est la surprise sur les annonces.");
+    } else {
+      fundItems.push(`Pas de données fondamentales officielles lisibles pour ${pairCcys.filter((c) => !covered.has(c)).join(", ") || pair} sur ce site : consulte les banques centrales (onglet Fondamental).`);
+    }
+    sec("Lecture fondamentale", fundItems);
+
+    // 2. agenda du jour (prochaines 24 h) depuis les annonces du visiteur
+    const rel = new Set(pair.startsWith("XA") ? ["USD"] : [base, quote]);
+    const today = (i.news || []).filter((e) => rel.has(e.currency) && e.timeMs >= now - 900000 && e.timeMs <= now + 86400000)
+      .sort((a, b) => a.timeMs - b.timeMs);
+    const agenda = today.map((e) => `${new Date(e.timeMs).toISOString().slice(11, 16)} UTC : ${e.currency} ${e.event}${e.impact === "high" ? " (impact fort)" : ""}. Pas de nouvelle position de 15 min avant à 15 min après.`);
+    if (!agenda.length) agenda.push("Aucune annonce enregistrée pour les 24 prochaines heures. Vérifie le calendrier (onglet Annonces) : une annonce oubliée est le piège le plus courant.");
+    sec("Agenda des 24 prochaines heures", agenda);
+    if (today.some((e) => e.impact === "high")) { out.caution = "élevée"; out.cautionWhy.push("annonce à impact fort dans les 24 h"); }
+
+    // 3. technique et amplitude habituelle
+    const t = i.tech && i.tech.pair === pair && !i.tech.error ? i.tech : null;
+    if (t) {
+      const D = t.tfs.find((x) => x.tf === "D1"), pip = t.pip, dec = t.dec;
+      const items = [`Biais technique : ${t.bias}.`];
+      if (D && D.atrPips) items.push(`Amplitude habituelle d'une journée : environ ${D.atrPips.toFixed(0)} pips entre le plus haut et le plus bas (ATR sur 14 jours)${out.caution === "élevée" ? ", souvent davantage un jour d'annonce forte" : ""}. Ce n'est pas une direction.`);
+      if (D && D.eff != null) items.push(D.eff >= 0.35 ? "Régime : tendance sur 20 jours. Lecture classique (non vérifiée ici) : les cassures de niveaux y tiennent mieux qu'en range."
+        : D.eff <= 0.2 ? "Régime : range sur 20 jours. Lecture classique (non vérifiée ici) : les bords du couloir freinent souvent le prix." : "Régime : mixte, ni tendance nette ni range.");
+      if (Math.abs(t.stretchAtr || 0) >= 2) items.push(`Prix étiré (${t.stretchAtr.toFixed(1)} ATR de l'EMA20 journalière). Lecture classique (non vérifiée ici) : un retour vers la moyenne est possible, mais un prix étiré peut le rester longtemps.`);
+      sec("Technique et amplitude", items);
+      const r1 = t.resistances[0], r2 = t.resistances[1], s1 = t.supports[0], s2 = t.supports[1];
+      const dist = (l) => `${(Math.abs(l.price - t.price) / pip).toFixed(0)} pips`;
+      const sc = [];
+      if (r1) sc.push(`Si le prix dépasse ${r1.price.toFixed(dec)} (${r1.label}, à ${dist(r1)})${r2 ? `, la zone suivante est ${r2.price.toFixed(dec)} (${r2.label})` : ""}.`);
+      if (s1) sc.push(`S'il passe sous ${s1.price.toFixed(dec)} (${s1.label}, à ${dist(s1)})${s2 ? `, la zone suivante est ${s2.price.toFixed(dec)} (${s2.label})` : ""}.`);
+      if (r1 && s1) sc.push(`Entre ${s1.price.toFixed(dec)} et ${r1.price.toFixed(dec)} : couloir de ${((r1.price - s1.price) / pip).toFixed(0)} pips. Un WATCH au milieu du couloir a moins de sens qu'un mouvement qui le quitte.`);
+      sc.push("Ces scénarios disent où regarder, pas ce qui va se passer. Attends la clôture d'une bougie au-delà du niveau plutôt qu'une simple mèche.");
+      sec("Scénarios à surveiller (conditionnels)", sc);
+    } else {
+      sec("Technique et amplitude", ["Lance l'analyse technique de cette paire (onglet Analyse, 3 crédits) pour ajouter l'amplitude habituelle, le régime et les scénarios avec niveaux."]);
+    }
+
+    // 4. moment de la journee et prudence
+    const timing = [];
+    const open = sess.sessions.filter((s) => s.open).map((s) => s.name);
+    if (sess.weekend) { out.caution = "marché fermé"; out.cautionWhy = ["week-end"]; timing.push("Marché fermé : rien à faire jusqu'à dimanche 17 h (heure de New York). Prépare ta semaine : calendrier, niveaux, plan."); }
+    else {
+      timing.push(open.length ? `Sessions ouvertes : ${open.join(", ")}.` : "Aucune grande session ouverte : liquidité faible, spreads plus larges.");
+      sess.notes.filter((n) => !/^Week-end/.test(n)).forEach((n) => timing.push(n.replace(/^ATTENTION : /, "")));
+      if (!open.length && out.caution === "normale") { out.caution = "élevée"; out.cautionWhy.push("liquidité faible"); }
+      if (sess.notes.some((n) => /rollover/.test(n))) { out.caution = "élevée"; out.cautionWhy.push("rollover"); }
+    }
+    sec("Moment de la journée", timing);
+
+    sec("Méthode (pas un conseil)", [
+      "Aucune règle n'a encore montré d'avantage mesuré : reste en compte démo et note tout dans le journal papier.",
+      "Avant toute idée : stop défini, risque ≤ 2 % du solde, spread réel du courtier vérifié (onglet Plan).",
+      "Un jour sans setup clair est un jour normal : ne pas trader est aussi une décision.",
+    ]);
+    if (out.caution === "normale" && !out.cautionWhy.length) out.cautionWhy.push("pas d'annonce forte connue ni de période à risque");
+    return out;
+  }
+
   // ------------------------------------------------------------------ alertes de prix
   function checkAlerts(alerts, prices, nowMs) {
     const fired = [];
@@ -411,5 +511,5 @@
 
   return { PAIRS, conversionNeeded, pipValueUsd, parseTimeSeries, emaSeries, rsiSeries, atr, efficiency, swings,
     pivots, bollinger, technical, parseNyFedEffr, blsYoY, blsLatest, parseEcbSeries, parseEurostat, ageDays,
-    fundamentalSummary, sessionsAt, plan, pretest, checkAlerts };
+    fundamentalSummary, sessionsAt, plan, pretest, dailyBrief, checkAlerts };
 });

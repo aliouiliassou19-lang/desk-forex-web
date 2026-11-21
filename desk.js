@@ -97,22 +97,26 @@
     $("aTf").querySelectorAll("button").forEach((x) => x.classList.toggle("active", x === b));
     if (current) drawChart();
   }));
+  /** Charge les bougies H1/H4/D1 (3 credits) et calcule l'analyse ; resultat garde en memoire. */
+  async function runAnalysis(pair, onStep) {
+    const series = {};
+    for (const [k, interval, size] of [["h1", "1h", 500], ["h4", "4h", 300], ["d1", "1day", 300]]) {
+      if (onStep) onStep(`Chargement des bougies ${interval}…`);
+      series[k] = A.parseTimeSeries(await td("/time_series", { symbol: pair, interval, outputsize: size, timezone: "UTC" }, 1));
+      if (!series[k]) throw new Error("Réponse de bougies illisible.");
+    }
+    const tech = A.technical(pair, series);
+    if (tech.error) throw new Error(tech.error);
+    cache[pair] = { at: Date.now(), pair, series, tech };
+    return cache[pair];
+  }
   $("aRun").addEventListener("click", async () => {
     const pair = $("aPair").value;
     const c = cache[pair];
     if (c && Date.now() - c.at < 300000) { render(c); $("aStatus").textContent = "Résultat de moins de 5 min (aucun crédit utilisé)."; return; }
     $("aRun").disabled = true;
     try {
-      const series = {};
-      for (const [k, interval, size] of [["h1", "1h", 500], ["h4", "4h", 300], ["d1", "1day", 300]]) {
-        $("aStatus").textContent = `Chargement des bougies ${interval}…`;
-        series[k] = A.parseTimeSeries(await td("/time_series", { symbol: pair, interval, outputsize: size, timezone: "UTC" }, 1));
-        if (!series[k]) throw new Error("Réponse de bougies illisible.");
-      }
-      const tech = A.technical(pair, series);
-      if (tech.error) throw new Error(tech.error);
-      cache[pair] = { at: Date.now(), pair, series, tech };
-      render(cache[pair]);
+      render(await runAnalysis(pair, (m) => ($("aStatus").textContent = m)));
       $("aStatus").textContent = `Analyse à jour (${new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}). 3 crédits utilisés.`;
     } catch (e) { $("aStatus").textContent = e.message; toast(e.message, 6000); }
     finally { $("aRun").disabled = false; }
@@ -255,16 +259,21 @@
     }
     return { error: err || "indisponible" };
   }
-  async function loadFund(force) {
+  /** Donnees fondamentales (gratuites), gardees 6 h. Retourne {data, cached}. */
+  async function getFund(force) {
     const c = store.get("fund", null);
-    if (!force && c && Date.now() - c.at < 6 * 3600000) return renderFund(c, true);
-    $("fStatus").textContent = "Lecture des sources officielles…"; $("fRefresh").disabled = true;
+    if (!force && c && Date.now() - c.at < 6 * 3600000) return { data: c, cached: true };
     const keys = Object.keys(SOURCES);
     const vals = await Promise.all(keys.map((k) => loadOne(SOURCES[k])));
     const data = { at: Date.now() };
     keys.forEach((k, i) => (data[k] = vals[i]));
-    store.set("fund", data); $("fRefresh").disabled = false;
-    renderFund(data, false);
+    store.set("fund", data);
+    return { data, cached: false };
+  }
+  async function loadFund(force) {
+    $("fStatus").textContent = "Lecture des sources officielles…"; $("fRefresh").disabled = true;
+    try { const r = await getFund(force); renderFund(r.data, r.cached); }
+    finally { $("fRefresh").disabled = false; }
   }
   function cell(x, unit, maxDays) {
     if (!x || x.error) return el("td", { class: "muted" }, "indisponible");
@@ -303,6 +312,47 @@
     if (!$("tab-fund").classList.contains("hidden")) { if (!fundLoaded) { fundLoaded = true; loadFund(false); } else renderFundNews(); }
   }).observe($("tab-fund"), { attributes: true, attributeFilter: ["class"] });
   if (!$("tab-fund").classList.contains("hidden")) { fundLoaded = true; loadFund(false); }
+
+  // ---------------------------------------------------------------- synthese du jour
+  $("bPair").value = store.get("bPair", "EUR/USD");
+  $("bPair").addEventListener("change", () => store.set("bPair", $("bPair").value));
+  async function runBrief() {
+    const pair = $("bPair").value;
+    $("bRun").disabled = true; $("bStatus").textContent = "Lecture du fondamental…";
+    try {
+      const { data } = await getFund(false);
+      const c = cache[pair];
+      const fresh = c && Date.now() - c.at < 30 * 60000;
+      const b = A.dailyBrief({ pair, nowMs: Date.now(), fund: data, tech: fresh ? c.tech : null, news: D.getNews() });
+      renderBrief(b, fresh ? c : null);
+      $("bStatus").textContent = fresh ? `Technique : analyse de ${new Date(c.at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}.`
+        : "Sans partie technique : lance d'abord l'analyse technique de cette paire pour l'ajouter.";
+    } catch (e) { $("bStatus").textContent = e.message; }
+    finally { $("bRun").disabled = false; }
+  }
+  function renderBrief(b, techEntry) {
+    $("bOut").classList.remove("hidden");
+    $("bTitle").textContent = `${b.pair} · synthèse`;
+    $("bTime").textContent = `Générée le ${D.fmtLocal(b.generatedAt)} (heure locale)` + (techEntry ? ` · prix ${techEntry.tech.price.toFixed(techEntry.tech.dec)}` : "");
+    const cv = { "élevée": "v-no", "normale": "v-ok", "marché fermé": "v-warn" }[b.caution] || "v-warn";
+    $("bCaution").className = "verdict " + cv;
+    $("bCaution").textContent = b.caution.toUpperCase();
+    $("bWhy").textContent = "Pourquoi : " + b.cautionWhy.join(", ") + ".";
+    const box = clear($("bSections"));
+    b.sections.forEach((s) => box.append(el("div", { class: "card" }, el("h2", {}, s.title),
+      el("ul", { class: "notes" }, ...s.items.map((it) => el("li", {}, it))))));
+  }
+  $("bRun").addEventListener("click", runBrief);
+  $("bTech").addEventListener("click", async () => {
+    const pair = $("bPair").value;
+    $("bTech").disabled = true;
+    try {
+      await runAnalysis(pair, (m) => ($("bStatus").textContent = m));
+      if ($("aPair").value === pair) render(cache[pair]);
+      await runBrief();
+    } catch (e) { $("bStatus").textContent = e.message; toast(e.message, 6000); }
+    finally { $("bTech").disabled = false; }
+  });
 
   // ---------------------------------------------------------------- plan de trade
   let pvManual = false;
