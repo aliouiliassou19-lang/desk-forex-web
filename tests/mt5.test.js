@@ -54,6 +54,10 @@ test("rapport MT5 : seules les positions sont lues, colonnes vides conservees", 
   const fr = M.parseReportRows([["Compte :", "51234567 (USD, Broker-Demo, demo)"],
     ["2026.11.18 16:30:05", "1001", "EURUSD", "achat", "0.10", "1.08500", "1.08370", "", "2026.11.18 18:02:41", "1.08700", "-0.70", "0.00", "20.00"]], 2);
   assert.equal(fr.positions[0].side, "buy"); assert.equal(fr.positions[0].tp, null);
+  // export Excel : dates en nombre de jours (46344.6875 = 2026.11.18 16:30:00)
+  const xl = M.parseReportRows([["46344.6875", "1001", "EURUSD", "buy", "0.10", "1.085", "", "", "46344.75", "1.087", "0", "0", "20"]], 2);
+  assert.equal(xl.positions[0].openTime, T("2026-11-18T14:30:00Z"));
+  assert.equal(xl.positions[0].closeTime, T("2026-11-18T16:00:00Z"));
 });
 
 test("vers le journal : nouveaux trades, symboles ignores, calculs du journal", () => {

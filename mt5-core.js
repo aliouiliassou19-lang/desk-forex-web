@@ -33,6 +33,14 @@
     return Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)) - (Number(offsetHours) || 0) * 3600000;
   }
   const isTime = (s) => /^\d{4}[.\-/]\d{2}[.\-/]\d{2}[ T]\d{2}:\d{2}/.test(String(s || "").trim());
+  /** Date Excel (nombre de jours depuis le 30/12/1899) -> "AAAA.MM.JJ HH:MM:SS" ; autre valeur inchangee. */
+  function fromExcelSerial(v) {
+    const n = Number(String(v).trim());
+    if (!/^\d{5}(\.\d+)?$/.test(String(v).trim()) || n < 30000 || n > 80000) return v;
+    const d = new Date(Math.round((n - 25569) * 86400000));
+    const p = (x) => String(x).padStart(2, "0");
+    return `${d.getUTCFullYear()}.${p(d.getUTCMonth() + 1)}.${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}`;
+  }
   const sideOf = (s) => (/^(buy|achat|kauf|compra)/i.test(String(s).trim()) ? "buy" : /^(sell|vente|verkauf|venta)/i.test(String(s).trim()) ? "sell" : null);
 
   /**
@@ -47,6 +55,7 @@
     for (const raw of rows) {
       // les cellules vides restent a leur place (un SL ou TP absent ne doit pas decaler les colonnes)
       const cells = raw.map((x) => String(x == null ? "" : x).trim());
+      if (cells.length >= 13) { cells[0] = fromExcelSerial(cells[0]); cells[8] = fromExcelSerial(cells[8]); }   // export Excel
       const joined = cells.filter(Boolean).join(" ");
       if (!login && /(account|compte|konto|cuenta)\s*:?/i.test(joined)) {
         const m = /(\d{5,12})/.exec(joined); if (m) login = m[1];

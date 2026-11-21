@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://api.twelvedata.com https://data-api.ecb.europa.eu https://markets.newyorkfed.org https://api.bls.gov https://ec.europa.eu; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src http://127.0.0.1:* http://localhost:* https://api.twelvedata.com https://data-api.ecb.europa.eu https://markets.newyorkfed.org https://api.bls.gov https://ec.europa.eu; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <meta name="referrer" content="no-referrer">
   <meta name="description" content="Desk forex éducatif en lecture seule : surveillance EUR/USD et or avec ta propre clé Twelve Data gratuite. Aucun ordre, aucun conseil.">
   <meta name="theme-color" content="#0f172a">
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=13">
+  <link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
   <header class="top">
@@ -578,6 +578,42 @@
 
       <div id="acList"></div>
 
+      <div class="card" id="mt5Card">
+        <h2>Import MT5</h2>
+        <p class="muted small">Fais arriver tes trades MetaTrader 5 dans le journal, <b>en lecture seule</b> : le site ne passe aucun ordre.
+          Les trades déjà importés ne sont pas dupliqués (même ticket) et ce que tu as ajouté à la main est conservé.
+          Guide pas à pas : <a href="outils/GUIDE-MT5.md" target="_blank" rel="noopener noreferrer">GUIDE-MT5</a> · script : <a href="outils/mt5_export.py" download>mt5_export.py</a>.</p>
+        <div class="formgrid">
+          <label>Compte du site<select id="mtAccount"></select></label>
+          <label class="check"><input id="mtLink" type="checkbox" checked> Lier ce compte MT5 à ce compte du site</label>
+        </div>
+        <div class="seg mt5seg" id="mtNav" role="group" aria-label="Source">
+          <button type="button" data-v="report" class="active">Rapport MT5</button><button type="button" data-v="file">Fichier du script</button><button type="button" data-v="auto">Connexion automatique</button>
+        </div>
+        <div id="mt-report" class="mt5pane">
+          <p class="small">Dans MT5 : <b>Boîte à outils → Historique → clic droit → Rapport → HTML</b> (ou Open XML). Puis choisis le fichier :</p>
+          <div class="formgrid">
+            <label>Décalage horaire du serveur MT5 (heures)<input id="mtOffset" type="number" step="1" min="-12" max="14" value="2"></label>
+            <label class="btn ghost filebtn">Choisir le rapport (.html, .xlsx)<input id="mtReport" type="file" accept=".html,.htm,.xlsx,text/html"></label>
+          </div>
+          <p class="muted small">MT5 note les heures à l'heure du serveur de ton courtier (souvent UTC+2 en hiver, UTC+3 en été). Le script les convertit tout seul ; pour un rapport, indique le décalage.</p>
+        </div>
+        <div id="mt-file" class="mt5pane hidden">
+          <p class="small">Lance <code>python mt5_export.py</code> dans le dossier <code>outils</code>, puis choisis le fichier <code>desk-forex-mt5.json</code> :</p>
+          <label class="btn ghost filebtn">Choisir le fichier du script (.json)<input id="mtJson" type="file" accept=".json,application/json"></label>
+        </div>
+        <div id="mt-auto" class="mt5pane hidden">
+          <p class="small">Lance <code>python mt5_export.py --serve</code> sur ce PC (MT5 ouvert), puis colle le code secret qu'il affiche. Fonctionne seulement dans un navigateur de ce PC.</p>
+          <div class="formgrid">
+            <label>Port<input id="mtPort" type="number" min="1024" max="65535" value="8790"></label>
+            <label class="span2">Code secret<input id="mtToken" type="password" autocomplete="off" spellcheck="false"></label>
+            <label class="check"><input id="mtAuto" type="checkbox"> Synchroniser toutes les 5 minutes (page ouverte)</label>
+          </div>
+          <div class="row wrap"><button id="mtTest" class="btn ghost" type="button">Tester</button><button id="mtSync" class="btn" type="button">Synchroniser maintenant</button></div>
+        </div>
+        <div id="mtOut"></div>
+      </div>
+
       <div class="card">
         <h2>Lot maximum autorisé pour ce trade</h2>
         <p class="muted small">La perte au stop (spread compris) ne doit dépasser ni la marge journalière restante, ni la marge avant le drawdown max, ni ton risque max par trade.</p>
@@ -646,14 +682,16 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=13"></script>
-  <script src="analysis.js?v=13"></script>
-  <script src="journal-core.js?v=13"></script>
-  <script src="challenge-core.js?v=13"></script>
-  <script src="db.js?v=13"></script>
-  <script src="app.js?v=13"></script>
-  <script src="journal.js?v=13"></script>
-  <script src="accounts.js?v=13"></script>
-  <script src="desk.js?v=13"></script>
+  <script src="rules.js?v=15"></script>
+  <script src="analysis.js?v=15"></script>
+  <script src="mt5-core.js?v=15"></script>
+  <script src="journal-core.js?v=15"></script>
+  <script src="challenge-core.js?v=15"></script>
+  <script src="db.js?v=15"></script>
+  <script src="app.js?v=15"></script>
+  <script src="journal.js?v=15"></script>
+  <script src="accounts.js?v=15"></script>
+  <script src="mt5-import.js?v=15"></script>
+  <script src="desk.js?v=15"></script>
 </body>
 </html>

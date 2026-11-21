@@ -203,10 +203,16 @@ test("CSV : protection contre les formules", () => {
 
 test("aucun code d'ordre dans le site", () => {
   const fs = require("node:fs"), path = require("node:path");
-  for (const f of ["rules.js", "app.js", "index.html"]) {
-    const p = path.join(__dirname, "..", f);
-    if (!fs.existsSync(p)) continue;
-    const src = fs.readFileSync(p, "utf8").toLowerCase();
-    for (const w of ["metatrader", "oanda", "place_order", "order_send", "create_order", "/order"]) assert.ok(!src.includes(w), `${f}: ${w}`);
+  // fonctions d'ordre interdites dans TOUS les fichiers du site
+  const files = fs.readdirSync(path.join(__dirname, "..")).filter((f) => /\.(js|html)$/.test(f));
+  assert.ok(files.length >= 10);
+  for (const f of files) {
+    const src = fs.readFileSync(path.join(__dirname, "..", f), "utf8").toLowerCase();
+    for (const w of ["place_order", "order_send", "order_check", "create_order", "/order", "trade_action"]) assert.ok(!src.includes(w), `${f}: ${w}`);
+  }
+  // le moteur de surveillance ne connait aucun courtier (la page peut mentionner MetaTrader pour l'import en lecture seule)
+  for (const f of ["rules.js", "app.js"]) {
+    const src = fs.readFileSync(path.join(__dirname, "..", f), "utf8").toLowerCase();
+    for (const w of ["metatrader", "oanda"]) assert.ok(!src.includes(w), `${f}: ${w}`);
   }
 });

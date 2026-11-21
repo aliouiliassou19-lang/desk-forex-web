@@ -193,6 +193,12 @@ tr.tap:hover td { background: var(--surface2); }
 .gauge-fill.accent { background: var(--accent); }
 .gauge-fill.off { background: var(--off); }
 
+/* ---------- import MT5 */
+.mt5seg { margin: 12px 0 4px; flex-wrap: wrap; }
+.mt5pane { margin-top: 8px; }
+#mtOut .result { font-size: 14px; }
+#mtOut .result b { font-size: inherit; }
+
 /* ---------- reglages, unite du pip */
 .pipnote { margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); }
 details.card > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }

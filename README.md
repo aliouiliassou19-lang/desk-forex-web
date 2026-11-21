@@ -36,7 +36,10 @@ sans direction ni profit implicite. bid/ask non fournis par `/quote` : le spread
 
 ## Fichiers
 - `index.html`, `style.css`, `app.js` (moniteur, annonces, journal), `desk.js` (analyse, fondamental, plan, alertes, sessions)
-- `rules.js` et `analysis.js` : moteurs purs, sans DOM ni réseau
+- `journal.js`, `accounts.js`, `mt5-import.js` : journal, comptes et challenges, import MT5 ; `db.js` : stockage IndexedDB
+- `rules.js`, `analysis.js`, `journal-core.js`, `challenge-core.js`, `mt5-core.js` : moteurs purs, sans DOM ni réseau
+- `outils/mt5_export.py` : script local MT5 en **lecture seule** (guide : `outils/GUIDE-MT5.md`, tests : `python -m unittest discover -s outils -p "test_*.py"`).
+  Sa configuration `outils/mt5_config.json` et ses exports sont ignorés par Git
 - `tests/` : `node --test tests/` (25 tests)
 
 ## Limites

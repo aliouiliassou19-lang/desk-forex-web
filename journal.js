@@ -535,8 +535,16 @@
   function showAccount(id) {
     $("fAccount").value = id; D.showTab("journal"); setView("trades"); refresh();
   }
+  /** Enregistre plusieurs trades (import MT5) puis rafraichit le journal. */
+  async function upsertTrades(list) {
+    const clean = list.map(JC.sanitizeTrade).filter(Boolean);
+    await DB.putMany("trades", clean);
+    trades = await DB.getAll("trades");
+    refresh();
+    return clean.length;
+  }
   window.Journal = {
-    openNew, reload: load, saveAccount, deleteAccount, showAccount,
+    openNew, reload: load, saveAccount, deleteAccount, showAccount, upsertTrades,
     getState: () => ({ accounts: accounts.slice(), trades: trades.slice(), enriched, prefs }),
     onChange: (fn) => listeners.push(fn),
   };
