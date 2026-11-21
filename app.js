@@ -83,13 +83,43 @@
         : REASON_FR[r] || r)).join(", ");
 
   // ---------------------------------------------------------------- onglets, horloge, marche
-  document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+  // 4 groupes (Accueil, Analyse, Trader, Aide), chacun avec ses pages ; chaque groupe se souvient de sa derniere page
+  const GROUPS = { home: ["monitor", "brief"], analyse: ["analyse", "fund", "news"], trader: ["dash", "plan", "journal", "accounts"], help: ["help"] };
+  const groupOf = (tab) => Object.keys(GROUPS).find((g) => GROUPS[g].includes(tab)) || "home";
+  document.querySelectorAll("#subNav button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+  document.querySelectorAll("#groupNav button").forEach((b) => b.addEventListener("click", () => {
+    const g = b.dataset.group, last = store.get("tabOf", {})[g];
+    showTab(GROUPS[g].includes(last) ? last : GROUPS[g][0]);
+  }));
   function showTab(name) {
     if (!document.getElementById("tab-" + name)) name = "monitor";
-    document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
+    const g = groupOf(name);
+    document.querySelectorAll("#groupNav button").forEach((b) => {
+      if (b.dataset.group === g) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    document.querySelectorAll("#subNav button").forEach((b) => {
+      const on = b.dataset.tab === name;
+      b.classList.toggle("active", on);
+      b.classList.toggle("hidden", b.dataset.group !== g);
+      if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    $("subNav").classList.toggle("single", GROUPS[g].length < 2);
     document.querySelectorAll(".tab").forEach((s) => s.classList.toggle("hidden", s.id !== "tab-" + name));
     store.set("tab", name);
+    const tabOf = store.get("tabOf", {}); if (tabOf && typeof tabOf === "object") { tabOf[g] = name; store.set("tabOf", tabOf); }
   }
+  // taille du texte : A- / A+ (5 niveaux, memorises sur l'appareil)
+  const FS_MIN = -1, FS_MAX = 3;
+  function applyFontSize(level) {
+    const v = Math.max(FS_MIN, Math.min(FS_MAX, Math.round(Number(level) || 0)));
+    if (v) document.documentElement.setAttribute("data-fs", String(v)); else document.documentElement.removeAttribute("data-fs");
+    $("fsDown").disabled = v <= FS_MIN; $("fsUp").disabled = v >= FS_MAX;
+    store.set("fontSize", v);
+    window.dispatchEvent(new Event("resize"));            // les graphiques se redessinent a la nouvelle taille
+    return v;
+  }
+  $("fsDown").addEventListener("click", () => { const v = applyFontSize((store.get("fontSize", 0) || 0) - 1); toast(`Taille du texte : ${v === 0 ? "normale" : (v > 0 ? "+" : "") + v}`); });
+  $("fsUp").addEventListener("click", () => { const v = applyFontSize((store.get("fontSize", 0) || 0) + 1); toast(`Taille du texte : ${v === 0 ? "normale" : (v > 0 ? "+" : "") + v}`); });
   function tick() {
     const now = Date.now();
     if (typeof mon !== "undefined" && mon.running && mon.mode === "demo") {   // la demo simule un mercredi
@@ -462,6 +492,7 @@
   // ---------------------------------------------------------------- demarrage
   // chaque partie demarre seule : une erreur dans l'une n'empeche pas les autres de s'afficher
   const safe = (name, fn) => { try { fn(); } catch (e) { console.error(`Desk Forex : erreur au démarrage (${name})`, e); } };
+  safe("taille du texte", () => applyFontSize(store.get("fontSize", 0)));
   safe("onglet", () => showTab(store.get("tab", "monitor")));
   [["clé", renderKey], ["crédits", renderCredits], ["annonces", renderNews], ["cartes", renderCards], ["relevés", renderLog],
     ["taille de position", renderSize], ["notifications", renderNotifBtn], ["réglages", renderSettingsForm], ["marché", tick]]

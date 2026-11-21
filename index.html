@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=35">
+  <link rel="stylesheet" href="style.css?v=37">
 </head>
 <body>
   <header class="top">
@@ -27,18 +27,31 @@
     </div>
   </header>
 
-  <nav class="tabs" aria-label="Sections">
-    <button data-tab="monitor" class="active">Moniteur</button>
-    <button data-tab="dash">Dashboard</button>
-    <button data-tab="analyse">Analyse</button>
-    <button data-tab="fund">Fondamental</button>
-    <button data-tab="brief">Synthèse</button>
-    <button data-tab="plan">Plan</button>
-    <button data-tab="news">Annonces</button>
-    <button data-tab="journal">Journal</button>
-    <button data-tab="accounts">Comptes</button>
-    <button data-tab="help">Aide</button>
+  <nav class="groups" id="groupNav" aria-label="Sections principales">
+    <button type="button" data-group="home"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg><span>Accueil</span></button>
+    <button type="button" data-group="analyse"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg><span>Analyse</span></button>
+    <button type="button" data-group="trader"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg><span>Trader</span></button>
+    <button type="button" data-group="help"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5v.01"/></svg><span>Aide</span></button>
   </nav>
+
+  <div class="subbar">
+    <nav class="tabs" id="subNav" aria-label="Pages de la section">
+      <button type="button" data-tab="monitor" data-group="home" class="active">Moniteur</button>
+      <button type="button" data-tab="brief" data-group="home">Synthèse du jour</button>
+      <button type="button" data-tab="analyse" data-group="analyse">Technique</button>
+      <button type="button" data-tab="fund" data-group="analyse">Fondamental</button>
+      <button type="button" data-tab="news" data-group="analyse">Annonces</button>
+      <button type="button" data-tab="dash" data-group="trader">Dashboard</button>
+      <button type="button" data-tab="plan" data-group="trader">Plan</button>
+      <button type="button" data-tab="journal" data-group="trader">Journal</button>
+      <button type="button" data-tab="accounts" data-group="trader">Comptes</button>
+      <button type="button" data-tab="help" data-group="help">Aide</button>
+    </nav>
+    <div class="fontsize" role="group" aria-label="Taille du texte">
+      <button type="button" id="fsDown" aria-label="Réduire la taille du texte">A-</button>
+      <button type="button" id="fsUp" aria-label="Agrandir la taille du texte">A+</button>
+    </div>
+  </div>
 
   <main>
     <!-- ======================================================== MONITEUR -->
@@ -849,18 +862,18 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=35"></script>
-  <script src="analysis.js?v=35"></script>
-  <script src="mt5-core.js?v=35"></script>
-  <script src="journal-core.js?v=35"></script>
-  <script src="challenge-core.js?v=35"></script>
-  <script src="dashboard-core.js?v=35"></script>
-  <script src="db.js?v=35"></script>
-  <script src="app.js?v=35"></script>
-  <script src="journal.js?v=35"></script>
-  <script src="accounts.js?v=35"></script>
-  <script src="mt5-import.js?v=35"></script>
-  <script src="dashboard.js?v=35"></script>
-  <script src="desk.js?v=35"></script>
+  <script src="rules.js?v=37"></script>
+  <script src="analysis.js?v=37"></script>
+  <script src="mt5-core.js?v=37"></script>
+  <script src="journal-core.js?v=37"></script>
+  <script src="challenge-core.js?v=37"></script>
+  <script src="dashboard-core.js?v=37"></script>
+  <script src="db.js?v=37"></script>
+  <script src="app.js?v=37"></script>
+  <script src="journal.js?v=37"></script>
+  <script src="accounts.js?v=37"></script>
+  <script src="mt5-import.js?v=37"></script>
+  <script src="dashboard.js?v=37"></script>
+  <script src="desk.js?v=37"></script>
 </body>
 </html>
