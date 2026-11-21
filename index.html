@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=32">
+  <link rel="stylesheet" href="style.css?v=35">
 </head>
 <body>
   <header class="top">
@@ -23,7 +23,7 @@
     </div>
     <div class="top-right">
       <span id="mktPill" class="pill off">…</span>
-      <span id="clock" class="clock mono">--:--</span>
+      <time id="clock" class="clock mono" aria-label="Heure locale et heure UTC">--:--</time>
     </div>
   </header>
 
@@ -138,7 +138,7 @@
           <label class="span2">Note<input id="alNote" type="text" maxlength="80"></label>
           <button class="btn" type="submit">Ajouter</button>
         </form>
-        <div class="scroll"><table id="alTable"><thead><tr><th>Paire</th><th>Condition</th><th>Prix</th><th>Note</th><th>État</th><th></th></tr></thead><tbody></tbody></table></div>
+        <div class="scroll"><table id="alTable"><thead><tr><th>Paire</th><th>Condition</th><th>Prix</th><th>Note</th><th>État</th><th>Action</th></tr></thead><tbody></tbody></table></div>
         <div class="row"><button id="alCheck" class="btn ghost small" type="button">Vérifier maintenant</button><span id="alMsg" class="muted small"></span></div>
       </div>
     </section>
@@ -232,7 +232,7 @@
           <label class="span2">Note<input id="cfNote" type="text" maxlength="120" placeholder="ex. virement, retrait de gains"></label>
           <button class="btn" type="submit">Ajouter</button>
         </form>
-        <div class="scroll"><table id="cfTable"><thead><tr><th>Date (Bénin)</th><th>Type</th><th>Montant</th><th>Note</th><th></th></tr></thead><tbody></tbody></table></div>
+        <div class="scroll"><table id="cfTable"><thead><tr><th>Date (Bénin)</th><th>Type</th><th>Montant</th><th>Note</th><th>Action</th></tr></thead><tbody></tbody></table></div>
         <p id="cfEmpty" class="muted small">Aucun dépôt ni retrait pour ce compte.</p>
       </div>
 
@@ -273,7 +273,7 @@
         </div>
         <div class="card"><h2>Lecture</h2><ul id="aNotes" class="notes"></ul></div>
         <div class="card"><h2>Unités de temps</h2>
-          <div class="scroll"><table id="aTfs"><thead><tr><th></th><th>Tendance</th><th>RSI</th><th>ATR (pips)</th><th>Efficacité</th><th>EMA20</th><th>EMA50</th><th>EMA200</th></tr></thead><tbody></tbody></table></div>
+          <div class="scroll"><table id="aTfs"><thead><tr><th><abbr title="Unité de temps">UT</abbr></th><th>Tendance</th><th>RSI</th><th>ATR (pips)</th><th>Efficacité</th><th>EMA20</th><th>EMA50</th><th>EMA200</th></tr></thead><tbody></tbody></table></div>
         </div>
         <div class="grid2">
           <div class="card"><h2>Résistances</h2><div id="aRes" class="levels"></div></div>
@@ -299,7 +299,7 @@
       </div>
       <div class="card">
         <h2>Tes annonces à venir</h2>
-        <div id="fNews"></div>
+        <div id="fNews"><p class="muted">Aucune annonce dans les 7 prochains jours.</p></div>
       </div>
       <div class="card">
         <h2>Autres banques centrales</h2>
@@ -440,7 +440,7 @@
       </div>
       <div class="card">
         <h2>À venir</h2>
-        <div class="scroll"><table id="newsTable"><thead><tr><th>Heure locale</th><th>UTC</th><th>Devise</th><th>Annonce</th><th>Impact</th><th></th></tr></thead><tbody></tbody></table></div>
+        <div class="scroll"><table id="newsTable"><thead><tr><th>Heure locale</th><th>UTC</th><th>Devise</th><th>Annonce</th><th>Impact</th><th>Action</th></tr></thead><tbody></tbody></table></div>
         <p id="newsEmpty" class="muted">Aucune annonce enregistrée.</p>
       </div>
       <div class="card">
@@ -536,7 +536,7 @@
           </form>
         </div>
         <div class="card">
-          <div class="scroll"><table id="jList"><thead><tr><th>Entrée (Bénin)</th><th>Symbole</th><th>Sens</th><th>Statut</th><th>Lots</th><th>Pips</th><th>Net $</th><th>R</th><th>Setup</th><th>Session</th><th>Qualité</th><th>Plan</th><th></th></tr></thead><tbody></tbody></table></div>
+          <div class="scroll"><table id="jList"><thead><tr><th>Entrée (Bénin)</th><th>Symbole</th><th>Sens</th><th>Statut</th><th>Lots</th><th>Pips</th><th>Net $</th><th>R</th><th>Setup</th><th>Session</th><th>Qualité</th><th>Plan</th><th>Action</th></tr></thead><tbody></tbody></table></div>
           <p id="jEmpty" class="muted">Aucun trade pour ces filtres. Pour découvrir le journal, charge l'exemple fictif (Journal → Réglages → Données d'exemple).</p>
         </div>
       </div>
@@ -849,18 +849,18 @@
   </main>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="rules.js?v=32"></script>
-  <script src="analysis.js?v=32"></script>
-  <script src="mt5-core.js?v=32"></script>
-  <script src="journal-core.js?v=32"></script>
-  <script src="challenge-core.js?v=32"></script>
-  <script src="dashboard-core.js?v=32"></script>
-  <script src="db.js?v=32"></script>
-  <script src="app.js?v=32"></script>
-  <script src="journal.js?v=32"></script>
-  <script src="accounts.js?v=32"></script>
-  <script src="mt5-import.js?v=32"></script>
-  <script src="dashboard.js?v=32"></script>
-  <script src="desk.js?v=32"></script>
+  <script src="rules.js?v=35"></script>
+  <script src="analysis.js?v=35"></script>
+  <script src="mt5-core.js?v=35"></script>
+  <script src="journal-core.js?v=35"></script>
+  <script src="challenge-core.js?v=35"></script>
+  <script src="dashboard-core.js?v=35"></script>
+  <script src="db.js?v=35"></script>
+  <script src="app.js?v=35"></script>
+  <script src="journal.js?v=35"></script>
+  <script src="accounts.js?v=35"></script>
+  <script src="mt5-import.js?v=35"></script>
+  <script src="dashboard.js?v=35"></script>
+  <script src="desk.js?v=35"></script>
 </body>
 </html>

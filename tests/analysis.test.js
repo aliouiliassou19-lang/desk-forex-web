@@ -85,6 +85,13 @@ test("synthese technique : tendance haussiere, niveaux tries", () => {
   assert.ok(r.resistances.every((l, i, a) => l.price > r.price && (i === 0 || l.price >= a[i - 1].price)));
   assert.ok(r.supports.every((l, i, a) => l.price < r.price && (i === 0 || l.price <= a[i - 1].price)));
   assert.ok(r.notes.some((n) => n.startsWith("Régime journalier")));
+  // Fibonacci et chiffres ronds sont bien calcules et proposes parmi les niveaux (l'Aide les cite)
+  assert.deepEqual(Object.keys(r.fib).map(Number).sort((a, b) => a - b), [23.6, 38.2, 50, 61.8]);
+  assert.ok(r.fib["23.6"] > r.fib["38.2"] && r.fib["38.2"] > r.fib["50"] && r.fib["50"] > r.fib["61.8"]);   // tendance haussiere : retracements sous le sommet
+  const labels = r.resistances.concat(r.supports).map((l) => l.label);
+  assert.ok(labels.some((l) => l.startsWith("Fibo ")), labels.join(", "));
+  assert.ok(labels.some((l) => l === "Chiffre rond"), labels.join(", "));
+  assert.ok(r.resistances.concat(r.supports).filter((l) => l.label === "Chiffre rond").every((l) => Math.abs(l.price * 100 - Math.round(l.price * 100)) < 1e-6));
   assert.equal(A.technical("EUR/USD", { h1: h1.slice(0, 10), d1 }).error, "Historique insuffisant pour l'analyse.");
 });
 

@@ -310,7 +310,7 @@
   const bar = (c, w) => { const s = el("span", { class: c }); s.style.width = w.toFixed(1) + "%"; return s; };
   function splitTable(rows, label, max) {
     if (!rows.length) return el("p", { class: "muted small" }, "Pas encore de trade clôturé.");
-    const t = el("table", {}, el("thead", {}, el("tr", {}, ...[label, "Trades", "Réussite", "Net"].map((h) => el("th", {}, h)), el("th", { class: "barcell" }, ""))));
+    const t = el("table", {}, el("thead", {}, el("tr", {}, ...[label, "Trades", "Réussite", "Net"].map((h) => el("th", {}, h)), el("th", { class: "barcell" }, "Graphique"))));
     const tb = el("tbody"); t.append(tb);
     rows.forEach((g) => {
       const w = max > 0 ? Math.abs(g.net) / max * 50 : 0;

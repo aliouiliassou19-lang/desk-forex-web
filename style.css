@@ -51,7 +51,8 @@ code { background: var(--surface2); padding: 1px 5px; border-radius: 6px; font-s
 .clock { font-size: 13px; color: var(--muted); white-space: nowrap; }
 @media (max-width: 520px) {
   .top { padding: 10px 16px; }
-  .clock { display: none; }
+  .clock { font-size: 12px; }
+  .clock-utc { display: none; }
   .tag { font-size: 11px; }
 }
 .tabs {

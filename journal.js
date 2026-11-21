@@ -280,7 +280,7 @@
   // ---------------------------------------------------------------- statistiques
   function groupTable(rows, keyLabel) {
     if (!rows.length) return el("p", { class: "muted" }, "Pas encore de trade clôturé.");
-    const t = el("table", {}, el("thead", {}, el("tr", {}, ...[keyLabel || "", "Trades", "Réussite", "Net", "R moyen"].map((h) => el("th", {}, h)))));
+    const t = el("table", {}, el("thead", {}, el("tr", {}, ...[keyLabel || "Groupe", "Trades", "Réussite", "Net", "R moyen"].map((h) => el("th", {}, h)))));
     const tb = el("tbody"); t.append(tb);
     rows.forEach((g) => tb.append(el("tr", {}, el("td", {}, g.key), el("td", { class: "mono" }, g.n), el("td", { class: "mono" }, pct(g.winRate)),
       el("td", { class: "mono " + cls(g.net) }, money(g.net)), el("td", { class: "mono " + cls(g.avgR) }, fix(g.avgR, 2)))));
@@ -369,7 +369,7 @@
       put("sErrors", el("div", { class: "scroll" }, t));
     }
     const p = s.plan;
-    const t = el("table", {}, el("thead", {}, el("tr", {}, ...["", "Trades", "Réussite", "Net", "R moyen"].map((h) => el("th", {}, h)))));
+    const t = el("table", {}, el("thead", {}, el("tr", {}, ...["Plan", "Trades", "Réussite", "Net", "R moyen"].map((h) => el("th", {}, h)))));
     const tb = el("tbody"); t.append(tb);
     [["Dans le plan", p.inPlan], ["Hors plan", p.outPlan]].forEach(([k, g]) => tb.append(el("tr", {}, el("td", {}, k), el("td", { class: "mono" }, g.n),
       el("td", { class: "mono" }, pct(g.winRate)), el("td", { class: "mono " + cls(g.net) }, money(g.net)), el("td", { class: "mono " + cls(g.avgR) }, fix(g.avgR, 2)))));

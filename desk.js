@@ -47,7 +47,7 @@
   renderSessions(); setInterval(renderSessions, 30000);
 
   // ---------------------------------------------------------------- alertes de prix
-  let alerts = store.get("alerts", []);
+  let alerts = store.list("alerts");
   const saveAlerts = () => store.set("alerts", alerts);
   function renderAlerts() {
     const tb = clear($("alTable").querySelector("tbody"));
@@ -262,7 +262,7 @@
   /** Donnees fondamentales (gratuites), gardees 6 h. Retourne {data, cached}. */
   async function getFund(force) {
     const c = store.get("fund", null);
-    if (!force && c && Date.now() - c.at < 6 * 3600000) return { data: c, cached: true };
+    if (!force && c && typeof c === "object" && Number.isFinite(c.at) && Date.now() - c.at < 6 * 3600000) return { data: c, cached: true };
     const keys = Object.keys(SOURCES);
     const vals = await Promise.all(keys.map((k) => loadOne(SOURCES[k])));
     const data = { at: Date.now() };
@@ -299,7 +299,11 @@
     const box = clear($("fNews"));
     const now = Date.now();
     const up = D.getNews().filter((e) => e.timeMs >= now - 900000 && e.timeMs <= now + 7 * 86400000);
-    if (!up.length) { box.append(el("p", { class: "muted" }, "Aucune annonce dans les 7 prochains jours. Ajoute-les dans l'onglet Annonces.")); return; }
+    if (!up.length) {
+      box.append(el("p", { class: "muted" }, "Aucune annonce dans les 7 prochains jours."),
+        el("button", { class: "btn ghost small", type: "button", onclick: () => D.showTab("news") }, "+ Ajouter une annonce"));
+      return;
+    }
     const t = el("table", {}, el("thead", {}, el("tr", {}, el("th", {}, "Heure locale"), el("th", {}, "Devise"), el("th", {}, "Annonce"), el("th", {}, "Impact"))));
     const tb = el("tbody"); t.append(tb);
     up.forEach((e) => tb.append(el("tr", {}, el("td", {}, D.fmtLocal(e.timeMs)), el("td", {}, e.currency), el("td", {}, e.event),
@@ -309,8 +313,11 @@
   $("fRefresh").addEventListener("click", () => loadFund(true));
   let fundLoaded = false;
   new MutationObserver(() => {
-    if (!$("tab-fund").classList.contains("hidden")) { if (!fundLoaded) { fundLoaded = true; loadFund(false); } else renderFundNews(); }
+    if ($("tab-fund").classList.contains("hidden")) return;
+    renderFundNews();                                   // tes annonces : tout de suite, sans attendre les statistiques officielles
+    if (!fundLoaded) { fundLoaded = true; loadFund(false); }
   }).observe($("tab-fund"), { attributes: true, attributeFilter: ["class"] });
+  renderFundNews();
   if (!$("tab-fund").classList.contains("hidden")) { fundLoaded = true; loadFund(false); }
 
   // ---------------------------------------------------------------- synthese du jour

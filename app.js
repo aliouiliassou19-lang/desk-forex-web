@@ -1,6 +1,19 @@
 /* Desk Forex : interface (LECTURE SEULE, aucun ordre). La logique de decision est dans rules.js. */
 (function () {
   "use strict";
+  // Horloge de l'en-tete : demarree en premier et independante du reste du site,
+  // pour qu'une erreur ailleurs ne la laisse jamais bloquee sur « --:-- ».
+  function clockTick() {
+    const c = document.getElementById("clock");
+    if (!c) return;
+    const now = new Date();
+    const utc = document.createElement("span");
+    utc.className = "clock-utc"; utc.textContent = " · " + now.toISOString().slice(11, 16) + " UTC";   // cache sur telephone
+    c.textContent = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    c.append(utc);
+    c.setAttribute("datetime", now.toISOString());
+  }
+  clockTick(); setInterval(clockTick, 10000);
   const R = window.Rules;
   // cfg est modifie sur place quand l'utilisateur change ses reglages (desk.js garde la meme reference)
   const cfg = {};
@@ -22,6 +35,8 @@
     get(k, d) { try { const v = localStorage.getItem("dfx." + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem("dfx." + k, JSON.stringify(v)); } catch (e) { /* stockage indisponible */ } },
     del(k) { try { localStorage.removeItem("dfx." + k); } catch (e) { /* idem */ } },
+    /** Liste enregistree : toujours un tableau d'objets (une valeur abimee donne une liste vide au lieu de bloquer le site). */
+    list(k) { const v = this.get(k, []); return Array.isArray(v) ? v.filter((x) => x && typeof x === "object") : []; },
   };
   let memKey = "";
   function getKey() {
@@ -77,7 +92,6 @@
   }
   function tick() {
     const now = Date.now();
-    $("clock").textContent = new Date(now).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) + " · " + R.isoUtc(now).slice(11, 16) + " UTC";
     if (typeof mon !== "undefined" && mon.running && mon.mode === "demo") {   // la demo simule un mercredi
       $("mktPill").textContent = "DÉMO"; $("mktPill").className = "pill WATCH"; return;
     }
@@ -113,7 +127,7 @@
   }
 
   // ---------------------------------------------------------------- annonces
-  let news = store.get("news", []).filter((e) => e.timeMs > Date.now() - 30 * 86400000);
+  let news = store.list("news").filter((e) => Number.isFinite(e.timeMs) && e.timeMs > Date.now() - 30 * 86400000);
   const saveNews = () => { news.sort((a, b) => a.timeMs - b.timeMs); store.set("news", news); };
   function addNews(list) {
     let added = 0;
@@ -152,7 +166,7 @@
   // ---------------------------------------------------------------- moniteur
   const mon = { running: false, mode: "live", sid: 0, timer: null, endAt: 0, engine: null, rows: [], controls: {},
     failures: 0, lastNotified: {}, demoNews: [] };
-  let liveLog = store.get("log", []);
+  let liveLog = store.list("log");
 
   function setStatus(msg) { $("status").textContent = msg; }
   function setRunningUi(on) {
@@ -446,8 +460,12 @@
   };
 
   // ---------------------------------------------------------------- demarrage
-  showTab(store.get("tab", "monitor"));
-  renderKey(); renderCredits(); renderNews(); renderCards(); renderLog(); renderSize(); renderNotifBtn(); renderSettingsForm();
-  tick(); setInterval(tick, 30000);
+  // chaque partie demarre seule : une erreur dans l'une n'empeche pas les autres de s'afficher
+  const safe = (name, fn) => { try { fn(); } catch (e) { console.error(`Desk Forex : erreur au démarrage (${name})`, e); } };
+  safe("onglet", () => showTab(store.get("tab", "monitor")));
+  [["clé", renderKey], ["crédits", renderCredits], ["annonces", renderNews], ["cartes", renderCards], ["relevés", renderLog],
+    ["taille de position", renderSize], ["notifications", renderNotifBtn], ["réglages", renderSettingsForm], ["marché", tick]]
+    .forEach(([name, fn]) => safe(name, fn));
+  setInterval(() => safe("marché", tick), 30000);
   window.addEventListener("beforeunload", (e) => { if (mon.running && mon.mode === "live") { e.preventDefault(); e.returnValue = ""; } });
 })();
