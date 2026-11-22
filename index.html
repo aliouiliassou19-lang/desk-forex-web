@@ -10,14 +10,14 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <script src="theme-init.js?v=60"></script>
-  <link rel="stylesheet" href="style.css?v=60">
+  <script src="theme-init.js?v=61"></script>
+  <link rel="stylesheet" href="style.css?v=61">
 </head>
 <body>
   <a class="skip" href="#main">Aller au contenu</a>
   <header class="top">
     <div class="brand">
-      <img src="icon.svg?v=60" alt="" width="36" height="36">
+      <img src="icon.svg?v=61" alt="" width="36" height="36">
       <div>
         <p class="brand-name">Desk Forex</p>
         <p class="tag">Lecture seule · aucun ordre · outil éducatif</p>
@@ -891,7 +891,8 @@
         <ul>
           <li><b>Accueil</b>
             <ul>
-              <li><b>Moniteur</b> : surveillance EUR/USD et or, sessions de marché, alertes de prix.</li>
+              <li><b>Moniteur</b> : surveillance EUR/USD et or, chiffres clés de ton compte, sessions de marché, alertes de prix.</li>
+              <li><b>Briefing</b> : sessions de Londres et New York avec compte à rebours, et « Mon briefing du jour » en 3 lignes pour l'or et l'EUR/USD.</li>
               <li><b>Synthèse du jour</b> : lecture automatique du jour (contexte, agenda, amplitude habituelle, scénarios conditionnels, prudence). Pas de prédiction de direction.</li>
             </ul></li>
           <li><b>Analyse</b>
@@ -902,7 +903,8 @@
             </ul></li>
           <li><b>Trader</b>
             <ul>
-              <li><b>Dashboard</b> : évolution d'un compte (solde, profit du jour, de la semaine et du mois, statistiques, courbe, drawdown, calendrier, répartitions, règles prop firm, dépôts et retraits, sauvegarde).</li>
+              <li><b>Dashboard</b> : évolution d'un compte (solde, profit du jour, de la semaine et du mois, statistiques, courbe, drawdown, calendrier, répartitions, analyse de tes erreurs, règles prop firm, dépôts et retraits, sauvegarde).</li>
+              <li><b>Avant le trade</b> : état du jour (blocage), calculateur de lot, checklist obligatoire et tes règles de discipline.</li>
               <li><b>Plan</b> : plan de trade avec verdict OK / À REVOIR / NON, pré-test d'une idée, taille de position.</li>
               <li><b>Journal</b> : fiche complète de chaque trade (heures Bénin et UTC, risque, pips, R, coûts, session, setup, checklist, qualité, émotions, erreurs, capture), statistiques filtrables, revue de la semaine, exports CSV et JSON, rapport imprimable.</li>
               <li><b>Comptes</b> : plusieurs comptes (démo, challenge, financé), règles de challenge que tu saisis, jauges, statut, alertes, lot maximum autorisé, modèles de règles, import MT5.</li>
@@ -910,6 +912,16 @@
           <li><b>Aide</b> : cette page.</li>
         </ul>
         <p class="muted small">Sur ordinateur, les 4 sections et leurs pages sont dans le menu à gauche. Sur tablette, elles sont en haut. Sur téléphone, les 4 sections sont dans la barre en bas de l'écran et les pages de la section en haut.</p>
+        <h3>Avant de trader : mode d'emploi</h3>
+        <ol>
+          <li><b>Accueil → Briefing</b> : regarde quand ouvrent Londres et New York (heure du Bénin), puis clique sur <b>Mon briefing du jour</b> : tendance H4/H1, niveaux clés et annonces fortes du jour pour l'or et l'EUR/USD (6 crédits avec ta clé, gardés 5 min ; sans clé, seulement les annonces).</li>
+          <li><b>Trader → Avant le trade</b> : vérifie l'<b>état du jour</b>. Si tu as atteint ta perte max du jour ou tes pertes d'affilée, le site affiche « Stop pour aujourd'hui, reviens demain » (aussi sur Accueil) jusqu'à minuit.</li>
+          <li><b>Calculateur de lot</b> : choisis XAUUSD ou EURUSD, ton risque (1 % par défaut) et ton stop en pips. Le lot est arrondi vers le bas ; l'objectif à RR 2 et le gain visé s'affichent. « Envoyer vers le journal » pré-remplit une fiche.</li>
+          <li><b>Checklist obligatoire</b> : coche honnêtement les 5 points. <b>Valider le trade</b> reste bloqué tant que tout n'est pas coché ; il ouvre une fiche du journal avec la checklist complète (le trade compte « dans le plan »). Complète le sens, l'entrée et le stop, puis enregistre.</li>
+          <li><b>Mes règles</b> (en bas de la page) : perte max du jour en % du solde du matin (2 % par défaut), pertes d'affilée avant l'arrêt (2), risque par trade (1 %).</li>
+          <li><b>Trader → Dashboard → Analyse de mes erreurs</b> : à partir de 10 trades clôturés, des constats simples (jour qui perd, meilleure session, effet de la checklist, symbole, erreur la plus coûteuse, trades après une perte), chacun sur au moins 3 trades.</li>
+        </ol>
+        <p class="muted small">Ces outils t'aident à respecter ton plan : ils ne passent aucun ordre et ne peuvent pas t'empêcher de trader dans MT5. Aucun conseil d'investissement, aucune promesse de gain.</p>
         <h3>Lire le site</h3>
         <ul>
           <li><b>Statuts</b> : « À surveiller », « Refusé », « Données manquantes », « Rien à signaler » pour le Moniteur ; « Ouvert », « Clôturé », « Non exécuté » pour les trades. Les fichiers CSV et les sauvegardes gardent les codes anglais (WATCH, REJECT, DATA_MISSING, OPEN, CLOSED…).</li>
@@ -1049,22 +1061,22 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="fmt.js?v=60"></script>
-  <script src="rules.js?v=60"></script>
-  <script src="analysis.js?v=60"></script>
-  <script src="mt5-core.js?v=60"></script>
-  <script src="journal-core.js?v=60"></script>
-  <script src="challenge-core.js?v=60"></script>
-  <script src="dashboard-core.js?v=60"></script>
-  <script src="db.js?v=60"></script>
-  <script src="app.js?v=60"></script>
-  <script src="journal.js?v=60"></script>
-  <script src="accounts.js?v=60"></script>
-  <script src="mt5-import.js?v=60"></script>
-  <script src="discipline-core.js?v=60"></script>
-  <script src="dashboard.js?v=60"></script>
-  <script src="pretrade.js?v=60"></script>
-  <script src="briefing.js?v=60"></script>
-  <script src="desk.js?v=60"></script>
+  <script src="fmt.js?v=61"></script>
+  <script src="rules.js?v=61"></script>
+  <script src="analysis.js?v=61"></script>
+  <script src="mt5-core.js?v=61"></script>
+  <script src="journal-core.js?v=61"></script>
+  <script src="challenge-core.js?v=61"></script>
+  <script src="dashboard-core.js?v=61"></script>
+  <script src="db.js?v=61"></script>
+  <script src="app.js?v=61"></script>
+  <script src="journal.js?v=61"></script>
+  <script src="accounts.js?v=61"></script>
+  <script src="mt5-import.js?v=61"></script>
+  <script src="discipline-core.js?v=61"></script>
+  <script src="dashboard.js?v=61"></script>
+  <script src="pretrade.js?v=61"></script>
+  <script src="briefing.js?v=61"></script>
+  <script src="desk.js?v=61"></script>
 </body>
 </html>
