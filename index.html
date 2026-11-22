@@ -10,14 +10,14 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <script src="theme-init.js?v=64"></script>
-  <link rel="stylesheet" href="style.css?v=64">
+  <script src="theme-init.js?v=65"></script>
+  <link rel="stylesheet" href="style.css?v=65">
 </head>
 <body>
   <a class="skip" href="#main">Aller au contenu</a>
   <header class="top">
     <div class="brand">
-      <img src="icon.svg?v=64" alt="" width="36" height="36">
+      <img src="icon.svg?v=65" alt="" width="36" height="36">
       <div>
         <p class="brand-name">Desk Forex</p>
         <p class="tag">Lecture seule · aucun ordre · outil éducatif</p>
@@ -439,9 +439,16 @@
         <p class="muted small">Londres et New York se chevauchent l'après-midi (heure du Bénin) : c'est en général le moment le plus liquide. Week-end : marché fermé du vendredi 23:00 au dimanche 23:00 (heure du Bénin, en hiver).</p>
       </div>
 
+      <div class="card" id="bfAiCard">
+        <div class="row between wrap"><h2>Briefing IA du matin</h2><span class="muted small">préparé vers 7 h, du lundi au vendredi</span></div>
+        <p id="bfAiStatus" class="muted small" role="status">Chargement du briefing du matin…</p>
+        <div id="bfAiOut" class="bf-out"></div>
+        <p class="muted small">Texte éducatif écrit par une IA (Claude) à partir des calculs du site : ce n'est ni une prédiction ni un conseil d'achat ou de vente. Les prix ont pu bouger depuis sa préparation.</p>
+      </div>
+
       <div class="card">
-        <div class="row between wrap"><h2>Mon briefing du jour</h2><span class="muted small">or (XAU/USD) et EUR/USD</span></div>
-        <p class="muted small">En 3 lignes par paire : tendance H4 et H1, niveaux clés proches, annonces fortes du jour. Utilise l'analyse technique existante : 6 crédits Twelve Data (3 par paire), résultat gardé 5 minutes.</p>
+        <div class="row between wrap"><h2>Mon briefing du jour</h2><span class="muted small">à la demande, avec ta clé</span></div>
+        <p class="muted small">Pour une lecture à jour à tout moment, en 3 lignes par paire : tendance H4 et H1, niveaux clés proches, annonces fortes du jour. Utilise l'analyse technique existante : 6 crédits Twelve Data (3 par paire), résultat gardé 5 minutes.</p>
         <div class="row wrap lc-actions"><button id="bfRun" class="btn" type="button">Mon briefing du jour</button></div>
         <div id="bfNoKey" class="banner hidden">Sans clé Twelve Data, le briefing affiche seulement tes annonces du jour. <button id="bfAddKey" class="btn small" type="button">Ajouter ma clé</button></div>
         <p id="bfStatus" class="muted small" aria-live="polite"></p>
@@ -1088,24 +1095,24 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="fmt.js?v=64"></script>
-  <script src="rules.js?v=64"></script>
-  <script src="analysis.js?v=64"></script>
-  <script src="mt5-core.js?v=64"></script>
-  <script src="journal-core.js?v=64"></script>
-  <script src="challenge-core.js?v=64"></script>
-  <script src="dashboard-core.js?v=64"></script>
-  <script src="db.js?v=64"></script>
-  <script src="app.js?v=64"></script>
-  <script src="journal.js?v=64"></script>
-  <script src="accounts.js?v=64"></script>
-  <script src="mt5-import.js?v=64"></script>
-  <script src="discipline-core.js?v=64"></script>
-  <script src="dashboard.js?v=64"></script>
-  <script src="pretrade.js?v=64"></script>
-  <script src="briefing.js?v=64"></script>
-  <script src="desk.js?v=64"></script>
-  <script src="annonces-core.js?v=64"></script>
-  <script src="annonces.js?v=64"></script>
+  <script src="fmt.js?v=65"></script>
+  <script src="rules.js?v=65"></script>
+  <script src="analysis.js?v=65"></script>
+  <script src="mt5-core.js?v=65"></script>
+  <script src="journal-core.js?v=65"></script>
+  <script src="challenge-core.js?v=65"></script>
+  <script src="dashboard-core.js?v=65"></script>
+  <script src="db.js?v=65"></script>
+  <script src="app.js?v=65"></script>
+  <script src="journal.js?v=65"></script>
+  <script src="accounts.js?v=65"></script>
+  <script src="mt5-import.js?v=65"></script>
+  <script src="discipline-core.js?v=65"></script>
+  <script src="dashboard.js?v=65"></script>
+  <script src="pretrade.js?v=65"></script>
+  <script src="briefing.js?v=65"></script>
+  <script src="desk.js?v=65"></script>
+  <script src="annonces-core.js?v=65"></script>
+  <script src="annonces.js?v=65"></script>
 </body>
 </html>

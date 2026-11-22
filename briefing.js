@@ -60,10 +60,48 @@
   $("bfRun").addEventListener("click", runBriefing);
   $("bfAddKey").addEventListener("click", () => { D.showTab("monitor"); const k = $("keyInput"); if (k) { k.scrollIntoView({ block: "center" }); k.focus(); } });
 
+  // ---------------------------------------------------------------- briefing IA du matin (data/briefing.json, robot GitHub)
+  let morning = { loadedAt: 0, doc: null };
+  const TREND = { up: ["on", "Haussier"], down: ["bad", "Baissier"], mixed: ["WATCH", "Mixte"], flat: ["WATCH", "Neutre"] };
+  async function loadMorning() {
+    morning.loadedAt = Date.now();
+    let doc = null;
+    try { doc = await D.fetchJson("data/briefing.json?t=" + Date.now(), {}, 2); morning.doc = doc; }
+    catch (e) { doc = morning.doc; }                       // hors ligne : on garde le dernier briefing lu
+    renderMorning(doc);
+  }
+  function renderMorning(doc) {
+    const status = clear($("bfAiStatus")), out = clear($("bfAiOut")), now = Date.now();
+    const m = DC.morningInfo ? DC.morningInfo(doc, now) : null;
+    if (!m) {
+      status.append("Le briefing du matin n'est pas encore disponible (hors ligne, ou pas encore préparé). Utilise « Mon briefing du jour » ci-dessous.");
+      return;
+    }
+    if (!m.isToday) status.append(el("span", { class: "pill WATCH" }, "Pas encore celui d'aujourd'hui"), " ");
+    status.append(`Préparé le ${m.label} (heure du Bénin) · ${m.ai ? "écrit par l'IA (Claude)" : "briefing automatique (l'IA n'a pas répondu)"}.`);
+    if (!m.isToday) status.append(" Le prochain arrive vers 7 h, du lundi au vendredi : voici le dernier en attendant.");
+    m.pairs.forEach((p) => {
+      const t = TREND[p.trendDir];
+      out.append(el("article", { class: "bf-pair" },
+        el("div", { class: "row between wrap" }, D.symBadge(p.pair),
+          el("span", { class: "row bf-meta" }, p.price != null ? el("small", { class: "muted" }, "prix à la préparation " + F.num(p.price, p.dec == null ? 2 : p.dec)) : null,
+            t ? el("span", { class: "pill " + t[0] }, t[1]) : null)),
+        el("ol", { class: "bf-lines bf-ai" }, ...p.lines.map((l, i) => el("li", { class: l.key === "prudence" ? "warn-line" : "" },
+          el("span", { class: "bf-ico", "aria-hidden": "true" }, String(i + 1)),
+          el("span", {}, el("b", {}, l.title + " : "), l.text)))),
+        p.ai ? null : el("p", { class: "muted small" }, "Briefing automatique : l'IA n'était pas disponible pour cette paire.")));
+    });
+  }
+
   // ---------------------------------------------------------------- rendu
   const visible = () => !$("tab-briefing").classList.contains("hidden");
-  new MutationObserver(() => { if (visible()) { renderSessions(); $("bfNoKey").classList.toggle("hidden", !!(D.getKey && D.getKey())); } })
+  new MutationObserver(() => {
+    if (!visible()) return;
+    renderSessions(); $("bfNoKey").classList.toggle("hidden", !!(D.getKey && D.getKey()));
+    if (Date.now() - morning.loadedAt > 10 * 60000) loadMorning();         // nouvelle lecture au plus toutes les 10 min
+  })
     .observe($("tab-briefing"), { attributes: true, attributeFilter: ["class"] });
   setInterval(() => { if (visible()) renderSessions(); }, 30000);
   if (visible()) renderSessions();
+  loadMorning();
 })();

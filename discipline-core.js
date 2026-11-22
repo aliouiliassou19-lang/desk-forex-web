@@ -223,6 +223,37 @@
     return { enough: true, n: closed.length, needed: MIN_TRADES, items };
   }
 
+  // ------------------------------------------------------------------ briefing IA du matin (data/briefing.json)
+  const AI_FIELDS = [["tendance", "Tendance"], ["niveaux", "Niveaux à surveiller"], ["annonces", "Annonces du jour"],
+    ["scenarios", "Scénarios possibles"], ["prudence", "Prudence"]];
+  const RULE_FIELDS = [["trend", "Tendance"], ["levels", "Niveaux clés"], ["news", "Annonces"]];
+  const WEEKDAYS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+  const txt = (v, n) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim().slice(0, n) : "");
+  /**
+   * Lecture prudente du fichier du briefing du matin. -> null si inutilisable, sinon
+   * {generatedMs, label, isToday, ageHours, ai, pairs:[{pair, price, dec, trendDir, ai, lines:[{key, title, text}]}]}
+   */
+  function morningInfo(doc, nowMs) {
+    if (!doc || typeof doc !== "object" || !Array.isArray(doc.pairs)) return null;
+    const generatedMs = Date.parse(doc.generatedAt);
+    if (!Number.isFinite(generatedMs)) return null;
+    const pairs = [];
+    for (const p of doc.pairs) {
+      if (!p || !BRIEF_PAIRS.includes(p.pair)) continue;
+      const aiOk = p.ai && typeof p.ai === "object" && AI_FIELDS.every(([k]) => txt(p.ai[k], 600));
+      const src = aiOk ? AI_FIELDS : RULE_FIELDS, obj = aiOk ? p.ai : (p.rules || {});
+      const lines = src.map(([key, title]) => ({ key, title, text: txt(obj[key], 600) })).filter((l) => l.text);
+      if (!lines.length) continue;
+      pairs.push({ pair: p.pair, price: num(p.price), dec: Number.isInteger(p.dec) ? p.dec : null,
+        trendDir: ["up", "down", "flat", "mixed"].includes(p.trendDir) ? p.trendDir : null, ai: !!aiOk, lines });
+    }
+    if (!pairs.length) return null;
+    const d = new Date(generatedMs + 3600000);                    // heure du Benin
+    const label = `${WEEKDAYS[d.getUTCDay()]} ${F.benin(generatedMs, { date: true }).replace(" ", " à ")}`;
+    return { generatedMs, label, isToday: JC.localDay(generatedMs) === JC.localDay(nowMs),
+      ageHours: Math.max(0, (nowMs - generatedMs) / 3600000), ai: pairs.some((p) => p.ai), pairs };
+  }
+
   return { LOT_SYMBOLS, lotCalc, DISC_DEFAULTS, normalizeDisc, checklistItems, checklistDone, dayStatus,
-    BRIEF_PAIRS, newsToday, briefLines, fmtDuration, sessionClock, MIN_TRADES, insights };
+    BRIEF_PAIRS, newsToday, briefLines, fmtDuration, sessionClock, MIN_TRADES, insights, morningInfo };
 });

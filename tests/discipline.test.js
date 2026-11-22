@@ -156,3 +156,24 @@ test("analyse de mes erreurs : 10 trades minimum, constats simples", () => {
   assert.equal(r.n, 12);
   assert.ok(r.items.some((i) => i.text === "Tu perds surtout sur XAU/USD."));
 });
+
+test("briefing IA du matin : lecture du fichier", () => {
+  const DCm = require("../discipline-core.js");
+  const ai = { tendance: "Baisse en H4.", niveaux: "Support 1,0969.", annonces: "Aucune.", scenarios: "Si le prix casse 1,0969…", prudence: "15 min avant et après." };
+  const doc = { generatedAt: "2026-11-23T06:04:00Z", pairs: [
+    { pair: "XAU/USD", price: 3532.79, dec: 2, trendDir: "down", ai, rules: { trend: "T", levels: "L", news: "N" } },
+    { pair: "EUR/USD", price: 1.09718, dec: 5, trendDir: "mixed", ai: { ...ai, scenarios: "" }, rules: { trend: "Tendance : mixte.", levels: "Niveaux.", news: "Annonces." } },
+    { pair: "GBP/USD", ai },
+  ] };
+  const m = DCm.morningInfo(doc, Date.parse("2026-11-23T09:00:00Z"));
+  assert.equal(m.label, "lundi 23/11 à 07:04");
+  assert.equal(m.isToday, true);
+  assert.ok(Math.abs(m.ageHours - 2.9333) < 0.001);
+  assert.deepEqual(m.pairs.map((p) => [p.pair, p.ai, p.lines.length]), [["XAU/USD", true, 5], ["EUR/USD", false, 3]]);   // champ IA manquant : briefing automatique
+  assert.equal(m.pairs[0].lines[3].title, "Scénarios possibles");
+  assert.equal(m.ai, true);
+  assert.equal(DCm.morningInfo(doc, Date.parse("2026-11-24T06:00:00Z")).isToday, false);
+  assert.equal(DCm.morningInfo(null, 0), null);
+  assert.equal(DCm.morningInfo({ generatedAt: "x", pairs: [] }, 0), null);
+  assert.equal(DCm.morningInfo({ generatedAt: "2026-11-23T06:04:00Z", pairs: [{ pair: "XAU/USD", rules: {} }] }, 0), null);
+});

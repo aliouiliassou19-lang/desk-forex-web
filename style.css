@@ -657,3 +657,9 @@ input.an-actual { width: 7.5em; min-height: 32px; padding: 4px 8px; font-size: 0
 .news-alert .na-txt small { display: block; margin-top: 2px; color: var(--text); font-size: 0.875rem; }
 .news-alert .na-close { background: transparent; border: 0; color: var(--text); font-size: 1.25rem; line-height: 1; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; }
 .news-alert .na-close:hover { background: color-mix(in srgb, var(--reject) 20%, transparent); }
+
+/* ---------- briefing IA du matin */
+#bfAiOut:empty { display: none; }
+.bf-meta { gap: 10px; align-items: center; flex-wrap: wrap; }
+.bf-ai li > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.bf-ai b { font-weight: 700; }
