@@ -10,22 +10,27 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <script src="theme-init.js?v=48"></script>
-  <link rel="stylesheet" href="style.css?v=48">
+  <script src="theme-init.js?v=50"></script>
+  <link rel="stylesheet" href="style.css?v=50">
 </head>
 <body>
   <a class="skip" href="#main">Aller au contenu</a>
   <header class="top">
     <div class="brand">
-      <img src="icon.svg" alt="" width="28" height="28">
+      <img src="icon.svg?v=50" alt="" width="36" height="36">
       <div>
-        <h1>Desk Forex</h1>
+        <p class="brand-name">Desk Forex</p>
         <p class="tag">Lecture seule · aucun ordre · outil éducatif</p>
       </div>
     </div>
     <div class="top-right">
-      <span id="mktPill" class="pill off">…</span>
+      <span id="mktPill" class="pill off mkt">…</span>
+      <span id="modeBadge" class="pill WATCH mode" title="Aucune clé Twelve Data : prix simulés">Démo</span>
       <time id="clock" class="clock mono" aria-label="Heure locale et heure UTC">--:--</time>
+      <div class="fontsize fs-top" role="group" aria-label="Taille du texte">
+        <button type="button" class="fs-down" aria-label="Réduire la taille du texte">A-</button>
+        <button type="button" class="fs-up" aria-label="Agrandir la taille du texte">A+</button>
+      </div>
       <button id="themeBtn" class="theme-btn" type="button" aria-label="Passer en thème clair">
         <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
         <svg class="ico-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -54,17 +59,30 @@
       <button type="button" data-tab="help" data-group="help">Aide</button>
     </nav>
     <div class="fontsize" role="group" aria-label="Taille du texte">
-      <button type="button" id="fsDown" aria-label="Réduire la taille du texte">A-</button>
-      <button type="button" id="fsUp" aria-label="Agrandir la taille du texte">A+</button>
+      <button type="button" id="fsDown" class="fs-down" aria-label="Réduire la taille du texte">A-</button>
+      <button type="button" id="fsUp" class="fs-up" aria-label="Agrandir la taille du texte">A+</button>
     </div>
   </div>
 
+  <div class="layout">
+    <nav class="side" id="sideNav" aria-label="Sections">
+      <button type="button" class="side-grp" data-group="home"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>Accueil</button>
+      <ul class="side-sub"><li><button type="button" data-tab="monitor" data-group="home">Moniteur</button></li><li><button type="button" data-tab="brief" data-group="home">Synthèse du jour</button></li></ul>
+      <button type="button" class="side-grp" data-group="analyse"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>Analyse</button>
+      <ul class="side-sub"><li><button type="button" data-tab="analyse" data-group="analyse">Technique</button></li><li><button type="button" data-tab="fund" data-group="analyse">Fondamental</button></li><li><button type="button" data-tab="news" data-group="analyse">Annonces</button></li></ul>
+      <button type="button" class="side-grp" data-group="trader"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>Trader</button>
+      <ul class="side-sub"><li><button type="button" data-tab="dash" data-group="trader">Dashboard</button></li><li><button type="button" data-tab="plan" data-group="trader">Plan</button></li><li><button type="button" data-tab="journal" data-group="trader">Journal</button></li><li><button type="button" data-tab="accounts" data-group="trader">Comptes</button></li></ul>
+      <button type="button" class="side-grp" data-group="help"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5v.01"/></svg>Aide</button>
+      <p class="side-foot">Lecture seule · aucun ordre · outil éducatif</p>
+    </nav>
+    <div class="content">
   <div id="demoGlobal" class="demo-global hidden" role="status">
     <span><b>Données de démo</b> : aucune clé Twelve Data n'est enregistrée, donc les prix du Moniteur sont <b>simulés</b>, pas réels.</span>
     <button id="demoAddKey" class="btn small" type="button">Ajouter ma clé</button>
   </div>
 
   <main id="main" tabindex="-1">
+    <div class="page-head"><p class="crumb" id="pageCrumb">Accueil</p><h1 id="pageTitle">Moniteur</h1></div>
     <!-- ======================================================== MONITEUR -->
     <section id="tab-monitor" class="tab">
       <div id="keyCard" class="card">
@@ -175,7 +193,7 @@
     <section id="tab-dash" class="tab hidden">
       <div class="card">
         <div class="row between wrap">
-          <h2>Dashboard</h2>
+          <h2>Compte affiché</h2>
           <select id="dbAccount" aria-label="Compte"></select>
         </div>
         <p class="muted small">Évolution de ton compte, calculée à partir du <b>journal</b> (un seul journal pour tout le site) et de tes dépôts et retraits. Lecture seule : aucun ordre n'est passé.</p>
@@ -908,6 +926,8 @@
       </div>
     </section>
   </main>
+    </div>
+  </div>
 
   <dialog id="welcome" class="welcome" aria-labelledby="wTitle">
     <div class="w-head">
@@ -947,19 +967,19 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="fmt.js?v=48"></script>
-  <script src="rules.js?v=48"></script>
-  <script src="analysis.js?v=48"></script>
-  <script src="mt5-core.js?v=48"></script>
-  <script src="journal-core.js?v=48"></script>
-  <script src="challenge-core.js?v=48"></script>
-  <script src="dashboard-core.js?v=48"></script>
-  <script src="db.js?v=48"></script>
-  <script src="app.js?v=48"></script>
-  <script src="journal.js?v=48"></script>
-  <script src="accounts.js?v=48"></script>
-  <script src="mt5-import.js?v=48"></script>
-  <script src="dashboard.js?v=48"></script>
-  <script src="desk.js?v=48"></script>
+  <script src="fmt.js?v=50"></script>
+  <script src="rules.js?v=50"></script>
+  <script src="analysis.js?v=50"></script>
+  <script src="mt5-core.js?v=50"></script>
+  <script src="journal-core.js?v=50"></script>
+  <script src="challenge-core.js?v=50"></script>
+  <script src="dashboard-core.js?v=50"></script>
+  <script src="db.js?v=50"></script>
+  <script src="app.js?v=50"></script>
+  <script src="journal.js?v=50"></script>
+  <script src="accounts.js?v=50"></script>
+  <script src="mt5-import.js?v=50"></script>
+  <script src="dashboard.js?v=50"></script>
+  <script src="desk.js?v=50"></script>
 </body>
 </html>

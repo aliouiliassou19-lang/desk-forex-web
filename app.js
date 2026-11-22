@@ -88,17 +88,28 @@
   // 4 groupes (Accueil, Analyse, Trader, Aide), chacun avec ses pages ; chaque groupe se souvient de sa derniere page
   const GROUPS = { home: ["monitor", "brief"], analyse: ["analyse", "fund", "news"], trader: ["dash", "plan", "journal", "accounts"], help: ["help"] };
   const groupOf = (tab) => Object.keys(GROUPS).find((g) => GROUPS[g].includes(tab)) || "home";
-  document.querySelectorAll("#subNav button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
-  document.querySelectorAll("#groupNav button").forEach((b) => b.addEventListener("click", () => {
+  const PAGE_NAMES = { monitor: "Moniteur", brief: "Synthèse du jour", analyse: "Technique", fund: "Fondamental", news: "Annonces",
+    dash: "Dashboard", plan: "Plan", journal: "Journal", accounts: "Comptes", help: "Aide" };
+  const GROUP_NAMES = { home: "Accueil", analyse: "Analyse", trader: "Trader", help: "Aide" };
+  document.querySelectorAll("#subNav button, #sideNav button[data-tab]").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+  document.querySelectorAll("#groupNav button, #sideNav .side-grp").forEach((b) => b.addEventListener("click", () => {
     const g = b.dataset.group, last = store.get("tabOf", {})[g];
     showTab(GROUPS[g].includes(last) ? last : GROUPS[g][0]);
   }));
   function showTab(name) {
     if (!document.getElementById("tab-" + name)) name = "monitor";
     const g = groupOf(name);
-    document.querySelectorAll("#groupNav button").forEach((b) => {
+    document.querySelectorAll("#groupNav button, #sideNav .side-grp").forEach((b) => {
       if (b.dataset.group === g) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
+    document.querySelectorAll("#sideNav button[data-tab]").forEach((b) => {
+      if (b.dataset.tab === name) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    // titre de la page (hierarchie claire) et titre de l'onglet du navigateur
+    $("pageTitle").textContent = PAGE_NAMES[name] || name;
+    $("pageCrumb").textContent = GROUP_NAMES[g];
+    $("pageCrumb").classList.toggle("hidden", GROUP_NAMES[g] === PAGE_NAMES[name]);
+    document.title = `${PAGE_NAMES[name] || name} · Desk Forex`;
     document.querySelectorAll("#subNav button").forEach((b) => {
       const on = b.dataset.tab === name;
       b.classList.toggle("active", on);
@@ -128,21 +139,27 @@
   function applyFontSize(level) {
     const v = Math.max(FS_MIN, Math.min(FS_MAX, Math.round(Number(level) || 0)));
     if (v) document.documentElement.setAttribute("data-fs", String(v)); else document.documentElement.removeAttribute("data-fs");
-    $("fsDown").disabled = v <= FS_MIN; $("fsUp").disabled = v >= FS_MAX;
+    document.querySelectorAll(".fs-down").forEach((b) => { b.disabled = v <= FS_MIN; });
+    document.querySelectorAll(".fs-up").forEach((b) => { b.disabled = v >= FS_MAX; });
     store.set("fontSize", v);
     window.dispatchEvent(new Event("resize"));            // les graphiques se redessinent a la nouvelle taille
     return v;
   }
-  $("fsDown").addEventListener("click", () => { const v = applyFontSize((store.get("fontSize", 0) || 0) - 1); toast(`Taille du texte : ${v === 0 ? "normale" : (v > 0 ? "+" : "") + v}`); });
-  $("fsUp").addEventListener("click", () => { const v = applyFontSize((store.get("fontSize", 0) || 0) + 1); toast(`Taille du texte : ${v === 0 ? "normale" : (v > 0 ? "+" : "") + v}`); });
+  const fsStep = (d) => { const v = applyFontSize((store.get("fontSize", 0) || 0) + d); toast(`Taille du texte : ${v === 0 ? "normale" : (v > 0 ? "+" : "") + v}`); };
+  document.querySelectorAll(".fs-down").forEach((b) => b.addEventListener("click", () => fsStep(-1)));
+  document.querySelectorAll(".fs-up").forEach((b) => b.addEventListener("click", () => fsStep(1)));
   function tick() {
     const now = Date.now();
-    if (typeof mon !== "undefined" && mon.running && mon.mode === "demo") {   // la demo simule un mercredi
-      $("mktPill").textContent = "DÉMO"; $("mktPill").className = "pill WATCH"; return;
-    }
+    const demoRun = typeof mon !== "undefined" && mon.running && mon.mode === "demo";
+    // badge Demo / Reel : Demo sans cle ou pendant la demonstration, Reel avec une cle
+    const demo = demoRun || !getKey();
+    $("modeBadge").textContent = demo ? "Démo" : "Réel";
+    $("modeBadge").className = "pill mode " + (demo ? "WATCH" : "on");
+    $("modeBadge").title = demo ? (getKey() ? "Démonstration en cours : prix simulés" : "Aucune clé Twelve Data : prix simulés") : "Clé Twelve Data enregistrée : vrais prix";
+    if (demoRun) { $("mktPill").textContent = "Marché simulé"; $("mktPill").className = "pill off mkt"; return; }   // la demo simule un mercredi
     const open = R.marketStatus(now, "EUR/USD") === "OPEN";
     $("mktPill").textContent = open ? "Marché ouvert" : "Marché fermé";
-    $("mktPill").className = "pill " + (open ? "on" : "bad");
+    $("mktPill").className = "pill mkt " + (open ? "on" : "bad");
   }
 
   // ---------------------------------------------------------------- cle
@@ -154,6 +171,7 @@
     $("keyCard").classList.toggle("hidden", has);
     $("keyOk").classList.toggle("hidden", !has);
     $("keyWhere").textContent = has ? "(" + keyWhere() + ")" : "";
+    tick();                                                   // badge Demo / Reel
   }
   $("keyForm").addEventListener("submit", (e) => {
     e.preventDefault();
