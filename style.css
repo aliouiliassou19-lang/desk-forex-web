@@ -591,3 +591,16 @@ input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px var(--info-bg)
 #bfNoKey.hidden { display: none; }
 @media (max-width: 760px) { .bf-out { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .bf-sessions { grid-template-columns: 1fr; } .bf-count { font-size: 1.25rem; } }
+
+/* ---------- analyse de mes erreurs */
+.insights { list-style: none; margin: 16px 0 8px; padding: 0; display: grid; gap: 10px; }
+.insight { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface2); }
+.insight b { display: block; font-size: 1rem; }
+.insight small { display: block; margin-top: 2px; color: var(--muted); font-size: 0.875rem; }
+.insight-ico { display: inline-grid; place-items: center; width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; font-weight: 800; font-size: 0.875rem; }
+.insight.bad { border-color: color-mix(in srgb, var(--reject) 40%, transparent); }
+.insight.bad .insight-ico { background: var(--reject-bg); color: var(--reject-text); }
+.insight.good { border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+.insight.good .insight-ico { background: var(--ok-bg); color: var(--ok-text); }
+.insight.info .insight-ico { background: var(--info-bg); color: var(--info-text); font-style: italic; }
+#dbInsights .meter { width: min(320px, 100%); }

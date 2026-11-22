@@ -120,3 +120,39 @@ test("sessions de Londres et New York : heures du Benin et compte a rebours", ()
   assert.equal(ny3.opensAt, T("2026-07-15T12:00:00Z"));
   assert.equal(DC.fmtDuration(45 * 60000), "45 min"); assert.equal(DC.fmtDuration(0), "0 min");
 });
+
+test("analyse de mes erreurs : 10 trades minimum, constats simples", () => {
+  const acc = { id: "e", startBalance: 1000 };
+  // entree en heure UTC : 09:00 UTC = Londres (hiver) ; 15:00 UTC = chevauchement ; 01:00 UTC = Asie
+  const tr = (id, entryIso, net, extra) => Object.assign({ id, accountId: "e", status: "CLOSED", symbol: "EUR/USD", side: "buy", lots: 0.1, entry: 1.09, sl: 1.089, exit: 1.091,
+    grossOverride: net, entryTime: T(entryIso), exitTime: T(entryIso) + 1800000, checklist: {} }, extra || {});
+  const ok = { checklist: { a: true } }, ko = { checklist: { a: false } };
+  const base = [
+    // vendredis perdants (20/11, 13/11, 06/11), en Asie, sans checklist complete
+    tr("f1", "2026-11-20T01:00:00Z", -40, ko), tr("f2", "2026-11-13T01:00:00Z", -35, ko), tr("f3", "2026-11-06T01:00:00Z", -30, ko),
+    // mardis gagnants a Londres avec checklist
+    tr("m1", "2026-11-17T09:00:00Z", 50, ok), tr("m2", "2026-11-10T09:00:00Z", 45, ok), tr("m3", "2026-11-03T09:00:00Z", 40, ok),
+    // mercredis mitiges
+    tr("w1", "2026-11-18T15:00:00Z", 10, ok), tr("w2", "2026-11-11T15:00:00Z", -5, ko), tr("w3", "2026-11-04T15:00:00Z", 5, ok),
+  ];
+  const L = (arr) => JC.enrich(arr, [acc], 2);
+  let r = DC.insights(acc, L(base));
+  assert.equal(r.enough, false); assert.equal(r.n, 9); assert.equal(r.needed, 10);
+  r = DC.insights(acc, L(base.concat([tr("t1", "2026-11-19T09:00:00Z", 20, ok)]))); // jeudi, Londres
+  assert.equal(r.enough, true); assert.equal(r.n, 10);
+  const texts = r.items.map((i) => i.text);
+  assert.ok(texts.includes("Tu perds surtout le vendredi."), texts.join(" / "));
+  assert.ok(texts.includes("Ta meilleure session est Londres."), texts.join(" / "));
+  assert.ok(texts.includes("Tes trades sans checklist perdent plus."), texts.join(" / "));
+  assert.ok(texts.includes("Tu perds pendant la session asiatique."), texts.join(" / "));
+  assert.ok(texts.includes("Ton meilleur jour est le mardi."), texts.join(" / "));
+  assert.equal(r.items[0].tone, "bad");                     // les points a corriger d'abord
+  const fri = r.items.find((i) => i.text === "Tu perds surtout le vendredi.");
+  assert.match(fri.detail, /−105,00\s\$ sur 3 trades, 0\s% de réussite/);
+  // un autre compte n'est pas compte ; un symbole perdant ressort
+  const more = base.concat([tr("x1", "2026-11-19T09:00:00Z", -20, Object.assign({ symbol: "XAU/USD" }, ok)), tr("x2", "2026-11-12T09:00:00Z", -25, Object.assign({ symbol: "XAU/USD" }, ok)),
+    tr("x3", "2026-11-05T09:00:00Z", -30, Object.assign({ symbol: "XAU/USD" }, ok)), tr("other", "2026-11-19T09:00:00Z", 999, { accountId: "z" })]);
+  r = DC.insights(acc, JC.enrich(more, [acc, { id: "z", startBalance: 0 }], 2));
+  assert.equal(r.n, 12);
+  assert.ok(r.items.some((i) => i.text === "Tu perds surtout sur XAU/USD."));
+});

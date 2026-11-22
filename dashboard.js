@@ -421,6 +421,29 @@
   J.onChange(renderHome);
   new MutationObserver(() => { if (!$("tab-monitor").classList.contains("hidden")) renderHome(); }).observe($("tab-monitor"), { attributes: true, attributeFilter: ["class"] });
 
+  // analyse de mes erreurs (constats simples, 10 trades clotures minimum)
+  function renderInsights(acc, list) {
+    const X = window.DisciplineCore;
+    if (!X) return;
+    const r = X.insights(acc, list), box = clear($("dbInsights"));
+    $("dbInsightsN").textContent = r.enough ? `sur tes ${r.n} trades clôturés` : "";
+    if (!r.enough) {
+      const meter = el("div", { class: "meter", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": String(r.needed), "aria-valuenow": String(r.n), "aria-label": "Trades clôturés" }, el("div"));
+      meter.firstChild.style.width = Math.round(r.n / r.needed * 100) + "%";
+      box.append(el("div", { class: "empty-box" }, el("p", {}, el("b", {}, "Pas encore assez de trades"), ` (${r.n} / ${r.needed} trades clôturés sur ce compte).`),
+        meter, el("p", { class: "muted small" }, "Les constats apparaîtront à partir de 10 trades clôturés."),
+        el("button", { class: "btn small", type: "button", onclick: () => J.openNew({ accountId: acc.id }) }, "+ Ajouter un trade")));
+      return;
+    }
+    if (!r.items.length) { box.append(el("p", { class: "muted" }, "Rien de net pour l'instant : aucun jour, session ou habitude ne ressort clairement. Continue de noter tes trades.")); return; }
+    const ICON = { bad: "▼", good: "▲", info: "i" };
+    const ul = el("ul", { class: "insights" });
+    r.items.forEach((it) => ul.append(el("li", { class: "insight " + it.tone },
+      el("span", { class: "insight-ico", "aria-hidden": "true" }, ICON[it.tone]),
+      el("div", {}, el("b", {}, it.text), el("small", {}, it.detail)))));
+    box.append(ul);
+  }
+
   function render() {
     renderAccounts();
     const acc = currentAccount();
@@ -432,6 +455,7 @@
     renderStats(acc, list);
     renderCalendar(acc, list);
     renderBreakdowns(acc, list);
+    renderInsights(acc, list);
     renderFlows(acc);
     renderBackup();
     renderHome();

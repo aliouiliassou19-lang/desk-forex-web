@@ -161,6 +161,68 @@
     });
   }
 
+  // ------------------------------------------------------------------ analyse de mes erreurs
+  const MIN_TRADES = 10, MIN_GROUP = 3;
+  const SESSION_LABEL = { Asie: "la session asiatique", Londres: "la session de Londres", Chevauchement: "le chevauchement Londres + New York", "New York": "la session de New York", "Hors session": "hors des grandes sessions" };
+  const pct0 = (v) => F.num(v * 100, 0) + "\u00a0%";
+  const mean = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  /**
+   * Constats simples tires du journal (trades CLOTURES du compte). Il faut au moins 10 trades,
+   * et chaque constat repose sur au moins 3 trades. tone : "bad" (a corriger), "good" (point fort), "info".
+   */
+  function insights(account, list) {
+    const closed = list.filter((x) => x.t.accountId === account.id && x.t.status === "CLOSED" && x.m.net != null);
+    if (closed.length < MIN_TRADES) return { enough: false, n: closed.length, needed: MIN_TRADES, items: [] };
+    const s = DB.accountStats(account, list), items = [];
+    const groups = (rows) => rows.filter((g) => g.n >= MIN_GROUP);
+    const avg = (g) => g.net / g.n;
+    const fact = (g) => `${F.money(g.net, true)} sur ${g.n} trades, ${pct0(g.winRate)} de réussite.`;
+    // jour de la semaine
+    const days = groups(s.byWeekday);
+    if (days.length >= 2) {
+      const worst = days.reduce((a, b) => (avg(b) < avg(a) ? b : a)), best = days.reduce((a, b) => (avg(b) > avg(a) ? b : a));
+      if (worst.net < 0) items.push({ kind: "weekday", tone: "bad", weight: -worst.net, text: `Tu perds surtout le ${worst.key}.`, detail: fact(worst) });
+      if (best.net > 0 && best.key !== worst.key) items.push({ kind: "weekday-best", tone: "good", weight: best.net / 2, text: `Ton meilleur jour est le ${best.key}.`, detail: fact(best) });
+    }
+    // session
+    const sess = groups(s.bySession);
+    if (sess.length) {
+      const best = sess.reduce((a, b) => (avg(b) > avg(a) ? b : a)), worst = sess.reduce((a, b) => (avg(b) < avg(a) ? b : a));
+      if (best.net > 0) items.push({ kind: "session-best", tone: "good", weight: best.net, text: `Ta meilleure session est ${best.key === "Chevauchement" ? "le chevauchement Londres + New York" : best.key}.`, detail: fact(best) });
+      if (worst.net < 0 && worst.key !== best.key) items.push({ kind: "session-worst", tone: "bad", weight: -worst.net, text: `Tu perds pendant ${SESSION_LABEL[worst.key] || worst.key}.`, detail: fact(worst) });
+    }
+    // checklist : trades avec la checklist complete contre les autres (incomplete, hors plan ou non remplie)
+    const withCl = closed.filter((x) => x.m.inPlan === true), without = closed.filter((x) => x.m.inPlan !== true);
+    if (withCl.length >= MIN_GROUP && without.length >= MIN_GROUP) {
+      const a1 = mean(withCl.map((x) => x.m.net)), a2 = mean(without.map((x) => x.m.net));
+      const w1 = withCl.filter((x) => x.m.net > 0).length / withCl.length, w2 = without.filter((x) => x.m.net > 0).length / without.length;
+      const detail = `Sans checklist complète : ${F.money(a2, true)} en moyenne par trade (${pct0(w2)} de réussite, ${without.length} trades) · avec : ${F.money(a1, true)} (${pct0(w1)}, ${withCl.length} trades).`;
+      if (a2 < a1) items.push({ kind: "checklist", tone: "bad", weight: (a1 - a2) * without.length, text: "Tes trades sans checklist perdent plus.", detail });
+      else items.push({ kind: "checklist", tone: "info", weight: 1, text: "Tes trades sans checklist ne font pas pire pour l'instant : continue de la remplir pour le vérifier.", detail });
+    } else if (without.length >= MIN_GROUP && !withCl.length) {
+      items.push({ kind: "checklist", tone: "info", weight: 1, text: "Aucun de tes trades n'a de checklist complète : utilise « Avant le trade » pour mesurer son effet.", detail: `${without.length} trades sans checklist complète.` });
+    }
+    // symbole
+    const syms = groups(s.bySymbol);
+    if (syms.length >= 2) {
+      const worst = syms.reduce((a, b) => (avg(b) < avg(a) ? b : a));
+      if (worst.net < 0) items.push({ kind: "symbol", tone: "bad", weight: -worst.net, text: `Tu perds surtout sur ${worst.key}.`, detail: fact(worst) });
+    }
+    // erreur notee la plus couteuse
+    const err = (s.errorCost || []).filter((e) => e.n >= MIN_GROUP && e.net < 0)[0];
+    if (err) items.push({ kind: "error", tone: "bad", weight: -err.net, text: `Ton erreur la plus coûteuse : « ${err.key} ».`, detail: `${F.money(err.net, true)} sur ${err.n} trades.` });
+    // apres une perte (moins de 2 h apres la cloture d'un trade perdant)
+    const sorted = closed.slice().sort((a, b) => (a.t.entryTime || 0) - (b.t.entryTime || 0));
+    const afterLoss = sorted.filter((x) => sorted.some((y) => y !== x && y.m.net < 0 && y.t.exitTime && x.t.entryTime >= y.t.exitTime && x.t.entryTime - y.t.exitTime <= 2 * 3600000));
+    if (afterLoss.length >= MIN_GROUP) {
+      const a = mean(afterLoss.map((x) => x.m.net)), all = mean(closed.map((x) => x.m.net));
+      if (a < 0 && a < all) items.push({ kind: "revenge", tone: "bad", weight: -a * afterLoss.length, text: "Après une perte, tu enchaînes souvent un trade perdant.", detail: `Trades ouverts moins de 2 h après une perte : ${F.money(a, true)} en moyenne (${afterLoss.length} trades) contre ${F.money(all, true)} pour l'ensemble.` });
+    }
+    const order = { bad: 0, good: 1, info: 2 };
+    items.sort((x, y) => order[x.tone] - order[y.tone] || y.weight - x.weight);
+    return { enough: true, n: closed.length, needed: MIN_TRADES, items };
+  }
+
   return { LOT_SYMBOLS, lotCalc, DISC_DEFAULTS, normalizeDisc, checklistItems, checklistDone, dayStatus,
-    BRIEF_PAIRS, newsToday, briefLines, fmtDuration, sessionClock };
+    BRIEF_PAIRS, newsToday, briefLines, fmtDuration, sessionClock, MIN_TRADES, insights };
 });
