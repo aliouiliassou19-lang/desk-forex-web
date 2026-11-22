@@ -450,7 +450,7 @@
       const r = [...rows].reverse().find((x) => x.symbol === s);
       const dir = (v) => (v && v.startsWith("+") ? "up" : v && v.startsWith("-") ? "down" : "");
       box.append(el("div", { class: "card sym" },
-        el("div", { class: "head" }, el("span", { class: "name" }, s),
+        el("div", { class: "head" }, symBadge(s),
           r ? el("span", { class: "pill " + r.decision }, F.status(r.decision)) : el("span", { class: "pill off" }, "en attente")),
         el("div", { class: "price mono" }, r ? F.fromText(r.price) : "–"),
         el("div", { class: "muted small" }, r ? `${r.source === "SYNTHETIC" ? "SIMULÉ · " : ""}${F.both(Date.parse(r.fetched_at_utc))} · ${r.market_status === "OPEN" ? "marché ouvert" : "marché fermé"}` : "Aucun relevé"),
@@ -502,7 +502,7 @@
     $("logEmpty").classList.toggle("hidden", rows.length > 0);
     $("logTable").parentElement.classList.toggle("hidden", !rows.length);
     rows.forEach((r) => tb.append(el("tr", {},
-      el("td", { class: "mono" }, timeCell(Date.parse(r.fetched_at_utc))), el("td", {}, r.symbol),
+      el("td", { class: "mono" }, timeCell(Date.parse(r.fetched_at_utc))), el("td", {}, symBadge(r.symbol)),
       el("td", { class: "mono" }, F.fromText(r.price)), el("td", { class: "mono" }, F.fromText(r.change_1m_pips)), el("td", { class: "mono" }, F.fromText(r.change_5m_pips)),
       el("td", {}, r.market_status === "OPEN" ? "ouvert" : "fermé"),
       el("td", {}, el("span", { class: "pill " + r.decision }, F.status(r.decision))), el("td", { class: "wrap" }, reasonsFr(r.reasons)))));
@@ -576,13 +576,31 @@
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && tipOwner) { const b = tipOwner; hideTip(); b.focus(); } });
   window.addEventListener("scroll", hideTip, { passive: true }); window.addEventListener("resize", hideTip);
 
+  /** Badge du symbole : bleu pour les paires de devises, dore pour l'or (XAU/USD). */
+  const symBadge = (s) => el("span", { class: "sym-badge" + (/^XA[UG]/.test(String(s)) ? " gold" : "") }, String(s || "–"));
+  // tableaux : les colonnes de nombres (police a chasse fixe) sont alignees a droite, en-tete compris
+  function alignTables(root) {
+    (root || document).querySelectorAll("table").forEach((t) => {
+      const first = t.tBodies[0] && t.tBodies[0].rows[0];
+      if (!first) return;
+      [...first.cells].forEach((cell, i) => {
+        if (i === 0 || !cell.classList.contains("mono")) return;
+        if (t.tHead && t.tHead.rows[0] && t.tHead.rows[0].cells[i]) t.tHead.rows[0].cells[i].classList.add("r");
+        [...t.tBodies[0].rows].forEach((row) => { if (row.cells[i]) row.cells[i].classList.add("r"); });
+      });
+    });
+  }
+  let alignQueued = false;
+  new MutationObserver(() => { if (alignQueued) return; alignQueued = true; requestAnimationFrame(() => { alignQueued = false; alignTables(); }); })
+    .observe(document.getElementById("main"), { childList: true, subtree: true });
+
   // ---------------------------------------------------------------- outils partages avec desk.js et journal.js
   const priceHooks = [];
   window.DeskApp = {
     cfg, store, getKey, credits, fetchJson, toast, notify, el, clear, showTab, renderCredits, download,
     getNews: () => news.slice(),
     onPrices: (fn) => priceHooks.push(fn),
-    fmtUtc, fmtLocal, timeCell, tip,
+    fmtUtc, fmtLocal, timeCell, tip, symBadge,
   };
 
   // ---------------------------------------------------------------- demarrage

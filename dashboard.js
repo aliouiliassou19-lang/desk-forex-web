@@ -313,7 +313,7 @@
     const t = el("table", {}, el("thead", {}, el("tr", {}, ...["Clôture", "Symbole", "Sens", "Lots", "Net", "R"].map((h) => el("th", {}, h)))));
     const tb = el("tbody"); t.append(tb);
     items.forEach((x) => tb.append(el("tr", {},
-      el("td", { class: "mono" }, JC.fmtLocal(x.t.exitTime).slice(11), el("small", { class: "utc" }, F.utc(x.t.exitTime))), el("td", {}, x.t.symbol), el("td", {}, x.t.side === "sell" ? "Vente" : "Achat"),
+      el("td", { class: "mono" }, JC.fmtLocal(x.t.exitTime).slice(11), el("small", { class: "utc" }, F.utc(x.t.exitTime))), el("td", {}, D.symBadge(x.t.symbol)), el("td", {}, x.t.side === "sell" ? "Vente" : "Achat"),
       el("td", { class: "mono" }, x.t.lots != null ? nb(x.t.lots, 2) : "–"), el("td", { class: "mono " + cls(x.m.net) }, money(x.m.net, true)),
       el("td", { class: "mono " + cls(x.m.r) }, fix(x.m.r, 2)))));
     clear($("dbDayList")).append(el("div", { class: "scroll" }, t));
@@ -332,7 +332,7 @@
     const tb = el("tbody"); t.append(tb);
     rows.forEach((g) => {
       const w = max > 0 ? Math.abs(g.net) / max * 50 : 0;
-      tb.append(el("tr", {}, el("td", {}, g.key), el("td", { class: "mono" }, String(g.n)),
+      tb.append(el("tr", {}, el("td", {}, label === "Symbole" ? D.symBadge(g.key) : g.key), el("td", { class: "mono" }, String(g.n)),
         el("td", { class: "mono" }, g.winRate == null ? "–" : nb(g.winRate * 100, 0) + " %"),
         el("td", { class: "mono " + cls(g.net) }, money(g.net, true)),
         el("td", { class: "barcell" }, el("div", { class: "nbar", "aria-hidden": "true" }, g.net ? bar(g.net > 0 ? "up" : "down", w) : null))));
@@ -405,6 +405,22 @@
   });
 
   // ---------------------------------------------------------------- rendu
+  // chiffres cles en haut d'Accueil : meme compte que le Dashboard, lus depuis le journal (lecture seule)
+  function renderHome() {
+    const st = J.getState(), keep = D.store.get("dbAccount", "");
+    const acc = st.accounts.find((a) => a.id === ($("dbAccount").value || keep)) || st.accounts[0];
+    if (!acc) return;
+    const list = st.enriched, s = DC.summary(acc, list), day = DC.periodPnl(acc, list, Date.now()).day, k = DC.accountStats(acc, list);
+    $("homeKpiAcc").textContent = acc.name;
+    clear($("homeKpis")).append(
+      tile("Solde", money(s.balance), "", `départ ${money(s.start)}`),
+      tile("P&L du jour", money(day.net, true), cls(day.net), `${day.pct != null ? pct(day.pct) + " · " : ""}${pl(day.n, "trade")} clôturé${day.n > 1 ? "s" : ""}`),
+      tile("Win rate", k.winRate == null ? "–" : nb(k.winRate * 100, 0) + " %", "", k.n ? `${pl(k.wins, "gagnant")} · ${pl(k.losses, "perdant")}` : "aucun trade clôturé"));
+  }
+  $("homeKpiOpen").addEventListener("click", () => D.showTab("dash"));
+  J.onChange(renderHome);
+  new MutationObserver(() => { if (!$("tab-monitor").classList.contains("hidden")) renderHome(); }).observe($("tab-monitor"), { attributes: true, attributeFilter: ["class"] });
+
   function render() {
     renderAccounts();
     const acc = currentAccount();
@@ -418,6 +434,7 @@
     renderBreakdowns(acc, list);
     renderFlows(acc);
     renderBackup();
+    renderHome();
   }
   $("cfDate").value = JC.toLocalInput(Date.now());
   J.onChange(render);

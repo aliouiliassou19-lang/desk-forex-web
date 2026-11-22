@@ -403,7 +403,7 @@
         el("small", {}, r.size ? `risque ${fmt(r.size.riskUsd, 2)} $ (${fmt(r.size.riskPct, 2)} %)` : "valeur du pip inconnue")),
       el("div", { class: "kvbox" }, el("span", {}, "Objectifs"), ...r.targets.map((t) => el("small", { class: "mono" }, `${fmt(t.price, dec)} · ${fmt(t.pips, 0)} p · R net ${fmt(t.rrNet, 2)}`)))));
     const ul = el("ul", { class: "checks" });
-    r.checks.forEach((c) => ul.append(el("li", {}, el("span", { class: "pill " + (c.level === "OK" ? "on" : c.level === "NON" ? "bad" : "WATCH") }, c.level), " ", c.msg)));
+    r.checks.forEach((c) => ul.append(el("li", {}, el("span", { class: "pill " + (c.level === "OK" ? "on" : c.level === "NON" ? "bad" : "WATCH") }, c.level === "ATTENTION" ? "À REVOIR" : c.level), " ", c.msg)));
     out.append(ul);
     if (window.Journal) {
       out.append(el("button", { class: "btn ghost", type: "button", onclick: () => {

@@ -134,7 +134,7 @@
     const tb = clear($("jList").querySelector("tbody"));
     list.forEach(({ t, m }) => {
       const tr = el("tr", { class: "tap", title: "Ouvrir la fiche" },
-        el("td", { class: "mono" }, t.entryTime ? [JC.fmtLocal(t.entryTime), el("small", { class: "utc" }, F.utc(t.entryTime))] : "–"), el("td", {}, t.symbol),
+        el("td", { class: "mono" }, t.entryTime ? [JC.fmtLocal(t.entryTime), el("small", { class: "utc" }, F.utc(t.entryTime))] : "–"), el("td", {}, D.symBadge(t.symbol)),
         el("td", {}, t.side === "sell" ? "vente" : "achat"),
         el("td", {}, el("span", { class: "pill " + statusCls(t.status) }, F.status(t.status))),
         el("td", { class: "mono" }, t.lots != null ? nb(t.lots, 2) : "–"),
