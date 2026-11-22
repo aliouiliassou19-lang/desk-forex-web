@@ -579,7 +579,7 @@
   $("demoLoad").addEventListener("click", async () => {
     if (trades.some((t) => t.source === "demo")) { toast("L'exemple est déjà chargé."); return; }
     const n = await loadDemo();
-    toast(`Exemple chargé : ${n} trades fictifs et un challenge (onglet Comptes).`, 6000);
+    toast(`Exemple chargé : ${n} trades fictifs et un challenge (Trader → Comptes).`, 6000);
   });
   $("demoRemove").addEventListener("click", async () => {
     if (!confirm("Supprimer toutes les données d'exemple (trades fictifs et compte « Exemple ») ? Tes propres trades ne sont pas touchés.")) return;

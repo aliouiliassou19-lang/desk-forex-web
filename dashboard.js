@@ -77,7 +77,7 @@
     $("prDaily").value = r.dailyLossPct || ""; $("prTotal").value = r.maxDDPct || "";
     $("prTarget").value = r.profitTargetPct || ""; $("prDays").value = r.minTradingDays || "";
     $("dbPropHint").textContent = `Pourcentages du solde de départ (${plain(Number(acc.startBalance) || 0)}). Laisse une case vide pour ne pas suivre cette règle. ` +
-      "Ce sont les mêmes règles que dans l'onglet Comptes, où tu trouves les options avancées : perte totale suiveuse, base de la perte journalière, heure de remise à zéro, durée limite, annonces.";
+      "Ce sont les mêmes règles que dans Trader → Comptes, où tu trouves les options avancées : perte totale suiveuse, base de la perte journalière, heure de remise à zéro, durée limite, annonces.";
   }
   function renderProp(acc, list) {
     const onFlag = !!acc.dashRules;

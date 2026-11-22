@@ -19,7 +19,7 @@
   // ---------------------------------------------------------------- requetes Twelve Data (credits partages)
   async function td(path, params, credits) {
     const key = D.getKey();
-    if (!key) throw new Error("Enregistre d'abord ta clé Twelve Data (onglet Moniteur).");
+    if (!key) throw new Error("Enregistre d'abord ta clé Twelve Data (Accueil → Moniteur).");
     const now = Date.now();
     const st = D.credits.check(credits, now);
     if (st === "DAILY") throw new Error("Quota du jour épuisé (800 crédits). Reprise à minuit UTC.");

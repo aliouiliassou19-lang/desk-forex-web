@@ -384,3 +384,9 @@ tr.tap:focus-visible, li.tap:focus-visible { outline: 3px solid var(--accent); o
 .skip:focus { top: 8px; }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 main:focus { outline: none; }
+
+/* lexique de l'aide */
+.glossary { margin: 6px 0 12px; }
+.glossary dt { font-weight: 700; margin-top: 8px; }
+.glossary dd { margin: 2px 0 0; color: var(--text); }
+.prose ul ul { margin-top: 4px; }

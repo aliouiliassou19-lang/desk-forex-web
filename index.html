@@ -10,7 +10,7 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=46">
+  <link rel="stylesheet" href="style.css?v=47">
 </head>
 <body>
   <a class="skip" href="#main">Aller au contenu</a>
@@ -199,7 +199,7 @@
               <label>Perte totale max (%)<input id="prTotal" type="number" step="0.1" min="0" inputmode="decimal"></label>
               <label>Objectif de profit (%)<input id="prTarget" type="number" step="0.1" min="0" inputmode="decimal"></label>
               <label>Jours de trading minimum<input id="prDays" type="number" step="1" min="0" inputmode="numeric"></label>
-              <div class="span2 row wrap"><button class="btn" type="submit">Enregistrer les limites</button><button id="dbPropMore" class="btn ghost small" type="button">Options avancées (onglet Comptes)</button></div>
+              <div class="span2 row wrap"><button class="btn" type="submit">Enregistrer les limites</button><button id="dbPropMore" class="btn ghost small" type="button">Options avancées (Trader → Comptes)</button></div>
             </form>
             <p id="dbPropHint" class="muted small"></p>
           </details>
@@ -622,7 +622,7 @@
             <label>Risque max par trade (%)<input id="prMaxRisk" type="number" step="0.1" min="0.1" max="20"></label>
             <button class="btn" type="submit">Enregistrer</button>
           </form>
-          <p class="muted small">Au-delà, un trade compte « hors plan ». Les comptes (démo, challenge, financé), leurs soldes et leurs règles se gèrent dans l'onglet <b>Comptes</b>.</p>
+          <p class="muted small">Au-delà, un trade compte « hors plan ». Les comptes (démo, challenge, financé), leurs soldes et leurs règles se gèrent dans <b>Trader → Comptes</b>.</p>
         </div>
         <div class="card">
           <h2>Listes</h2>
@@ -667,7 +667,7 @@
         </div>
         <p class="muted small">Démo, challenge ou compte financé : chaque compte a son solde de départ et ses propres règles, que <b>tu saisis toi-même</b> (aucune règle de vraie prop firm n'est préremplie : elles changent souvent). Une limite vide est désactivée.
           Les résultats viennent des trades CLOSED du journal pour ce compte. Montants en dollars US.
-          Pour voir un exemple complet : Journal → Réglages → <b>Charger l'exemple</b>.</p>
+          Pour voir un exemple complet : Trader → Journal → Réglages → <b>Charger l'exemple</b>.</p>
       </div>
 
       <div id="acFormCard" class="card hidden">
@@ -705,7 +705,7 @@
               <label class="check"><input id="ruNewsBan" type="checkbox"> Interdit de trader pendant les annonces fortes</label>
               <label>Fenêtre autour d'une annonce (min)<input id="ruNewsWin" type="number" step="1" min="0" max="120" value="2"></label>
             </div>
-            <p class="muted small">Les annonces viennent de l'onglet Annonces (impact « fort »). Un trade ouvert ou fermé dans la fenêtre compte comme violation.</p>
+            <p class="muted small">Les annonces viennent de Analyse → Annonces (impact « fort »). Un trade ouvert ou fermé dans la fenêtre compte comme violation.</p>
           </fieldset>
           <div class="row wrap">
             <button class="btn" type="submit">Enregistrer</button>
@@ -776,25 +776,53 @@
       <div class="card prose">
         <h2>Comment ça marche</h2>
         <ol>
-          <li>Crée ta clé gratuite Twelve Data et colle-la dans l'onglet Moniteur.</li>
-          <li>Remplis les annonces de la semaine (onglet Annonces).</li>
+          <li>Crée ta clé gratuite Twelve Data et colle-la dans <b>Accueil → Moniteur</b>. Sans clé, le site marche en <b>mode démo</b> (prix simulés, bandeau orange « Données de démo »).</li>
+          <li>Remplis les annonces de la semaine dans <b>Analyse → Annonces</b>.</li>
           <li>Démarre la surveillance pendant une session ouverte (Londres ou New York), page ouverte.</li>
           <li><b>« À surveiller »</b> veut dire « regarde ici » : jamais « achète » ni « vends ».</li>
-          <li>Note chaque trade (ou importe-le depuis MT5) dans le <b>Journal</b>, puis fais ta revue chaque semaine.</li>
+          <li>Note chaque trade (ou importe-le depuis MT5) dans <b>Trader → Journal</b>, puis fais ta revue chaque semaine.</li>
         </ol>
-        <p class="muted small">Pour tout découvrir sans compte : Journal → Réglages → <b>Charger l'exemple</b> (données fictives, supprimables en un clic).</p>
+        <p class="muted small">Pour tout découvrir sans compte : Trader → Journal → Réglages → <b>Charger l'exemple</b> (données fictives, supprimables en un clic).</p>
         <p><button id="wAgain" class="btn ghost small" type="button">Revoir l'écran d'accueil</button></p>
-        <h3>Onglets</h3>
+        <h3>Les 4 sections</h3>
         <ul>
-          <li><b>Moniteur</b> : surveillance EUR/USD et or, sessions de marché, alertes de prix.</li>
-          <li><b>Analyse</b> : graphique H1/H4/D1, EMA 20/50/200, RSI, ATR, efficacité, biais, supports et résistances (sommets/creux, pivots, Fibonacci, chiffres ronds), plages. 3 crédits par analyse.</li>
-          <li><b>Fondamental</b> : taux directeurs, inflation et chômage aux États-Unis et en zone euro (sources officielles datées), écart de taux, tes annonces, liens vers les banques centrales et l'actualité.</li>
-          <li><b>Synthèse</b> : lecture automatique du jour (contexte, agenda, amplitude habituelle, scénarios conditionnels, prudence). Pas de prédiction de direction.</li>
-          <li><b>Plan</b> : plan de trade avec verdict OK / À REVOIR / NON, pré-test d'une idée, taille de position.</li>
-          <li><b>Annonces</b> : fenêtres d'annonces (« Refusé » 15 min avant et après).</li>
-          <li><b>Journal</b> : fiche complète de chaque trade (heures UTC et Bénin, risque, pips, R, coûts, session, setup, checklist, qualité, émotions, erreurs, capture), statistiques filtrables (équité, drawdown, calendrier, par setup / session / jour / heure, coût des erreurs, plan vs hors plan), revue de la semaine, exports CSV et JSON, rapport imprimable.</li>
-          <li><b>Comptes</b> : plusieurs comptes (démo, challenge, financé), règles de challenge que tu saisis, jauges, statut, alertes, lot maximum autorisé, modèles de règles, import MT5.</li>
-          <li><b>Dashboard</b> : évolution d'un compte (solde, profit du jour, de la semaine et du mois, statistiques, courbe, drawdown, calendrier, répartitions, règles prop firm, dépôts et retraits, sauvegarde).</li>
+          <li><b>Accueil</b>
+            <ul>
+              <li><b>Moniteur</b> : surveillance EUR/USD et or, sessions de marché, alertes de prix.</li>
+              <li><b>Synthèse du jour</b> : lecture automatique du jour (contexte, agenda, amplitude habituelle, scénarios conditionnels, prudence). Pas de prédiction de direction.</li>
+            </ul></li>
+          <li><b>Analyse</b>
+            <ul>
+              <li><b>Technique</b> : graphique H1/H4/D1, EMA 20/50/200, RSI, ATR, efficacité, biais, supports et résistances (sommets/creux, pivots, Fibonacci, chiffres ronds), plages. 3 crédits par analyse.</li>
+              <li><b>Fondamental</b> : taux directeurs, inflation et chômage aux États-Unis et en zone euro (sources officielles datées), écart de taux, tes annonces, liens vers les banques centrales et l'actualité.</li>
+              <li><b>Annonces</b> : fenêtres d'annonces (« Refusé » 15 min avant et après).</li>
+            </ul></li>
+          <li><b>Trader</b>
+            <ul>
+              <li><b>Dashboard</b> : évolution d'un compte (solde, profit du jour, de la semaine et du mois, statistiques, courbe, drawdown, calendrier, répartitions, règles prop firm, dépôts et retraits, sauvegarde).</li>
+              <li><b>Plan</b> : plan de trade avec verdict OK / À REVOIR / NON, pré-test d'une idée, taille de position.</li>
+              <li><b>Journal</b> : fiche complète de chaque trade (heures Bénin et UTC, risque, pips, R, coûts, session, setup, checklist, qualité, émotions, erreurs, capture), statistiques filtrables, revue de la semaine, exports CSV et JSON, rapport imprimable.</li>
+              <li><b>Comptes</b> : plusieurs comptes (démo, challenge, financé), règles de challenge que tu saisis, jauges, statut, alertes, lot maximum autorisé, modèles de règles, import MT5.</li>
+            </ul></li>
+          <li><b>Aide</b> : cette page.</li>
+        </ul>
+        <p class="muted small">Sur téléphone, les 4 sections sont dans la barre en bas de l'écran ; les pages de la section sont en haut.</p>
+        <h3>Lire le site</h3>
+        <ul>
+          <li><b>Statuts</b> : « À surveiller », « Refusé », « Données manquantes », « Rien à signaler » pour le Moniteur ; « Ouvert », « Clôturé », « Non exécuté » pour les trades. Les fichiers CSV et les sauvegardes gardent les codes anglais (WATCH, REJECT, DATA_MISSING, OPEN, CLOSED…).</li>
+          <li><b>Heures</b> : en heure du Bénin (UTC+1), avec l'heure UTC en petit. Les annonces se saisissent aussi en heure du Bénin.</li>
+          <li><b>Nombres</b> : au format français (1 234,56 $). Les champs de saisie et les exports gardent le point décimal.</li>
+          <li><b>▲ / ▼</b> : en plus du vert (gain, hausse) et du rouge (perte, baisse).</li>
+          <li><b>ⓘ</b> : touche ou clique sur l'icône pour une explication d'une phrase. Le lexique complet est juste en dessous.</li>
+        </ul>
+        <h3>Lexique</h3>
+        <dl id="helpGlossary" class="glossary"></dl>
+        <h3>Confort et accessibilité</h3>
+        <ul>
+          <li><b>A- / A+</b> (en haut à droite des pages) : taille du texte, mémorisée sur l'appareil.</li>
+          <li><b>Thème sombre</b> : il suit le réglage de ton téléphone ou de ton ordinateur.</li>
+          <li><b>Clavier</b> : Tab pour avancer, Maj+Tab pour reculer, Entrée pour ouvrir, Échap pour fermer une explication ou l'écran d'accueil. La première touche Tab propose « Aller au contenu ». Sur la courbe du Dashboard, les flèches ← → passent d'un point à l'autre.</li>
+          <li><b>Lecteurs d'écran</b> : boutons et champs ont un nom clair, les courbes ont un résumé, les messages importants sont annoncés.</li>
         </ul>
         <h3>Journal : les points clés</h3>
         <ul>
@@ -809,13 +837,13 @@
         <ul>
           <li>Aucune règle de vraie prop firm n'est préremplie : saisis les tiennes (une case vide = règle désactivée) et enregistre-les comme modèle.</li>
           <li><b>Perte journalière</b> : % du solde initial ou du solde en début de journée, avec l'heure de remise à zéro. <b>Drawdown</b> : statique ou suiveur, sur le solde ou l'équité.</li>
-          <li>Statut <b>RÈGLE VIOLÉE</b> : perte journalière, drawdown, durée dépassée ou trade pendant une annonce forte (onglet Annonces). <b>OBJECTIF ATTEINT</b> : objectif + jours minimum + consistance.</li>
+          <li>Statut <b>RÈGLE VIOLÉE</b> : perte journalière, drawdown, durée dépassée ou trade pendant une annonce forte (Analyse → Annonces). <b>OBJECTIF ATTEINT</b> : objectif + jours minimum + consistance.</li>
           <li>Alerte quand il reste moins de 30 % de marge. Le calculateur de lot maximum prend la marge la plus serrée, spread compris.</li>
           <li>L'<b>équité</b> vient de ta saisie (« Saisir l'équité actuelle ») ou de l'import MT5. Sans valeur récente, le calcul se fait sur le solde.</li>
         </ul>
         <h3>Dashboard : mode d'emploi</h3>
         <ol>
-          <li>Choisis le compte en haut à droite. Chaque compte a son solde de départ (onglet Comptes).</li>
+          <li>Choisis le compte en haut à droite. Chaque compte a son solde de départ (Trader → Comptes).</li>
           <li>Ajoute tes trades : bouton <b>+ Ajouter un trade</b> (saisie manuelle) ou <b>Importer l'historique MT5</b>. Les trades vont dans le <b>Journal</b> : il n'y a qu'un seul journal pour tout le site.</li>
           <li>Note tes <b>dépôts et retraits</b> en bas de la page : ils changent le solde, mais pas le profit, les statistiques ni le drawdown.</li>
           <li>Lis les cartes : solde actuel, profit total (en % du capital investi = départ + dépôts − retraits), aujourd'hui, cette semaine (depuis lundi), ce mois.</li>
@@ -832,7 +860,7 @@
           <li>Clic droit dans la liste → choisis l'affichage <b>Positions</b>, et une période (par exemple « Tout l'historique » ou « 3 derniers mois »).</li>
           <li>Clic droit → <b>Rapport</b> → <b>HTML</b> (ou <b>Open XML</b> pour un fichier Excel .xlsx). Enregistre le fichier.</li>
           <li>Tu peux aussi utiliser un fichier <b>CSV</b> (par exemple un rapport ouvert dans Excel puis « Enregistrer sous » CSV) : il doit garder les colonnes de la section Positions.</li>
-          <li>Sur ce site : Dashboard → <b>Importer l'historique MT5</b> (ou Comptes → Import MT5), choisis le fichier, indique le <b>décalage horaire du serveur</b> de ton courtier (souvent UTC+2 l'hiver, UTC+3 l'été), vérifie l'aperçu puis importe.</li>
+          <li>Sur ce site : Trader → Dashboard → <b>Importer l'historique MT5</b> (ou Trader → Comptes → Import MT5), choisis le fichier, indique le <b>décalage horaire du serveur</b> de ton courtier (souvent UTC+2 l'hiver, UTC+3 l'été), vérifie l'aperçu puis importe.</li>
           <li>Réimporter le même rapport plus tard ne crée pas de doublon : seuls les nouveaux trades sont ajoutés.</li>
         </ol>
         <p class="muted small">Seule la section <b>Positions</b> est lue (pas les ordres ni les transactions). Aucun mot de passe n'est demandé. Sur téléphone, l'appli MT5 ne crée pas de rapport : fais l'export depuis un PC.</p>
@@ -852,7 +880,7 @@
           <li><b>À surveiller</b> (code WATCH) : mouvement brusque sur 5 min (≥ 15 pips EUR/USD, ≥ 3 $ sur l'or), données fraîches, marché ouvert, aucune annonce proche. Aucune direction ni profit implicite.</li>
           <li><b>Refusé</b> (code REJECT) : marché fermé, annonce à moins de 15 min, spread trop large, ou prix trop éloigné du taux de référence de la BCE (EUR/USD).</li>
           <li><b>Données manquantes</b> (code DATA_MISSING) : prix absent, donnée périmée (&gt; 3 min) pendant les heures d'ouverture, quota atteint, erreur réseau. Une valeur manquante n'est jamais un zéro.</li>
-          <li><b>Pause « À surveiller »</b> : un même mouvement ne déclenche qu'une alerte ; pendant la pause (10 min par défaut, réglable par paire dans Moniteur → Réglages), les relevés suivants sont notés « déjà signalé ».</li>
+          <li><b>Pause « À surveiller »</b> : un même mouvement ne déclenche qu'une alerte ; pendant la pause (10 min par défaut, réglable par paire dans Accueil → Moniteur → Réglages), les relevés suivants sont notés « déjà signalé ».</li>
           <li><b>Pip</b> : EUR/USD 1 pip = 0,0001 (10 $ par lot standard). <b>Or : 1 pip = 0,10 $ de prix dans nos calculs</b> (10 $ par lot de 100 oz), réglable car il varie selon le courtier.</li>
         </ul>
         <h3>Limites</h3>
@@ -914,19 +942,19 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="fmt.js?v=46"></script>
-  <script src="rules.js?v=46"></script>
-  <script src="analysis.js?v=46"></script>
-  <script src="mt5-core.js?v=46"></script>
-  <script src="journal-core.js?v=46"></script>
-  <script src="challenge-core.js?v=46"></script>
-  <script src="dashboard-core.js?v=46"></script>
-  <script src="db.js?v=46"></script>
-  <script src="app.js?v=46"></script>
-  <script src="journal.js?v=46"></script>
-  <script src="accounts.js?v=46"></script>
-  <script src="mt5-import.js?v=46"></script>
-  <script src="dashboard.js?v=46"></script>
-  <script src="desk.js?v=46"></script>
+  <script src="fmt.js?v=47"></script>
+  <script src="rules.js?v=47"></script>
+  <script src="analysis.js?v=47"></script>
+  <script src="mt5-core.js?v=47"></script>
+  <script src="journal-core.js?v=47"></script>
+  <script src="challenge-core.js?v=47"></script>
+  <script src="dashboard-core.js?v=47"></script>
+  <script src="db.js?v=47"></script>
+  <script src="app.js?v=47"></script>
+  <script src="journal.js?v=47"></script>
+  <script src="accounts.js?v=47"></script>
+  <script src="mt5-import.js?v=47"></script>
+  <script src="dashboard.js?v=47"></script>
+  <script src="desk.js?v=47"></script>
 </body>
 </html>

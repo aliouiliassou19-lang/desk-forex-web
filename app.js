@@ -335,7 +335,7 @@
     } catch (e) {
       if (sid !== mon.sid) return;
       if (e.kind === "QUOTA") { missingRows("QUOTA_EXCEEDED_API"); return stopMonitor("Quota Twelve Data atteint : arrêt propre.", true); }
-      if (e.kind === "AUTH") return stopMonitor("Clé refusée par Twelve Data : vérifie-la (onglet Moniteur).", true);
+      if (e.kind === "AUTH") return stopMonitor("Clé refusée par Twelve Data : vérifie-la (Accueil → Moniteur).", true);
       if (e.kind === "API") return stopMonitor("Erreur de l'API Twelve Data : " + e.message, true);
       mon.failures++;
       missingRows("NETWORK_ERROR");
@@ -536,6 +536,8 @@
     b.setAttribute("aria-expanded", "true"); b.setAttribute("aria-describedby", "tipBox"); tipOwner = b;
   }
   document.querySelectorAll("button[data-tip]").forEach(prepTip);
+  const gl = $("helpGlossary");
+  if (gl) Object.values(F.GLOSSARY).forEach(([term, text]) => gl.append(el("dt", {}, term), el("dd", {}, text)));
   document.addEventListener("click", (e) => {
     const b = e.target.closest("button[data-tip]");
     if (b) { e.preventDefault(); e.stopPropagation(); prepTip(b); showTip(b); return; }

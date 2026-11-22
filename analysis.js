@@ -450,7 +450,7 @@
           : "Bilan : contexte équilibré, pas de biais fondamental net.");
       fundItems.push("Ces chiffres sont connus de tous et déjà intégrés dans le prix. Ce qui fait bouger le marché dans la journée, c'est la surprise sur les annonces.");
     } else {
-      fundItems.push(`Pas de données fondamentales officielles lisibles pour ${pairCcys.filter((c) => !covered.has(c)).join(", ") || pair} sur ce site : consulte les banques centrales (onglet Fondamental).`);
+      fundItems.push(`Pas de données fondamentales officielles lisibles pour ${pairCcys.filter((c) => !covered.has(c)).join(", ") || pair} sur ce site : consulte les banques centrales (Analyse → Fondamental).`);
     }
     sec("Lecture fondamentale", fundItems);
 
@@ -459,7 +459,7 @@
     const today = (i.news || []).filter((e) => rel.has(e.currency) && e.timeMs >= now - 900000 && e.timeMs <= now + 86400000)
       .sort((a, b) => a.timeMs - b.timeMs);
     const agenda = today.map((e) => `${F.benin(e.timeMs)} (Bénin, ${F.utc(e.timeMs)}) : ${e.currency} ${e.event}${e.impact === "high" ? " (impact fort)" : ""}. Pas de nouvelle position de 15 min avant à 15 min après.`);
-    if (!agenda.length) agenda.push("Aucune annonce enregistrée pour les 24 prochaines heures. Vérifie le calendrier (onglet Annonces) : une annonce oubliée est le piège le plus courant.");
+    if (!agenda.length) agenda.push("Aucune annonce enregistrée pour les 24 prochaines heures. Vérifie le calendrier (Analyse → Annonces) : une annonce oubliée est le piège le plus courant.");
     sec("Agenda des 24 prochaines heures", agenda);
     if (today.some((e) => e.impact === "high")) { out.caution = "élevée"; out.cautionWhy.push("annonce à impact fort dans les 24 h"); }
 
@@ -482,7 +482,7 @@
       sc.push("Ces scénarios disent où regarder, pas ce qui va se passer. Attends la clôture d'une bougie au-delà du niveau plutôt qu'une simple mèche.");
       sec("Scénarios à surveiller (conditionnels)", sc);
     } else {
-      sec("Technique et amplitude", ["Lance l'analyse technique de cette paire (onglet Analyse, 3 crédits) pour ajouter l'amplitude habituelle, le régime et les scénarios avec niveaux."]);
+      sec("Technique et amplitude", ["Lance l'analyse technique de cette paire (Analyse → Technique, 3 crédits) pour ajouter l'amplitude habituelle, le régime et les scénarios avec niveaux."]);
     }
 
     // 4. moment de la journee et prudence
@@ -499,7 +499,7 @@
 
     sec("Méthode (pas un conseil)", [
       "Aucune règle n'a encore montré d'avantage mesuré : reste en compte démo et note tout dans le journal papier.",
-      "Avant toute idée : stop défini, risque ≤ 2 % du solde, spread réel du courtier vérifié (onglet Plan).",
+      "Avant toute idée : stop défini, risque ≤ 2 % du solde, spread réel du courtier vérifié (Trader → Plan).",
       "Un jour sans setup clair est un jour normal : ne pas trader est aussi une décision.",
     ]);
     if (out.caution === "normale" && !out.cautionWhy.length) out.cautionWhy.push("pas d'annonce forte connue ni de période à risque");
