@@ -1,0 +1,56 @@
+# Briefing IA du matin (lecture seule, educatif).
+# Du lundi au vendredi vers 7 h heure du Benin (6 h UTC ; GitHub peut retarder de quelques minutes),
+# et a la main : onglet Actions -> Briefing du matin -> Run workflow.
+# Secrets (Settings -> Secrets and variables -> Actions) :
+#   TWELVEDATA_API_KEY : prix H1/H4/D1 de l'or et de l'EUR/USD (6 credits par jour) ;
+#   ANTHROPIC_API_KEY  : briefing de 5 lignes par paire ecrit par Claude (sinon briefing automatique).
+name: Briefing du matin
+
+on:
+  schedule:
+    - cron: "0 6 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write               # uniquement pour enregistrer data/briefing.json
+
+concurrency:
+  group: donnees-du-site        # un seul robot a la fois ecrit dans data/
+  cancel-in-progress: false
+
+jobs:
+  briefing:
+    if: github.repository == 'aliouiliassou19-lang/desk-forex-web'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Installer le SDK Claude
+        run: npm install --no-save --no-package-lock --no-audit --no-fund "@anthropic-ai/sdk@1.12.0"
+
+      - name: Tests
+        run: node --test tests/
+
+      - name: Preparer le briefing
+        env:
+          TWELVEDATA_API_KEY: ${{ secrets.TWELVEDATA_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node outils/briefing.js --out data
+
+      - name: Enregistrer
+        run: |
+          git add data/briefing.json
+          if git diff --cached --quiet; then
+            echo "Rien de neuf : pas de commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Briefing du matin : mise a jour automatique"
+          git pull --rebase origin main
+          git push origin HEAD:main

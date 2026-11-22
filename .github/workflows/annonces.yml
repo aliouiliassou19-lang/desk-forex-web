@@ -14,7 +14,7 @@ permissions:
   contents: write               # uniquement pour enregistrer data/annonces.json et data/historique-annonces.json
 
 concurrency:
-  group: annonces
+  group: donnees-du-site        # un seul robot a la fois ecrit dans data/
   cancel-in-progress: false
 
 jobs:
