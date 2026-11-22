@@ -111,6 +111,18 @@
     store.set("tab", name);
     const tabOf = store.get("tabOf", {}); if (tabOf && typeof tabOf === "object") { tabOf[g] = name; store.set("tabOf", tabOf); }
   }
+  // theme : sombre par defaut, clair en option (bouton soleil / lune), memorise sur l'appareil
+  function applyTheme(t) {
+    const light = t === "light";
+    if (light) document.documentElement.setAttribute("data-theme", "light"); else document.documentElement.removeAttribute("data-theme");
+    $("themeBtn").setAttribute("aria-label", light ? "Passer en thème sombre" : "Passer en thème clair");
+    const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute("content", light ? "#F3F6FB" : "#0B1220");
+    window.dispatchEvent(new Event("resize"));            // les graphiques se redessinent avec les nouvelles couleurs
+  }
+  $("themeBtn").addEventListener("click", () => {
+    const next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+    store.set("theme", next); applyTheme(next);
+  });
   // taille du texte : A- / A+ (5 niveaux, memorises sur l'appareil)
   const FS_MIN = -1, FS_MAX = 3;
   function applyFontSize(level) {
@@ -601,6 +613,7 @@
   // chaque partie demarre seule : une erreur dans l'une n'empeche pas les autres de s'afficher
   const safe = (name, fn) => { try { fn(); } catch (e) { console.error(`Desk Forex : erreur au démarrage (${name})`, e); } };
   safe("taille du texte", () => applyFontSize(store.get("fontSize", 0)));
+  safe("thème", () => applyTheme(store.get("theme", "dark")));
   safe("onglet", () => showTab(store.get("tab", "monitor")));
   [["clé", renderKey], ["crédits", renderCredits], ["annonces", renderNews], ["cartes", renderCards], ["relevés", renderLog],
     ["taille de position", renderSize], ["notifications", renderNotifBtn], ["réglages", renderSettingsForm], ["marché", tick]]
