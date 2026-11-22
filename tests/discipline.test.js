@@ -77,3 +77,46 @@ test("etat du jour : perte max du jour et pertes d'affilee (heure du Benin)", ()
   assert.equal(DC.dayStatus(acc, L([["t1", "2026-11-20T09:00:00Z", -25]]), T("2026-11-21T08:00:00Z"), {}).locked, false);
   assert.equal(s.unlockAt, T("2026-11-20T23:00:00Z"));       // minuit au Benin
 });
+
+test("briefing du jour : 3 lignes (tendance, niveaux, annonces)", () => {
+  const now = T("2026-11-20T09:00:00Z");                     // 10:00 au Benin
+  const news = [
+    { timeMs: T("2026-11-20T13:30:00Z"), currency: "USD", event: "CPI", impact: "high" },
+    { timeMs: T("2026-11-20T09:30:00Z"), currency: "EUR", event: "PMI", impact: "high" },
+    { timeMs: T("2026-11-20T15:00:00Z"), currency: "USD", event: "Discours", impact: "medium" },   // pas forte
+    { timeMs: T("2026-11-21T13:30:00Z"), currency: "USD", event: "Demain", impact: "high" },       // pas aujourd'hui
+    { timeMs: T("2026-11-20T08:00:00Z"), currency: "GBP", event: "BoE", impact: "high" },          // autre devise
+  ];
+  const tech = { price: 2650.4, dec: 2, pip: 0.1, tfs: [{ tf: "D1", trend: "haussière" }, { tf: "H4", trend: "haussière" }, { tf: "H1", trend: "haussière" }],
+    resistances: [{ price: 2662.4, label: "Sommet H4 19/11" }], supports: [{ price: 2641.9, label: "Pivot S1" }] };
+  let b = DC.briefLines("XAU/USD", tech, news, now);
+  assert.equal(b.trend, "Tendance : haussière en H4 et en H1."); assert.equal(b.trendDir, "up");
+  assert.match(b.levels, /^Niveaux clés : résistance 2\s662,40 \(Sommet H4 19\/11, à 120 pips\) · support 2\s641,90 \(Pivot S1, à 85 pips\) · prix 2\s650,40\.$/);
+  assert.equal(b.newsCount, 1);                              // l'or : seulement le dollar
+  assert.match(b.news, /14:30 USD CPI/);
+  b = DC.briefLines("EUR/USD", Object.assign({}, tech, { tfs: [{ tf: "H4", trend: "baissière" }, { tf: "H1", trend: "haussière" }] }), news, now);
+  assert.equal(b.trendDir, "mixed"); assert.match(b.trend, /mixte \(H4 baissière, H1 haussière\)/);
+  assert.equal(b.newsCount, 2); assert.match(b.news, /10:30 EUR PMI · 14:30 USD CPI/);
+  // sans cle (pas d'analyse) : seulement les annonces
+  b = DC.briefLines("EUR/USD", null, [], now);
+  assert.equal(b.trend, null); assert.equal(b.levels, null); assert.match(b.news, /aucune annonce forte/);
+});
+
+test("sessions de Londres et New York : heures du Benin et compte a rebours", () => {
+  // vendredi 20/11, 15:00 UTC (16:00 au Benin) : Londres ouverte jusqu'a 17:00 UTC (18:00 Benin), New York jusqu'a 22:00 UTC
+  let c = DC.sessionClock(T("2026-11-20T15:00:00Z"));
+  const lon = c.find((s) => s.name === "Londres"), ny = c.find((s) => s.name === "New York");
+  assert.equal(lon.open, true); assert.equal(lon.closesAt, T("2026-11-20T17:00:00Z")); assert.equal(lon.label, "ferme dans 2 h 00 min");
+  assert.equal(lon.hours, "09:00 – 18:00");
+  assert.equal(ny.open, true); assert.equal(ny.closesAt, T("2026-11-20T22:00:00Z")); assert.equal(ny.hours, "14:00 – 23:00");
+  // samedi : Londres rouvre lundi 08:00 (heure d'hiver) = 09:00 au Benin
+  c = DC.sessionClock(T("2026-11-21T12:00:00Z"));
+  const lon2 = c.find((s) => s.name === "Londres");
+  assert.equal(lon2.open, false); assert.equal(lon2.opensAt, T("2026-11-23T08:00:00Z")); assert.equal(lon2.label, "ouvre dans 1 j 20 h");
+  // ete (heure d'ete a Londres et New York) : Londres ouvre a 07:00 UTC = 08:00 au Benin
+  c = DC.sessionClock(T("2026-07-15T05:30:00Z"));
+  const lon3 = c.find((s) => s.name === "Londres"), ny3 = c.find((s) => s.name === "New York");
+  assert.equal(lon3.open, false); assert.equal(lon3.opensAt, T("2026-07-15T07:00:00Z")); assert.equal(lon3.label, "ouvre dans 1 h 30 min");
+  assert.equal(ny3.opensAt, T("2026-07-15T12:00:00Z"));
+  assert.equal(DC.fmtDuration(45 * 60000), "45 min"); assert.equal(DC.fmtDuration(0), "0 min");
+});

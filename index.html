@@ -10,14 +10,14 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <script src="theme-init.js?v=58"></script>
-  <link rel="stylesheet" href="style.css?v=58">
+  <script src="theme-init.js?v=59"></script>
+  <link rel="stylesheet" href="style.css?v=59">
 </head>
 <body>
   <a class="skip" href="#main">Aller au contenu</a>
   <header class="top">
     <div class="brand">
-      <img src="icon.svg?v=58" alt="" width="36" height="36">
+      <img src="icon.svg?v=59" alt="" width="36" height="36">
       <div>
         <p class="brand-name">Desk Forex</p>
         <p class="tag">Lecture seule · aucun ordre · outil éducatif</p>
@@ -48,6 +48,7 @@
   <div class="subbar">
     <nav class="tabs" id="subNav" aria-label="Pages de la section">
       <button type="button" data-tab="monitor" data-group="home" class="active">Moniteur</button>
+      <button type="button" data-tab="briefing" data-group="home">Briefing</button>
       <button type="button" data-tab="brief" data-group="home">Synthèse du jour</button>
       <button type="button" data-tab="analyse" data-group="analyse">Technique</button>
       <button type="button" data-tab="fund" data-group="analyse">Fondamental</button>
@@ -68,7 +69,7 @@
   <div class="layout">
     <nav class="side" id="sideNav" aria-label="Sections">
       <button type="button" class="side-grp" data-group="home"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>Accueil</button>
-      <ul class="side-sub"><li><button type="button" data-tab="monitor" data-group="home">Moniteur</button></li><li><button type="button" data-tab="brief" data-group="home">Synthèse du jour</button></li></ul>
+      <ul class="side-sub"><li><button type="button" data-tab="monitor" data-group="home">Moniteur</button></li><li><button type="button" data-tab="briefing" data-group="home">Briefing</button></li><li><button type="button" data-tab="brief" data-group="home">Synthèse du jour</button></li></ul>
       <button type="button" class="side-grp" data-group="analyse"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>Analyse</button>
       <ul class="side-sub"><li><button type="button" data-tab="analyse" data-group="analyse">Technique</button></li><li><button type="button" data-tab="fund" data-group="analyse">Fondamental</button></li><li><button type="button" data-tab="news" data-group="analyse">Annonces</button></li></ul>
       <button type="button" class="side-grp" data-group="trader"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>Trader</button>
@@ -423,6 +424,25 @@
     </section>
 
     <!-- ======================================================== PLAN -->
+    <!-- ======================================================== BRIEFING -->
+    <section id="tab-briefing" class="tab hidden">
+      <div class="card">
+        <div class="row between wrap"><h2>Sessions de trading</h2><span class="muted small">heure du Bénin (UTC+1), heure d'été gérée</span></div>
+        <div id="bfSessions" class="bf-sessions" aria-live="polite"></div>
+        <p class="muted small">Londres et New York se chevauchent l'après-midi (heure du Bénin) : c'est en général le moment le plus liquide. Week-end : marché fermé du vendredi 23:00 au dimanche 23:00 (heure du Bénin, en hiver).</p>
+      </div>
+
+      <div class="card">
+        <div class="row between wrap"><h2>Mon briefing du jour</h2><span class="muted small">or (XAU/USD) et EUR/USD</span></div>
+        <p class="muted small">En 3 lignes par paire : tendance H4 et H1, niveaux clés proches, annonces fortes du jour. Utilise l'analyse technique existante : 6 crédits Twelve Data (3 par paire), résultat gardé 5 minutes.</p>
+        <div class="row wrap lc-actions"><button id="bfRun" class="btn" type="button">Mon briefing du jour</button></div>
+        <div id="bfNoKey" class="banner hidden">Sans clé Twelve Data, le briefing affiche seulement tes annonces du jour. <button id="bfAddKey" class="btn small" type="button">Ajouter ma clé</button></div>
+        <p id="bfStatus" class="muted small" aria-live="polite"></p>
+        <div id="bfOut" class="bf-out"></div>
+        <p class="muted small">Lecture des indicateurs, pas une prédiction ni un conseil : une tendance peut se retourner à tout moment, surtout autour d'une annonce.</p>
+      </div>
+    </section>
+
     <!-- ======================================================== AVANT LE TRADE -->
     <section id="tab-pretrade" class="tab hidden">
       <div class="card" id="discStateCard">
@@ -1023,21 +1043,22 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="fmt.js?v=58"></script>
-  <script src="rules.js?v=58"></script>
-  <script src="analysis.js?v=58"></script>
-  <script src="mt5-core.js?v=58"></script>
-  <script src="journal-core.js?v=58"></script>
-  <script src="challenge-core.js?v=58"></script>
-  <script src="dashboard-core.js?v=58"></script>
-  <script src="db.js?v=58"></script>
-  <script src="app.js?v=58"></script>
-  <script src="journal.js?v=58"></script>
-  <script src="accounts.js?v=58"></script>
-  <script src="mt5-import.js?v=58"></script>
-  <script src="dashboard.js?v=58"></script>
-  <script src="discipline-core.js?v=58"></script>
-  <script src="pretrade.js?v=58"></script>
-  <script src="desk.js?v=58"></script>
+  <script src="fmt.js?v=59"></script>
+  <script src="rules.js?v=59"></script>
+  <script src="analysis.js?v=59"></script>
+  <script src="mt5-core.js?v=59"></script>
+  <script src="journal-core.js?v=59"></script>
+  <script src="challenge-core.js?v=59"></script>
+  <script src="dashboard-core.js?v=59"></script>
+  <script src="db.js?v=59"></script>
+  <script src="app.js?v=59"></script>
+  <script src="journal.js?v=59"></script>
+  <script src="accounts.js?v=59"></script>
+  <script src="mt5-import.js?v=59"></script>
+  <script src="dashboard.js?v=59"></script>
+  <script src="discipline-core.js?v=59"></script>
+  <script src="pretrade.js?v=59"></script>
+  <script src="briefing.js?v=59"></script>
+  <script src="desk.js?v=59"></script>
 </body>
 </html>

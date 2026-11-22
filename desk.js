@@ -114,6 +114,11 @@
     cache[pair] = { at: Date.now(), pair, series, tech };
     return cache[pair];
   }
+  // partage avec le Briefing : meme analyse, meme cache de 5 minutes (aucun credit de plus pendant ce temps)
+  window.DeskAnalysis = {
+    get: async (pair) => { const c = cache[pair]; return c && Date.now() - c.at < 300000 ? c : runAnalysis(pair); },
+    cached: (pair) => cache[pair] || null,
+  };
   $("aRun").addEventListener("click", async () => {
     const pair = $("aPair").value;
     const c = cache[pair];
