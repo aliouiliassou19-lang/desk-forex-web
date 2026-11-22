@@ -1,0 +1,117 @@
+{
+ "schema": 1,
+ "generatedAt": "2026-11-22T20:51:01Z",
+ "day": "2026-11-22",
+ "source": "claude",
+ "model": "claude-opus-5-5",
+ "usage": {
+  "input": 2507,
+  "output": 856
+ },
+ "costUsd": 0.0271,
+ "errors": [
+  "EUR/USD : briefing IA non obtenu (réponse invalide ou contraire aux règles éducatives), briefing automatique gardé"
+ ],
+ "pairs": [
+  {
+   "pair": "XAU/USD",
+   "price": 3532.8693,
+   "dec": 2,
+   "candleTime": "2026-11-22T20:00:00Z",
+   "trendDir": "down",
+   "atr": {
+    "unite": "$",
+    "H4": 18.41,
+    "H1": 1.67
+   },
+   "resistances": [
+    {
+     "price": 3535.2591766666665,
+     "label": "Pivot P"
+    },
+    {
+     "price": 3536.779614633033,
+     "label": "EMA20 H1"
+    },
+    {
+     "price": 3537.773673333333,
+     "label": "Pivot R1"
+    }
+   ],
+   "supports": [
+    {
+     "price": 3532.74468,
+     "label": "Plus bas 24 h"
+    },
+    {
+     "price": 3530.313913333333,
+     "label": "Pivot S1"
+    },
+    {
+     "price": 3527.7994166666663,
+     "label": "Pivot S2"
+    }
+   ],
+   "news": [],
+   "rules": {
+    "trend": "Tendance : baissière en H4 et en H1.",
+    "levels": "Niveaux clés : résistance 3 535,26 (Pivot P, à 24 pips) · support 3 532,74 (Plus bas 24 h, à 1 pips) · prix 3 532,87.",
+    "news": "Annonces : aucune annonce forte enregistrée aujourd'hui pour cette paire (vérifie le calendrier dans Analyse → Annonces)."
+   },
+   "ai": {
+    "tendance": "L'or (XAU/USD) est en baisse sur toutes les échelles : en H4 (bougies de 4 heures) comme en H1 (bougies d'1 heure), la tendance est baissière. Le prix est à 3532,87 $.",
+    "niveaux": "Résistance (plafond) la plus proche : 3535,26 $ (pivot P). Support (plancher) le plus proche : 3532,74 $ (plus bas 24 h), puis 3530,31 $. L'ATR (mouvement moyen) est d'environ 18,41 $ par bougie H4 et 1,67 $ en H1.",
+    "annonces": "Aucune annonce économique importante n'est prévue aujourd'hui pour cette paire.",
+    "scenarios": "Si le prix casse 3532,74 $, il pourrait descendre vers 3530,31 $, voire 3527,8 $. S'il rebondit et dépasse 3535,26 $, il pourrait remonter vers 3536,78 $ puis 3537,77 $. Attention : le prix est très étiré et en survente (RSI H4 à 22), un rebond est possible.",
+    "prudence": "Ce ne sont que des scénarios, pas des certitudes. Évite de trader 15 min avant et après une annonce forte, et ne risque jamais plus qu'une petite part de ton capital. L'or bouge vite : sois patient et prudent."
+   }
+  },
+  {
+   "pair": "EUR/USD",
+   "price": 1.09666,
+   "dec": 5,
+   "candleTime": "2026-11-22T20:00:00Z",
+   "trendDir": "down",
+   "atr": {
+    "unite": "pips",
+    "H4": 15,
+    "H1": 7
+   },
+   "resistances": [
+    {
+     "price": 1.09671,
+     "label": "Creux H4 17/11"
+    },
+    {
+     "price": 1.0968859252654835,
+     "label": "EMA20 H1"
+    },
+    {
+     "price": 1.0969499999999999,
+     "label": "Pivot P"
+    }
+   ],
+   "supports": [
+    {
+     "price": 1.0962799999999997,
+     "label": "Pivot S1"
+    },
+    {
+     "price": 1.09578,
+     "label": "Creux H4 20/11"
+    },
+    {
+     "price": 1.09578,
+     "label": "Plus bas 24 h"
+    }
+   ],
+   "news": [],
+   "rules": {
+    "trend": "Tendance : baissière en H4 et en H1.",
+    "levels": "Niveaux clés : résistance 1,09671 (Creux H4 17/11, à 1 pips) · support 1,09628 (Pivot S1, à 4 pips) · prix 1,09666.",
+    "news": "Annonces : aucune annonce forte enregistrée aujourd'hui pour cette paire (vérifie le calendrier dans Analyse → Annonces)."
+   },
+   "ai": null
+  }
+ ]
+}
