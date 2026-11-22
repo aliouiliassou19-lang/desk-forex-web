@@ -543,3 +543,31 @@ input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px var(--info-bg)
   .lc-tile b.lc-lot { font-size: 2.25rem; }
   .lc-actions .btn { width: 100%; }
 }
+
+/* ---------- avant le trade : etat du jour, checklist obligatoire */
+.lock-box, .ok-box { display: flex; align-items: flex-start; gap: 16px; padding: 16px 20px; border-radius: var(--radius); margin: 8px 0 16px; }
+.lock-box { background: var(--reject-bg); border: 1px solid color-mix(in srgb, var(--reject) 55%, transparent); }
+.lock-box b { color: var(--reject-text); font-size: 1.125rem; }
+.lock-box p, .ok-box p { margin: 4px 0 0; }
+.lock-box svg { width: 28px; height: 28px; flex-shrink: 0; fill: none; stroke: var(--reject-text); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lock-box .btn { margin-left: auto; flex-shrink: 0; }
+.ok-box { display: block; background: var(--ok-bg); border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent); }
+.ok-box b { color: var(--ok-text); font-size: 1.125rem; }
+#homeLock { margin-bottom: 24px; }
+.disc-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.disc-stats div { background: var(--surface2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.disc-stats span { display: block; font-size: 0.8125rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.disc-stats b { font-size: 1.25rem; }
+.disc-list { display: grid; gap: 8px; margin: 16px 0; }
+.disc-item { flex-direction: row; align-items: center; gap: 14px; min-height: 56px; padding: 10px 16px; border: 1px solid var(--line-strong); border-radius: var(--radius);
+  background: var(--surface2); color: var(--text); font-size: 1rem; font-weight: 600; cursor: pointer; }
+.disc-item input { width: 26px; height: 26px; min-height: 0; flex-shrink: 0; accent-color: var(--ok); cursor: pointer; }
+.disc-item:has(input:checked) { border-color: color-mix(in srgb, var(--ok) 60%, transparent); background: var(--ok-bg); }
+.disc-item span { display: flex; flex-direction: column; gap: 2px; }
+.disc-item small { font-weight: 500; font-size: 0.875rem; }
+@media (max-width: 640px) {
+  .disc-stats { grid-template-columns: 1fr 1fr; }
+  .lock-box { flex-wrap: wrap; }
+  .lock-box .btn { margin-left: 0; }
+  #homeLock { margin-bottom: 16px; }
+}

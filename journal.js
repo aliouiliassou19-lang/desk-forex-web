@@ -185,7 +185,9 @@
     fillSelect($("jfEmoBefore"), prefs.emotions, t.emotionBefore || "", "–");
     fillSelect($("jfEmoAfter"), prefs.emotions, t.emotionAfter || "", "–");
     const cl = t.checklist || {};
-    checkboxes($("jfChecklist"), [...new Set(prefs.checklist.concat(Object.keys(cl)))], (it) => cl[it], "cl");
+    // une fiche qui a deja sa checklist (par ex. validee dans « Avant le trade ») garde exactement ses cases ;
+    // une fiche vide propose la checklist des reglages
+    checkboxes($("jfChecklist"), Object.keys(cl).length ? Object.keys(cl) : prefs.checklist, (it) => cl[it], "cl");
     checkboxes($("jfErrors"), [...new Set(prefs.errors.concat(t.errors || []))], (it) => (t.errors || []).includes(it), "er");
     set("jfShot", t.screenshot); set("jfNotes", t.notes);
     editingSource = t.source || "manual"; editingTicket = t.ticket || null;

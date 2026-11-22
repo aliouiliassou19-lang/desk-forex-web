@@ -10,14 +10,14 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <script src="theme-init.js?v=56"></script>
-  <link rel="stylesheet" href="style.css?v=56">
+  <script src="theme-init.js?v=58"></script>
+  <link rel="stylesheet" href="style.css?v=58">
 </head>
 <body>
   <a class="skip" href="#main">Aller au contenu</a>
   <header class="top">
     <div class="brand">
-      <img src="icon.svg?v=56" alt="" width="36" height="36">
+      <img src="icon.svg?v=58" alt="" width="36" height="36">
       <div>
         <p class="brand-name">Desk Forex</p>
         <p class="tag">Lecture seule · aucun ordre · outil éducatif</p>
@@ -86,6 +86,9 @@
     <div class="page-head"><p class="crumb" id="pageCrumb">Accueil</p><h1 id="pageTitle">Moniteur</h1></div>
     <!-- ======================================================== MONITEUR -->
     <section id="tab-monitor" class="tab">
+      <div id="homeLock" class="lock-box hidden" role="alert"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><div><b>Stop pour aujourd'hui, reviens demain.</b><p id="homeLockMsg"></p></div>
+        <button id="homeLockOpen" class="btn ghost small" type="button">Voir mes règles</button></div>
+
       <section class="home-kpis" aria-label="Chiffres clés de ton compte">
         <div class="row between wrap home-kpis-head"><p class="crumb" id="homeKpiAcc">Compte</p><button id="homeKpiOpen" class="btn ghost small" type="button">Ouvrir le Dashboard</button></div>
         <div id="homeKpis" class="kpis big"></div>
@@ -422,6 +425,11 @@
     <!-- ======================================================== PLAN -->
     <!-- ======================================================== AVANT LE TRADE -->
     <section id="tab-pretrade" class="tab hidden">
+      <div class="card" id="discStateCard">
+        <div class="row between wrap"><h2>État du jour</h2><span id="discAcc" class="muted small"></span></div>
+        <div id="discState" aria-live="polite"></div>
+      </div>
+
       <div class="card">
         <div class="row between wrap"><h2>Calculateur de lot</h2><span class="muted small">en un clic, pensé pour le téléphone</span></div>
         <div class="seg lc-sym" id="lcSym" role="group" aria-label="Symbole">
@@ -438,6 +446,26 @@
         <p id="lcPipInfo" class="muted small"></p>
         <p class="muted small">Le lot est arrondi vers le bas : le montant risqué ne dépasse jamais ton risque. Vérifie la taille de lot et la valeur du pip chez ton courtier. Aucun ordre n'est passé : tu exécutes toi-même, de préférence en démo.</p>
       </div>
+
+      <div class="card">
+        <div class="row between wrap"><h2>Checklist obligatoire</h2><span id="discCount" class="pill off">0 / 5</span></div>
+        <p class="muted small">Coche chaque point honnêtement avant de prendre ta position. Le bouton reste bloqué tant que tout n'est pas coché.</p>
+        <div id="discList" class="disc-list"></div>
+        <div class="row wrap lc-actions"><button id="discValidate" class="btn" type="button" disabled>Valider le trade</button></div>
+        <p id="discHint" class="small" aria-live="polite"></p>
+        <p class="muted small">« Valider le trade » ouvre une fiche du journal avec ces 5 cases cochées (et le lot du calculateur) : complète le sens, l'entrée et le stop, puis enregistre. Aucun ordre n'est passé : tu exécutes toi-même dans MT5.</p>
+      </div>
+
+      <details class="card" id="discRules">
+        <summary><h2 class="inline-h">Mes règles</h2> <span id="discRulesSum" class="muted small"></span></summary>
+        <form id="discForm" class="formgrid" autocomplete="off">
+          <label>Perte max du jour (% du solde)<input id="drLoss" type="number" inputmode="decimal" min="0.1" max="20" step="0.1"></label>
+          <label>Pertes d'affilée avant l'arrêt<input id="drStreak" type="number" inputmode="numeric" min="1" max="10" step="1"></label>
+          <label>Risque par trade (%)<input id="drRisk" type="number" inputmode="decimal" min="0.1" max="10" step="0.1"></label>
+          <div class="span2 row wrap"><button class="btn" type="submit">Enregistrer mes règles</button></div>
+        </form>
+        <p class="muted small">La perte max se calcule sur le solde du début de journée (heure du Bénin, compte choisi dans le Dashboard), avec les trades clôturés aujourd'hui. Le blocage dure jusqu'à minuit. Le site ne peut pas t'empêcher de trader dans MT5 : il te rappelle tes règles.</p>
+      </details>
     </section>
 
     <section id="tab-plan" class="tab hidden">
@@ -995,21 +1023,21 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="fmt.js?v=56"></script>
-  <script src="rules.js?v=56"></script>
-  <script src="analysis.js?v=56"></script>
-  <script src="mt5-core.js?v=56"></script>
-  <script src="journal-core.js?v=56"></script>
-  <script src="challenge-core.js?v=56"></script>
-  <script src="dashboard-core.js?v=56"></script>
-  <script src="db.js?v=56"></script>
-  <script src="app.js?v=56"></script>
-  <script src="journal.js?v=56"></script>
-  <script src="accounts.js?v=56"></script>
-  <script src="mt5-import.js?v=56"></script>
-  <script src="dashboard.js?v=56"></script>
-  <script src="discipline-core.js?v=56"></script>
-  <script src="pretrade.js?v=56"></script>
-  <script src="desk.js?v=56"></script>
+  <script src="fmt.js?v=58"></script>
+  <script src="rules.js?v=58"></script>
+  <script src="analysis.js?v=58"></script>
+  <script src="mt5-core.js?v=58"></script>
+  <script src="journal-core.js?v=58"></script>
+  <script src="challenge-core.js?v=58"></script>
+  <script src="dashboard-core.js?v=58"></script>
+  <script src="db.js?v=58"></script>
+  <script src="app.js?v=58"></script>
+  <script src="journal.js?v=58"></script>
+  <script src="accounts.js?v=58"></script>
+  <script src="mt5-import.js?v=58"></script>
+  <script src="dashboard.js?v=58"></script>
+  <script src="discipline-core.js?v=58"></script>
+  <script src="pretrade.js?v=58"></script>
+  <script src="desk.js?v=58"></script>
 </body>
 </html>
