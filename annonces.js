@@ -164,19 +164,44 @@
   $("anImpact").addEventListener("change", () => { ui.impact = $("anImpact").value; store.set("anImpact", ui.impact); render(); });
   $("anRefresh").addEventListener("click", load);
 
-  // compte a rebours : toutes les 30 s ; nouvelle lecture toutes les 30 min, ou en ouvrant l'onglet apres 10 min
-  setInterval(() => { renderNext(); }, 30000);
+  // ---------------------------------------------------------------- bandeau en haut du site
+  // 30 min avant une annonce forte (calendrier automatique ou tes annonces), et jusqu'a 15 min apres.
+  const hidden = new Set();                                // bandeaux fermes (pour cette visite)
+  function renderAlert() {
+    const box = $("newsAlert");
+    if (!box) return;
+    const a = AC.alertEvent(D.getNews(), Date.now());
+    if (!a || hidden.has(a.timeMs)) { box.classList.add("hidden"); clear(box); return; }
+    const names = a.events.map((e) => `${e.event} (${e.currency})`);
+    const what = names[0] + (names.length > 1 ? ` et ${names.length - 1} autre${names.length > 2 ? "s" : ""}` : "");
+    const at = F.benin(a.timeMs);
+    const title = a.phase === "before" ? `Annonce forte dans ${a.minutes} min : ${what}, à ${at} (heure du Bénin).`
+      : `Annonce forte publiée il y a ${a.minutes} min : ${what}, à ${at}.`;
+    const advice = a.phase === "before" ? "Évite d'ouvrir un trade de 15 min avant à 15 min après : les prix peuvent bouger très vite."
+      : `Attends encore ${Math.max(1, 15 - a.minutes)} min avant d'ouvrir un trade : les prix peuvent encore bouger très vite.`;
+    clear(box);
+    box.append(el("span", { class: "na-ico", "aria-hidden": "true" }, "!"),
+      el("div", { class: "na-txt" }, el("b", {}, title), el("small", {}, advice)),
+      el("button", { class: "btn ghost small", type: "button", onclick: () => D.showTab("news") }, "Voir l'annonce"),
+      el("button", { class: "na-close", type: "button", "aria-label": "Masquer ce bandeau", onclick: () => { hidden.add(a.timeMs); renderAlert(); } }, "×"));
+    box.classList.remove("hidden");
+  }
+  listeners.push(renderAlert);
+
+  // compte a rebours et bandeau : toutes les 30 s ; nouvelle lecture toutes les 30 min, ou en ouvrant l'onglet apres 10 min
+  setInterval(() => { renderNext(); renderAlert(); }, 30000);
   setInterval(load, 30 * 60000);
   new MutationObserver(() => {
     if (!$("tab-news").classList.contains("hidden") && Date.now() - state.loadedAt > 10 * 60000) load();
   }).observe($("tab-news"), { attributes: true, attributeFilter: ["class"] });
 
-  // partage avec le moniteur et le bandeau (etape suivante)
+  // partage avec le Moniteur et les autres pages (DeskApp.getNews fusionne avec tes annonces)
   window.DeskAnnonces = {
     events: () => weekEvents(),
     loaded: () => state.loaded && !state.error,
     onChange: (fn) => listeners.push(fn),
   };
   render();
+  renderAlert();
   load();
 })();

@@ -87,6 +87,33 @@
   const soonHigh = (events, nowMs, minutes = 30) => events.filter((e) => e.impact === "high" && e.timeMs > nowMs && e.timeMs - nowMs <= minutes * 60000).sort(byTime)[0] || null;
   /** Format du Moniteur (refus 15 min avant et apres) : {timeMs, currency, event, impact, auto}. */
   const toMonitor = (events) => events.map((e) => ({ timeMs: e.timeMs, currency: e.currency, event: e.title, impact: e.impact, auto: true }));
+  /** Tes annonces (saisie, CSV) + les annonces automatiques, sans doublon (meme minute, devise et nom), triees. */
+  function mergeNews(manual, auto) {
+    const key = (e) => `${Math.round(e.timeMs / 60000)}|${String(e.currency).toUpperCase()}|${String(e.event).toLowerCase().trim()}`;
+    const seen = new Set(), out = [];
+    for (const e of [...(manual || []), ...(auto || [])]) {
+      if (!e || !Number.isFinite(e.timeMs)) continue;
+      const k = key(e);
+      if (seen.has(k)) continue;
+      seen.add(k); out.push(e);
+    }
+    return out.sort((a, b) => a.timeMs - b.timeMs);
+  }
+  /**
+   * Bandeau d'alerte : annonce(s) forte(s) dans les `before` prochaines minutes, ou publiee(s) il y a moins de `after` minutes
+   * (la periode sans trade continue). Format du Moniteur {timeMs, currency, event, impact}.
+   * -> {phase: "before"|"after", timeMs, minutes, events} ou null. L'heure la plus proche gagne.
+   */
+  function alertEvent(news, nowMs, before = 30, after = 15) {
+    const near = (news || []).filter((e) => e && e.impact === "high" && Number.isFinite(e.timeMs)
+      && e.timeMs - nowMs <= before * 60000 && nowMs - e.timeMs <= after * 60000);
+    if (!near.length) return null;
+    near.sort((a, b) => Math.abs(a.timeMs - nowMs) - Math.abs(b.timeMs - nowMs) || a.timeMs - b.timeMs);
+    const t = near[0].timeMs, events = near.filter((e) => e.timeMs === t);
+    const phase = t > nowMs ? "before" : "after";
+    const minutes = phase === "before" ? Math.max(1, Math.ceil((t - nowMs) / 60000)) : Math.floor((nowMs - t) / 60000);
+    return { phase, timeMs: t, minutes, events };
+  }
   /** Age des donnees : {hours, stale} ; "stale" au-dela de 24 h ou si la derniere lecture a echoue. */
   function freshness(week, nowMs) {
     if (!week.fetchedMs) return { hours: null, stale: true };
@@ -137,5 +164,5 @@
   }
 
   return { CURRENCIES, IMPACTS, FIELDS, normEvent, normalizeWeek, normalizeHistory, pastEvents, withActuals,
-    dayKey, dayLabel, filter, view, byDay, nextHigh, soonHigh, toMonitor, freshness, parseValue, frValue, reading };
+    dayKey, dayLabel, filter, view, byDay, nextHigh, soonHigh, toMonitor, mergeNews, alertEvent, freshness, parseValue, frValue, reading };
 });

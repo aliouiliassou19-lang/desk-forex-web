@@ -644,3 +644,16 @@ input.an-actual { width: 7.5em; min-height: 32px; padding: 4px 8px; font-size: 0
   #anView { display: flex; width: 100%; }
   #anView button { flex: 1 1 0; padding: 6px 6px; font-size: 0.875rem; }
 }
+
+/* ---------- bandeau : annonce forte dans moins de 30 min */
+.news-alert { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; padding: 12px 16px; margin: 0 0 16px; border-radius: var(--radius);
+  background: var(--reject-bg); border: 1px solid color-mix(in srgb, var(--reject) 55%, transparent); }
+.news-alert.hidden { display: none; }
+.news-alert .na-ico { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  background: var(--reject); color: #fff; font-weight: 800; }
+.news-alert .na-txt { flex: 1 1 260px; min-width: 0; }
+.news-alert b { color: var(--reject-text); }
+:root:not([data-theme="light"]) .news-alert b { color: #FCA5A5; }
+.news-alert .na-txt small { display: block; margin-top: 2px; color: var(--text); font-size: 0.875rem; }
+.news-alert .na-close { background: transparent; border: 0; color: var(--text); font-size: 1.25rem; line-height: 1; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; }
+.news-alert .na-close:hover { background: color-mix(in srgb, var(--reject) 20%, transparent); }

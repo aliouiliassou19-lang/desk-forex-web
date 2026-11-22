@@ -210,6 +210,12 @@
   // ---------------------------------------------------------------- annonces
   let news = store.list("news").filter((e) => Number.isFinite(e.timeMs) && e.timeMs > Date.now() - 30 * 86400000);
   const saveNews = () => { news.sort((a, b) => a.timeMs - b.timeMs); store.set("news", news); };
+  /** Tes annonces + le calendrier automatique (annonces.js), sans doublon : utilise par le Moniteur et les autres pages. */
+  function allNews() {
+    const AC = window.AnnoncesCore, auto = window.DeskAnnonces;
+    if (!AC || !auto) return news.slice();
+    try { return AC.mergeNews(news, AC.toMonitor(auto.events())); } catch (e) { return news.slice(); }
+  }
   function addNews(list) {
     let added = 0;
     for (const ev of list) {
@@ -347,7 +353,7 @@
   function missingRows(reason) {
     const t = Date.now();
     addRows(SYMS.map((s) => R.evaluate(mon.engine, { symbol: s, price: null, sourceMs: null, source: "TWELVE_DATA", missingReason: reason },
-      t, cfg, news, mon.controls, { mode: "live", creditsToday: credits.usedToday(t) })));
+      t, cfg, allNews(), mon.controls, { mode: "live", creditsToday: credits.usedToday(t) })));
   }
   async function pollLive(sid) {
     if (sid !== mon.sid) return;
@@ -378,7 +384,7 @@
     credits.spend(PER_POLL, t);
     const quotes = R.parseQuotePayload(payload, SYMS);
     const obs = SYMS.map((s) => R.quoteToObservation(s, quotes[s]));
-    addRows(obs.map((o) => R.evaluate(mon.engine, o, t, cfg, news, mon.controls,
+    addRows(obs.map((o) => R.evaluate(mon.engine, o, t, cfg, allNews(), mon.controls,
       { mode: "live", creditsUsed: 1, creditsToday: credits.usedToday(t) })));
     const prices = {};
     obs.forEach((o) => { if (o.price != null) prices[o.symbol] = o.price; });
@@ -598,7 +604,7 @@
   const priceHooks = [];
   window.DeskApp = {
     cfg, store, getKey, credits, fetchJson, toast, notify, el, clear, showTab, renderCredits, download,
-    getNews: () => news.slice(),
+    getNews: allNews,
     onPrices: (fn) => priceHooks.push(fn),
     fmtUtc, fmtLocal, timeCell, tip, symBadge,
   };

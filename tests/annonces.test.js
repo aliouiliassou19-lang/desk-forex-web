@@ -87,3 +87,24 @@ test("chiffre reel tape a la main", () => {
   assert.equal(w[2].actual, "");                                   // la liste d'origine n'est pas modifiee
   assert.equal(AC.withActuals(w, null)[2].actual, "");
 });
+
+test("fusion avec tes annonces et bandeau d'alerte", () => {
+  const t = Date.parse("2026-11-25T13:30:00Z");
+  const manual = [{ timeMs: t, currency: "USD", event: "core pce", impact: "high" }, { timeMs: t + 3600000, currency: "EUR", event: "Lagarde", impact: "high" }];
+  const auto = AC.toMonitor(AC.normalizeWeek(WEEK).events);
+  const all = AC.mergeNews(manual, auto);
+  assert.equal(all.length, 4);                                     // le Core PCE saisi a la main n'est pas compte deux fois
+  assert.equal(all.filter((e) => e.auto).length, 2);
+  assert.deepEqual(AC.mergeNews(null, [{ timeMs: NaN }]), []);
+  // bandeau : 30 min avant, puis 15 min apres
+  assert.equal(AC.alertEvent(all, t - 31 * 60000), null);
+  const b = AC.alertEvent(all, t - 12 * 60000 - 5000);
+  assert.equal(b.phase, "before"); assert.equal(b.minutes, 13); assert.equal(b.events[0].event, "core pce");
+  const a = AC.alertEvent(all, t + 4 * 60000);
+  assert.equal(a.phase, "after"); assert.equal(a.minutes, 4);
+  assert.equal(AC.alertEvent(all, t + 16 * 60000), null);
+  assert.equal(AC.alertEvent([{ timeMs: t, currency: "USD", event: "PMI", impact: "medium" }], t - 60000), null);   // impact moyen : pas de bandeau
+  // deux annonces fortes a la meme heure
+  const two = AC.alertEvent([{ timeMs: t, currency: "USD", event: "A", impact: "high" }, { timeMs: t, currency: "USD", event: "B", impact: "high" }], t - 60000);
+  assert.equal(two.events.length, 2);
+});
