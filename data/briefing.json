@@ -1,21 +1,19 @@
 {
  "schema": 1,
- "generatedAt": "2026-11-22T20:51:01Z",
+ "generatedAt": "2026-11-22T20:53:48Z",
  "day": "2026-11-22",
  "source": "claude",
  "model": "claude-opus-5-5",
  "usage": {
-  "input": 2507,
-  "output": 856
+  "input": 2509,
+  "output": 936
  },
- "costUsd": 0.0271,
- "errors": [
-  "EUR/USD : briefing IA non obtenu (réponse invalide ou contraire aux règles éducatives), briefing automatique gardé"
- ],
+ "costUsd": 0.0288,
+ "errors": [],
  "pairs": [
   {
    "pair": "XAU/USD",
-   "price": 3532.8693,
+   "price": 3532.7874,
    "dec": 2,
    "candleTime": "2026-11-22T20:00:00Z",
    "trendDir": "down",
@@ -30,7 +28,7 @@
      "label": "Pivot P"
     },
     {
-     "price": 3536.779614633033,
+     "price": 3536.771814633033,
      "label": "EMA20 H1"
     },
     {
@@ -40,38 +38,38 @@
    ],
    "supports": [
     {
-     "price": 3532.74468,
-     "label": "Plus bas 24 h"
-    },
-    {
      "price": 3530.313913333333,
      "label": "Pivot S1"
     },
     {
      "price": 3527.7994166666663,
      "label": "Pivot S2"
+    },
+    {
+     "price": 3503.97701,
+     "label": "Creux H4 20/11"
     }
    ],
    "news": [],
    "rules": {
     "trend": "Tendance : baissière en H4 et en H1.",
-    "levels": "Niveaux clés : résistance 3 535,26 (Pivot P, à 24 pips) · support 3 532,74 (Plus bas 24 h, à 1 pips) · prix 3 532,87.",
+    "levels": "Niveaux clés : résistance 3 535,26 (Pivot P, à 25 pips) · support 3 530,31 (Pivot S1, à 25 pips) · prix 3 532,79.",
     "news": "Annonces : aucune annonce forte enregistrée aujourd'hui pour cette paire (vérifie le calendrier dans Analyse → Annonces)."
    },
    "ai": {
-    "tendance": "L'or (XAU/USD) est en baisse sur toutes les échelles : en H4 (bougies de 4 heures) comme en H1 (bougies d'1 heure), la tendance est baissière. Le prix est à 3532,87 $.",
-    "niveaux": "Résistance (plafond) la plus proche : 3535,26 $ (pivot P). Support (plancher) le plus proche : 3532,74 $ (plus bas 24 h), puis 3530,31 $. L'ATR (mouvement moyen) est d'environ 18,41 $ par bougie H4 et 1,67 $ en H1.",
-    "annonces": "Aucune annonce économique importante n'est prévue aujourd'hui pour cette paire.",
-    "scenarios": "Si le prix casse 3532,74 $, il pourrait descendre vers 3530,31 $, voire 3527,8 $. S'il rebondit et dépasse 3535,26 $, il pourrait remonter vers 3536,78 $ puis 3537,77 $. Attention : le prix est très étiré et en survente (RSI H4 à 22), un rebond est possible.",
-    "prudence": "Ce ne sont que des scénarios, pas des certitudes. Évite de trader 15 min avant et après une annonce forte, et ne risque jamais plus qu'une petite part de ton capital. L'or bouge vite : sois patient et prudent."
+    "tendance": "La tendance est baissière en H4 (bougies de 4 heures) comme en H1 (bougies d'1 heure), et aussi en journalier. Mais le prix est très étiré vers le bas et le RSI H4 (indicateur d'essoufflement) est à 22 : la baisse semble fatiguée.",
+    "niveaux": "Résistance la plus proche : 3535,26 $ (pivot P), puis 3536,77 $ et 3537,77 $. Support le plus proche : 3530,31 $ (pivot S1), puis 3527,8 $. L'ATR (mouvement moyen d'une bougie) est d'environ 18,41 $ en H4 et 1,67 $ en H1.",
+    "annonces": "Aucune annonce économique n'est prévue aujourd'hui pour XAU/USD. Reste quand même attentif : l'or peut bouger vite sur une nouvelle imprévue.",
+    "scenarios": "Si le prix casse 3530,31 $, il pourrait aller vers 3527,8 $, voire 3503,98 $ (creux H4 du 20/11). S'il rebondit et repasse au-dessus de 3535,26 $, il pourrait remonter vers 3536,77 $ puis 3537,77 $, vu la survente.",
+    "prudence": "Ce ne sont que des scénarios, pas des certitudes. Lors d'un jour avec annonce forte, on évite de trader 15 min avant et après. Limite toujours ton risque à une petite part de ton capital, surtout sur l'or qui bouge beaucoup."
    }
   },
   {
    "pair": "EUR/USD",
-   "price": 1.09666,
+   "price": 1.09718,
    "dec": 5,
    "candleTime": "2026-11-22T20:00:00Z",
-   "trendDir": "down",
+   "trendDir": "mixed",
    "atr": {
     "unite": "pips",
     "H4": 15,
@@ -79,39 +77,45 @@
    },
    "resistances": [
     {
-     "price": 1.09671,
-     "label": "Creux H4 17/11"
+     "price": 1.0972745373979782,
+     "label": "EMA20 H4"
     },
     {
-     "price": 1.0968859252654835,
-     "label": "EMA20 H1"
+     "price": 1.0976,
+     "label": "Sommet H4 21/11"
     },
     {
-     "price": 1.0969499999999999,
-     "label": "Pivot P"
+     "price": 1.09762,
+     "label": "Plus haut 24 h"
     }
    ],
    "supports": [
     {
-     "price": 1.0962799999999997,
-     "label": "Pivot S1"
+     "price": 1.0969499999999999,
+     "label": "Pivot P"
     },
     {
-     "price": 1.09578,
-     "label": "Creux H4 20/11"
+     "price": 1.0969354490750072,
+     "label": "EMA20 H1"
     },
     {
-     "price": 1.09578,
-     "label": "Plus bas 24 h"
+     "price": 1.09671,
+     "label": "Creux H4 17/11"
     }
    ],
    "news": [],
    "rules": {
-    "trend": "Tendance : baissière en H4 et en H1.",
-    "levels": "Niveaux clés : résistance 1,09671 (Creux H4 17/11, à 1 pips) · support 1,09628 (Pivot S1, à 4 pips) · prix 1,09666.",
+    "trend": "Tendance : mixte (H4 baissière, H1 neutre) : prudence, pas de direction claire.",
+    "levels": "Niveaux clés : résistance 1,09727 (EMA20 H4, à 1 pips) · support 1,09695 (Pivot P, à 2 pips) · prix 1,09718.",
     "news": "Annonces : aucune annonce forte enregistrée aujourd'hui pour cette paire (vérifie le calendrier dans Analyse → Annonces)."
    },
-   "ai": null
+   "ai": {
+    "tendance": "En H4 (bougies de 4 heures), l'EUR/USD est en baisse. En H1 (bougies d'1 heure), il est neutre : pas de direction claire pour l'instant.",
+    "niveaux": "Résistance (plafond) proche : 1,09727 (moyenne mobile EMA20 H4), puis 1,0976. Support (plancher) : 1,09695 (pivot), puis 1,09671. L'ATR, mouvement moyen d'une bougie, est d'environ 15 pips en H4 et 7 pips en H1.",
+    "annonces": "Aucune annonce économique importante n'est prévue aujourd'hui pour l'EUR/USD.",
+    "scenarios": "Si le prix casse 1,09695 vers le bas, il pourrait aller vers 1,09671, dans le sens de la baisse en H4. S'il rebondit sur 1,09695 et dépasse 1,09727, il pourrait remonter vers 1,0976.",
+    "prudence": "Ce ne sont que des scénarios, pas des certitudes. Évite de trader 15 min avant et après une annonce forte, et limite toujours ton risque à une petite part de ton capital."
+   }
   }
  ]
 }
