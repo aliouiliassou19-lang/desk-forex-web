@@ -195,7 +195,7 @@
     up.forEach((e) => tb.append(el("tr", {},
       el("td", { class: "mono" }, timeCell(e.timeMs)), el("td", {}, e.currency),
       el("td", {}, e.event), el("td", {}, e.impact === "high" ? "fort" : e.impact === "medium" ? "moyen" : e.impact),
-      el("td", {}, el("button", { class: "btn ghost small", type: "button", "aria-label": "Supprimer", onclick: () => {
+      el("td", {}, el("button", { class: "btn ghost small", type: "button", "aria-label": `Supprimer l'annonce ${e.currency} ${e.event} du ${F.benin(e.timeMs, { date: true })}`, onclick: () => {
         news = news.filter((n) => n !== e); saveNews(); renderNews(); } }, "Supprimer")))));
     $("newsEmpty").classList.toggle("hidden", up.length > 0);
     $("newsTable").parentElement.classList.toggle("hidden", !up.length);

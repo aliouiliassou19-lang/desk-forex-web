@@ -145,6 +145,10 @@
         el("td", { title: m.inPlan == null ? "checklist non remplie" : m.inPlan ? "dans le plan" : "hors plan" }, m.inPlan == null ? "–" : m.inPlan ? "✓" : "✗"),
         el("td", {}, t.screenshot ? el("a", { href: t.screenshot, target: "_blank", rel: "noopener noreferrer", onclick: (e) => e.stopPropagation() }, "capture") : ""));
       tr.addEventListener("click", () => openEdit(t.id));
+      // au clavier : Tab jusqu'a la ligne, puis Entree ou Espace pour ouvrir la fiche
+      tr.tabIndex = 0;
+      tr.setAttribute("aria-label", `Ouvrir la fiche : ${t.symbol} ${t.side === "sell" ? "vente" : "achat"}, ${F.status(t.status)}${t.entryTime ? ", entrée le " + JC.fmtLocal(t.entryTime) : ""}${m.net != null ? ", résultat " + money(m.net) : ""}`);
+      tr.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEdit(t.id); } });
       tb.append(tr);
     });
     $("jEmpty").classList.toggle("hidden", list.length > 0);
@@ -281,7 +285,7 @@
 
   // ---------------------------------------------------------------- statistiques
   function groupTable(rows, keyLabel) {
-    if (!rows.length) return el("div", { class: "empty" }, el("p", {}, "Pas encore de trade clôturé."),
+    if (!rows.length) return el("div", { class: "empty-box" }, el("p", {}, "Pas encore de trade clôturé."),
       el("button", { class: "btn small", type: "button", onclick: () => openNew() }, "+ Nouveau trade"));
     const t = el("table", {}, el("thead", {}, el("tr", {}, ...[keyLabel || "Groupe", "Trades", "Réussite", "Net", "R moyen"].map((h) => el("th", {}, h)))));
     const tb = el("tbody"); t.append(tb);
@@ -422,6 +426,8 @@
         const li = el("li", { class: "tap" }, `${JC.fmtLocal(t.entryTime)} · ${t.symbol} ${t.side === "sell" ? "vente" : "achat"} · `,
           el("b", { class: "mono " + cls(m.net) }, money(m.net)), m.r != null ? ` · ${fix(m.r, 2)} R` : "", t.setup ? ` · ${t.setup}` : "");
         li.addEventListener("click", () => openEdit(t.id));
+        li.tabIndex = 0; li.setAttribute("role", "button");
+        li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEdit(t.id); } });
         ul.append(li);
       });
       return ul;

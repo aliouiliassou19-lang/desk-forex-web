@@ -210,7 +210,19 @@
     const r = cv.getBoundingClientRect(), f = Math.min(1, Math.max(0, (e.clientX - r.left - L.padL) / L.pw));
     hoverT = L.t0 + f * (L.t1 - L.t0); hoverInfo(hoverT); drawCharts();
   }
+  // clavier : fleches gauche / droite pour passer d'un point a l'autre, Echap pour sortir
+  function onKey(e) {
+    if (!view || view.empty || !["ArrowLeft", "ArrowRight", "Home", "End", "Escape"].includes(e.key)) return;
+    e.preventDefault();
+    if (e.key === "Escape") { hoverT = null; $("dbCurveInfo").textContent = INFO; drawCharts(); return; }
+    const ts = view.c.points.map((p) => p.t);
+    let i = hoverT == null ? -1 : ts.findIndex((t) => t >= hoverT - 1);
+    if (e.key === "Home") i = 0; else if (e.key === "End") i = ts.length - 1;
+    else if (e.key === "ArrowRight") i = Math.min(ts.length - 1, i + 1); else i = i <= 0 ? 0 : i - 1;
+    hoverT = Math.max(view.t0, ts[i]); hoverInfo(hoverT); drawCharts();
+  }
   ["dbCurve", "dbDD"].forEach((id) => {
+    $(id).addEventListener("keydown", onKey);
     $(id).addEventListener("pointermove", onPointer);
     $(id).addEventListener("pointerdown", onPointer);
     $(id).addEventListener("pointerleave", () => { hoverT = null; $("dbCurveInfo").textContent = INFO; drawCharts(); });
@@ -229,6 +241,10 @@
     view = { c, t0, t1: Math.max(now, c.points[c.points.length - 1].t || now), empty };
     hoverT = null; $("dbCurveInfo").textContent = empty ? "" : INFO;
     drawCharts();
+    $("dbCurve").setAttribute("aria-label", empty ? "Courbe du solde : pas encore de données."
+      : `Courbe du solde sur ${DC.PERIODS[range].toLowerCase()} : de ${money(c.startBalance)} à ${money(c.endBalance)}, ${c.trades} trades, résultat ${money(c.pnl, true)}.`);
+    $("dbDD").setAttribute("aria-label", empty ? "Courbe du drawdown : pas encore de données."
+      : `Courbe du drawdown sur ${DC.PERIODS[range].toLowerCase()} : baisse maximale ${money(c.maxDD)}, soit ${nb(c.maxDDPct, 2)} %.`);
     const label = DC.PERIODS[range].toLowerCase();
     const ddSub = (v, at) => `${nb(v, 2)} %${at ? " · le " + JC.fmtLocal(at).slice(0, 10) : ""}`;
     clear($("dbCurveKpis")).append(
@@ -310,7 +326,7 @@
   // largeur par le CSSOM (la CSP interdit l'attribut style)
   const bar = (c, w) => { const s = el("span", { class: c }); s.style.width = w.toFixed(1) + "%"; return s; };
   function splitTable(rows, label, max) {
-    if (!rows.length) return el("div", { class: "empty" }, el("p", {}, "Pas encore de trade clôturé sur ce compte."),
+    if (!rows.length) return el("div", { class: "empty-box" }, el("p", {}, "Pas encore de trade clôturé sur ce compte."),
       el("button", { class: "btn small", type: "button", onclick: () => J.openNew({ accountId: currentAccount().id }) }, "+ Ajouter un trade"));
     const t = el("table", {}, el("thead", {}, el("tr", {}, ...[label, "Trades", "Réussite", "Net"].map((h) => el("th", {}, h)), el("th", { class: "barcell" }, "Graphique"))));
     const tb = el("tbody"); t.append(tb);
@@ -337,7 +353,7 @@
     flows.forEach((f) => tb.append(el("tr", {},
       el("td", { class: "mono" }, JC.fmtLocal(f.t), el("small", { class: "utc" }, F.utc(f.t))), el("td", {}, f.type === "withdrawal" ? "Retrait" : "Dépôt"),
       el("td", { class: "mono " + (f.type === "withdrawal" ? "down" : "up") }, money(DC.signed(f), true)), el("td", { class: "wrap" }, f.note || ""),
-      el("td", {}, el("button", { class: "btn ghost small", type: "button", onclick: async () => {
+      el("td", {}, el("button", { class: "btn ghost small", type: "button", "aria-label": `Supprimer le ${f.type === "withdrawal" ? "retrait" : "dépôt"} de ${money(f.amount)} du ${JC.fmtLocal(f.t)}`, onclick: async () => {
         if (!confirm("Supprimer ce mouvement ?")) return;
         await J.saveAccount(Object.assign({}, acc, { cashflows: (acc.cashflows || []).filter((x) => x.id !== f.id) }));
         toast("Mouvement supprimé.");

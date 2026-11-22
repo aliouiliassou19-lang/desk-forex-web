@@ -58,7 +58,8 @@
       el("td", {}, a.pair), el("td", {}, a.side === "above" ? "au-dessus" : "en dessous"),
       el("td", { class: "mono" }, a.price), el("td", {}, a.note || ""),
       el("td", {}, a.triggered ? el("span", { class: "pill WATCH" }, `déclenchée (${a.at})`) : el("span", { class: "pill off" }, "active")),
-      el("td", {}, el("button", { class: "btn ghost small", type: "button", onclick: () => { alerts = alerts.filter((x) => x !== a); saveAlerts(); renderAlerts(); } }, "Supprimer")))));
+      el("td", {}, el("button", { class: "btn ghost small", type: "button", "aria-label": `Supprimer l'alerte ${a.pair} ${a.side === "above" ? "au-dessus de" : "en dessous de"} ${fmt(a.price, 5).replace(/0+$/, "").replace(/,$/, "")}`,
+        onclick: () => { alerts = alerts.filter((x) => x !== a); saveAlerts(); renderAlerts(); } }, "Supprimer")))));
   }
   function fire(list) {
     list.forEach((a) => {
@@ -142,6 +143,7 @@
       clear(box);
       if (!list.length) box.append(el("p", { class: "muted" }, "Aucun niveau proche."));
       list.forEach((l) => box.append(el("button", { class: "level", type: "button", title: "Créer une alerte",
+        "aria-label": `${l.label} : ${fmt(l.price, dec)}, à ${fmt(Math.abs(l.price - t.price) / t.pip, 0)} pips. Créer une alerte à ce prix`,
         onclick: () => {
           alerts.push({ id: Date.now(), pair: c.pair, side, price: +l.price.toFixed(dec), note: l.label, triggered: null });
           saveAlerts(); renderAlerts(); toast(`Alerte créée : ${c.pair} ${side === "above" ? "au-dessus de" : "en dessous de"} ${fmt(l.price, dec)}.`);
@@ -397,7 +399,7 @@
     out.append(el("div", { class: "verdict v-" + (r.verdict === "OK" ? "ok" : r.verdict === "NON" ? "no" : "warn") }, r.verdict));
     out.append(el("div", { class: "grid3" },
       el("div", { class: "kvbox" }, el("span", {}, "Entrée → stop"), el("b", { class: "mono" }, `${fmt(r.entry, dec)} → ${fmt(r.stop, dec)}`), el("small", {}, `${fmt(r.stopPips, 1)} pips + spread ${r.spread} p`)),
-      el("div", { class: "kvbox" }, el("span", {}, "Taille"), el("b", { class: "mono" + (r.size && !r.size.allowed ? " down" : "") }, r.size ? (r.size.allowed ? `${fmt(r.size.lots, 2)} lot` : "refusé") : "–"),
+      el("div", { class: "kvbox" }, el("span", {}, "Taille"), el("b", { class: r.size && !r.size.allowed ? "down" : "mono" }, r.size ? (r.size.allowed ? `${fmt(r.size.lots, 2)} lot` : "refusé") : "–"),
         el("small", {}, r.size ? `risque ${fmt(r.size.riskUsd, 2)} $ (${fmt(r.size.riskPct, 2)} %)` : "valeur du pip inconnue")),
       el("div", { class: "kvbox" }, el("span", {}, "Objectifs"), ...r.targets.map((t) => el("small", { class: "mono" }, `${fmt(t.price, dec)} · ${fmt(t.pips, 0)} p · R net ${fmt(t.rrNet, 2)}`)))));
     const ul = el("ul", { class: "checks" });

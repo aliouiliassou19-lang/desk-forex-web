@@ -10,9 +10,10 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=44">
+  <link rel="stylesheet" href="style.css?v=46">
 </head>
 <body>
+  <a class="skip" href="#main">Aller au contenu</a>
   <header class="top">
     <div class="brand">
       <img src="icon.svg" alt="" width="28" height="28">
@@ -58,7 +59,7 @@
     <button id="demoAddKey" class="btn small" type="button">Ajouter ma clé</button>
   </div>
 
-  <main>
+  <main id="main" tabindex="-1">
     <!-- ======================================================== MONITEUR -->
     <section id="tab-monitor" class="tab">
       <div id="keyCard" class="card">
@@ -121,7 +122,7 @@
           </div>
         </div>
         <div class="scroll"><table id="logTable"><thead><tr><th>Heure (Bénin)</th><th>Symbole</th><th>Prix</th><th>1 min (pips) <button type="button" class="tip" data-tip="pip"></button></th><th>5 min (pips)</th><th>Marché</th><th>Décision</th><th>Raisons</th></tr></thead><tbody></tbody></table></div>
-        <div id="logEmpty" class="empty hidden"><p>Aucun relevé pour l'instant : les prix s'affichent ici pendant la surveillance.</p>
+        <div id="logEmpty" class="empty-box hidden"><p>Aucun relevé pour l'instant : les prix s'affichent ici pendant la surveillance.</p>
           <button id="logEmptyBtn" class="btn small" type="button">Démarrer la surveillance</button></div>
         <p class="muted small">Prix = clôture 1 min (milieu de marché), <b>pas ton prix d'exécution</b>. Chez un courtier tu achètes à l'ask et vends au bid. bid/ask non fournis : spread <b>supposé</b> (réglable).</p>
       </div>
@@ -159,7 +160,7 @@
           <button class="btn" type="submit">Ajouter</button>
         </form>
         <div class="scroll"><table id="alTable"><thead><tr><th>Paire</th><th>Condition</th><th>Prix</th><th>Note</th><th>État</th><th>Action</th></tr></thead><tbody></tbody></table></div>
-        <div id="alEmpty" class="empty hidden"><p>Aucune alerte de prix. Une alerte te prévient quand un prix est atteint pendant la surveillance.</p>
+        <div id="alEmpty" class="empty-box hidden"><p>Aucune alerte de prix. Une alerte te prévient quand un prix est atteint pendant la surveillance.</p>
           <button class="btn small" type="button" data-focus="alPrice">+ Créer une alerte</button></div>
         <div class="row"><button id="alCheck" class="btn ghost small" type="button">Vérifier maintenant</button><span id="alMsg" class="muted small"></span></div>
       </div>
@@ -212,11 +213,12 @@
             <button type="button" data-range="7d">7 jours</button><button type="button" data-range="30d">30 jours</button><button type="button" data-range="3m">3 mois</button><button type="button" data-range="all" class="active">Tout</button>
           </div>
         </div>
-        <canvas id="dbCurve" class="chart" role="img" aria-label="Courbe du solde du compte"></canvas>
-        <p id="dbCurveInfo" class="muted small chart-info">Passe le doigt ou la souris sur la courbe pour voir le détail.</p>
+        <canvas id="dbCurve" class="chart" role="img" tabindex="0" aria-label="Courbe du solde du compte"></canvas>
+        <p class="sr-only">Avec le clavier : place-toi sur la courbe, puis utilise les flèches gauche et droite pour lire chaque point.</p>
+        <p id="dbCurveInfo" class="muted small chart-info" aria-live="polite">Passe le doigt ou la souris sur la courbe pour voir le détail.</p>
         <div id="dbCurveKpis" class="kpis flat"></div>
         <h3>Drawdown <button type="button" class="tip" data-tip="drawdown"></button></h3>
-        <canvas id="dbDD" class="chart dd-chart" role="img" aria-label="Courbe du drawdown"></canvas>
+        <canvas id="dbDD" class="chart dd-chart" role="img" tabindex="0" aria-label="Courbe du drawdown"></canvas>
         <p class="muted small">Le drawdown est la baisse depuis le plus haut atteint par le solde. Seuls les trades comptent : un dépôt ou un retrait ne crée ni n'efface de drawdown. Sur une période, le plus haut de départ est le solde au début de cette période.</p>
       </div>
 
@@ -255,7 +257,7 @@
           <button class="btn" type="submit">Ajouter</button>
         </form>
         <div class="scroll"><table id="cfTable"><thead><tr><th>Date (Bénin)</th><th>Type</th><th>Montant</th><th>Note</th><th>Action</th></tr></thead><tbody></tbody></table></div>
-        <div id="cfEmpty" class="empty"><p>Aucun dépôt ni retrait pour ce compte.</p>
+        <div id="cfEmpty" class="empty-box"><p>Aucun dépôt ni retrait pour ce compte.</p>
           <button class="btn small" type="button" data-focus="cfAmount">+ Ajouter un dépôt ou un retrait</button></div>
       </div>
 
@@ -464,7 +466,7 @@
       <div class="card">
         <h2>À venir</h2>
         <div class="scroll"><table id="newsTable"><thead><tr><th>Heure (Bénin)</th><th>Devise</th><th>Annonce</th><th>Impact</th><th>Action</th></tr></thead><tbody></tbody></table></div>
-        <div id="newsEmpty" class="empty"><p>Aucune annonce enregistrée. Ajoute les annonces fortes de la semaine (NFP, CPI, banques centrales) : le Moniteur refuse les signaux autour.</p>
+        <div id="newsEmpty" class="empty-box"><p>Aucune annonce enregistrée. Ajoute les annonces fortes de la semaine (NFP, CPI, banques centrales) : le Moniteur refuse les signaux autour.</p>
           <button class="btn small" type="button" data-focus="nDate">+ Ajouter une annonce</button></div>
       </div>
       <div class="card">
@@ -561,7 +563,7 @@
         </div>
         <div class="card">
           <div class="scroll"><table id="jList"><thead><tr><th>Entrée (Bénin)</th><th>Symbole</th><th>Sens</th><th>Statut</th><th>Lots <button type="button" class="tip" data-tip="lot"></button></th><th>Pips <button type="button" class="tip" data-tip="pip"></button></th><th>Net $</th><th>R <button type="button" class="tip" data-tip="r"></button></th><th>Setup</th><th>Session</th><th>Qualité</th><th>Plan</th><th>Action</th></tr></thead><tbody></tbody></table></div>
-          <div id="jEmpty" class="empty"><p>Aucun trade à afficher (journal vide ou filtres trop stricts). Pour découvrir le journal, tu peux charger un exemple fictif.</p>
+          <div id="jEmpty" class="empty-box"><p>Aucun trade à afficher (journal vide ou filtres trop stricts). Pour découvrir le journal, tu peux charger un exemple fictif.</p>
             <div class="row wrap"><button class="btn small" type="button" data-click="jNew">+ Nouveau trade</button><button class="btn ghost small" type="button" data-click="demoLoad">Charger l'exemple</button></div></div>
         </div>
       </div>
@@ -912,19 +914,19 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="fmt.js?v=44"></script>
-  <script src="rules.js?v=44"></script>
-  <script src="analysis.js?v=44"></script>
-  <script src="mt5-core.js?v=44"></script>
-  <script src="journal-core.js?v=44"></script>
-  <script src="challenge-core.js?v=44"></script>
-  <script src="dashboard-core.js?v=44"></script>
-  <script src="db.js?v=44"></script>
-  <script src="app.js?v=44"></script>
-  <script src="journal.js?v=44"></script>
-  <script src="accounts.js?v=44"></script>
-  <script src="mt5-import.js?v=44"></script>
-  <script src="dashboard.js?v=44"></script>
-  <script src="desk.js?v=44"></script>
+  <script src="fmt.js?v=46"></script>
+  <script src="rules.js?v=46"></script>
+  <script src="analysis.js?v=46"></script>
+  <script src="mt5-core.js?v=46"></script>
+  <script src="journal-core.js?v=46"></script>
+  <script src="challenge-core.js?v=46"></script>
+  <script src="dashboard-core.js?v=46"></script>
+  <script src="db.js?v=46"></script>
+  <script src="app.js?v=46"></script>
+  <script src="journal.js?v=46"></script>
+  <script src="accounts.js?v=46"></script>
+  <script src="mt5-import.js?v=46"></script>
+  <script src="dashboard.js?v=46"></script>
+  <script src="desk.js?v=46"></script>
 </body>
 </html>
