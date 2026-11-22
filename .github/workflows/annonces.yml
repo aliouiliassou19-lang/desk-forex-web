@@ -1,0 +1,54 @@
+# Annonces economiques automatiques (lecture seule, educatif).
+# Toutes les 3 heures (et a la main : onglet Actions -> Annonces economiques -> Run workflow),
+# telecharge le calendrier USD/EUR, ajoute les commentaires et enregistre data/*.json.
+# La cle Claude vient du secret ANTHROPIC_API_KEY (Settings -> Secrets and variables -> Actions) ;
+# sans ce secret, les commentaires sont faits par regles.
+name: Annonces economiques
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"      # a hh:17 toutes les 3 h (UTC) ; GitHub peut retarder de quelques minutes
+  workflow_dispatch:
+
+permissions:
+  contents: write               # uniquement pour enregistrer data/annonces.json et data/historique-annonces.json
+
+concurrency:
+  group: annonces
+  cancel-in-progress: false
+
+jobs:
+  mise-a-jour:
+    if: github.repository == 'aliouiliassou19-lang/desk-forex-web'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer le SDK Claude
+        run: python -m pip install --disable-pip-version-check "anthropic==2.12.0"
+
+      - name: Tests du script
+        run: python -m unittest discover -s outils -p "test_*.py"
+
+      - name: Mettre a jour les annonces
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python outils/annonces.py --out data
+
+      - name: Enregistrer si quelque chose a change
+        run: |
+          git add data/annonces.json data/historique-annonces.json
+          if git diff --cached --quiet; then
+            echo "Rien de neuf : pas de commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Annonces : mise a jour automatique"
+          git pull --rebase origin main
+          git push origin HEAD:main

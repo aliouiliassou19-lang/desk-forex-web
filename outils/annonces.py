@@ -9,6 +9,9 @@ Source principale : le flux JSON. Secours : le flux XML du meme fournisseur.
 Si les deux echouent, les dernieres bonnes donnees sont gardees et le fichier
 indique l'erreur (le site affiche alors l'age des donnees).
 
+Chaque annonce forte recoit un commentaire educatif (outils/commentaires.py) :
+Claude si la cle ANTHROPIC_API_KEY est presente (secret GitHub), sinon par regles.
+
 Le flux ne donne pas le chiffre reel : le champ "actual" reste vide ici ; il
 est garde s'il a ete rempli par ailleurs.
 
@@ -25,6 +28,8 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+import commentaires
 
 UTC = timezone.utc
 FF_JSON_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
@@ -202,7 +207,7 @@ def needs_write(old: dict, new: dict, now: datetime, keys: tuple) -> bool:
         return True
 
 
-def run(out_dir: Path, now: datetime, loader=fetch, sources=SOURCES) -> dict:
+def run(out_dir: Path, now: datetime, loader=fetch, sources=SOURCES, client=None) -> dict:
     """Met a jour les deux fichiers. Renvoie un resume (pour le journal du workflow)."""
     out_dir.mkdir(parents=True, exist_ok=True)
     week_path, hist_path = out_dir / "annonces.json", out_dir / "historique-annonces.json"
@@ -219,6 +224,7 @@ def run(out_dir: Path, now: datetime, loader=fetch, sources=SOURCES) -> dict:
         events = old_events
         source = old_week.get("source")
         fetched_at = old_week.get("fetchedAt")
+    notes = commentaires.annotate(events, now, client)
 
     week = {"schema": SCHEMA, "ok": ok, "source": source, "fetchedAt": fetched_at, "checkedAt": iso_z(now),
             "error": " ; ".join(errors) or None,
@@ -235,7 +241,7 @@ def run(out_dir: Path, now: datetime, loader=fetch, sources=SOURCES) -> dict:
         hist_path.write_text(dump(hist), encoding="utf-8", newline="\n")
         wrote.append(hist_path.name)
     return {"ok": ok, "source": source, "events": len(events), "high": sum(e["impact"] == "high" for e in events),
-            "history": len(history), "errors": errors, "wrote": wrote}
+            "history": len(history), "errors": errors, "wrote": wrote, "comments": notes}
 
 
 def main(argv=None) -> int:
@@ -254,9 +260,16 @@ def main(argv=None) -> int:
             if not files.get(url):
                 raise RuntimeError("pas de fichier fourni")
             return Path(files[url]).read_bytes()
-    r = run(Path(a.out), now, loader, sources)
+    client, why = commentaires.make_client()
+    if why:
+        print("Commentaires :", why)
+    r = run(Path(a.out), now, loader, sources, client)
     print(f"Source : {r['source'] or 'aucune'} | annonces USD/EUR : {r['events']} (dont {r['high']} fortes) | "
           f"historique : {r['history']} | fichiers ecrits : {', '.join(r['wrote']) or 'aucun (rien de neuf)'}")
+    c = r["comments"]
+    print(f"Commentaires : {c['claude']} par Claude, {c['regles']} par regles, {c['gardes']} deja faits")
+    for e in c["erreurs"]:
+        print("Commentaire IA non obtenu (regles utilisees) :", e)
     for e in r["errors"]:
         print("Avertissement :", e)
     if not r["ok"]:
