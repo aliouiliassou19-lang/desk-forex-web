@@ -57,6 +57,12 @@ class RulesTests(unittest.TestCase):
         self.assertIn("L'EUR/USD a tendance à monter", C.rules_comment(ev("German ifo Business Climate", "EUR"), NOW)["si_superieur"])
         self.assertIn("ton", C.rules_comment(ev("Fed Chair Speaks"), NOW)["si_superieur"])
 
+    def test_prudence_phrases_allowed_promises_banned(self):
+        for ok in ("Rien n'est garanti.", "Aucun trade n'est sans risque.", "Ce n'est jamais garanti."):
+            self.assertIsNone(C.BANNED.search(ok), ok)
+        for bad in ("Un gain garanti.", "Une méthode sans risque.", "Gain assuré.", "Achète maintenant."):
+            self.assertIsNotNone(C.BANNED.search(bad), bad)
+
     def test_no_trading_advice_in_rules(self):
         for t in ("Non-Farm Employment Change", "Unemployment Rate", "CPI y/y", "Fed Chair Speaks"):
             for cur in ("USD", "EUR"):

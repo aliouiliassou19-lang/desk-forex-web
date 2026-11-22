@@ -54,7 +54,8 @@ INDICATORS = (
 )
 
 BANNED = re.compile(r"\b(ach[eè]te[rz]?|achetez|vends|vendez|vendre|prends? (une )?position|ouvre (un|une) (achat|vente)|buy|sell)\b"
-                    r"|garanti|sans risque|gain assur", re.I)
+                    r"|(?<!pas )(?<!n'est )(?<!jamais )(?<!rien de )garanti|(?<!n'est )(?<!jamais )(?<!pas )sans risque|gain assur", re.I)
+# « rien n'est garanti », « aucun trade n'est sans risque »... restent permis (phrases de prudence)
 
 
 def classify(title: str):

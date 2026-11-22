@@ -100,6 +100,13 @@ test("controle des reponses et faits envoyes", () => {
   assert.equal(B.validate({ ...GOOD, tendance: "court" }), null);
   assert.equal(B.validate({ ...GOOD, niveaux: "Vends sous 2 640." }), null);
   assert.match(B.validate({ ...GOOD, prudence: "Garde un risque limité, ce sont des scénarios." }).prudence, /15 min/);
+  // phrases de prudence permises, promesses interdites
+  for (const ok of ["Ce ne sont que des scénarios : rien n'est garanti, 15 min.", "Aucun trade n'est sans risque ; ce n'est jamais garanti (15 min)."]) {
+    assert.ok(B.validate({ ...GOOD, prudence: ok }), ok);
+  }
+  for (const bad of ["Un gain garanti si le prix casse 2 660.", "Un scénario sans risque pour toi.", "Le gain assuré est là."]) {
+    assert.equal(B.validate({ ...GOOD, scenarios: bad }), null, bad);
+  }
   assert.equal(B.scrub("x apikey=ABC y", "ABC"), "x apikey=*** y");
   assert.deepEqual(B.newsForPair("XAU/USD", NEWS, NOW).map((e) => e.currency), ["USD"]);
   assert.equal(B.makeClient({}).client, null);

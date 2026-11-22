@@ -24,7 +24,8 @@ const MODEL = "claude-opus-5-5";
 const FALLBACK_BETA = "server-side-fallback-2026-07-01";
 const PRICE = { input: 4 / 1e6, output: 20 / 1e6 };           // dollars par token (Claude Opus 5.5)
 const FIELDS = ["tendance", "niveaux", "annonces", "scenarios", "prudence"];
-const BANNED = /\b(ach[eè]te[rz]?|achetez|vends|vendez|vendre|prends? (une )?position|ouvre (un|une) (achat|vente)|buy|sell)\b|garanti|sans risque|gain assur/i;
+// conseils interdits ; « rien n'est garanti », « pas sans risque »... restent permis (phrases de prudence)
+const BANNED = /\b(ach[eè]te[rz]?|achetez|vends|vendez|vendre|prends? (une )?position|ouvre (un|une) (achat|vente)|buy|sell)\b|(?<!pas )(?<!n'est )(?<!jamais )(?<!rien de )garanti|(?<!n'est )(?<!jamais )(?<!pas )sans risque|gain assur/i;
 const SCHEMA = 1;
 
 // ------------------------------------------------------------------ prix (Twelve Data)
@@ -94,17 +95,22 @@ const OUT_SCHEMA = {
   additionalProperties: false,
 };
 
-function validate(data) {
-  if (!data || typeof data !== "object") return null;
+/** -> {fields} ou {fields: null, why} (raison precise, pour le journal du workflow). */
+function check(data) {
+  if (!data || typeof data !== "object") return { fields: null, why: "pas un objet JSON" };
   const out = {};
   for (const k of FIELDS) {
     const v = String(data[k] == null ? "" : data[k]).replace(/\s+/g, " ").trim();
-    if (v.length < 10 || v.length > 400 || BANNED.test(v)) return null;
+    if (v.length < 10) return { fields: null, why: `champ « ${k} » trop court` };
+    if (v.length > 500) return { fields: null, why: `champ « ${k} » trop long (${v.length} caractères)` };
+    const m = BANNED.exec(v);
+    if (m) return { fields: null, why: `champ « ${k} » : expression interdite « ${m[0]} »` };
     out[k] = v;
   }
   if (!/15/.test(out.prudence)) out.prudence += " Pas de nouveau trade 15 min avant et après une annonce forte.";
-  return out;
+  return { fields: out };
 }
+const validate = (data) => check(data).fields;
 
 /** -> {fields|null, usage, error|null} */
 async function askClaude(client, f) {
@@ -127,9 +133,9 @@ async function askClaude(client, f) {
   const usage = resp.usage ? { input: resp.usage.input_tokens || 0, output: resp.usage.output_tokens || 0 } : null;
   if (resp.stop_reason === "refusal") return { fields: null, usage, error: "refus du modèle" };
   const block = (resp.content || []).find((b) => b.type === "text");
-  let fields = null;
-  try { fields = validate(JSON.parse(block ? block.text : "")); } catch (e) { fields = null; }
-  return fields ? { fields, usage, error: null } : { fields: null, usage, error: "réponse invalide ou contraire aux règles éducatives" };
+  let c;
+  try { c = check(JSON.parse(block ? block.text : "")); } catch (e) { c = { fields: null, why: "JSON illisible" }; }
+  return c.fields ? { fields: c.fields, usage, error: null } : { fields: null, usage, error: "réponse refusée : " + c.why };
 }
 
 function makeClient(env = process.env) {
