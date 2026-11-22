@@ -86,10 +86,10 @@
 
   // ---------------------------------------------------------------- onglets, horloge, marche
   // 4 groupes (Accueil, Analyse, Trader, Aide), chacun avec ses pages ; chaque groupe se souvient de sa derniere page
-  const GROUPS = { home: ["monitor", "brief"], analyse: ["analyse", "fund", "news"], trader: ["dash", "plan", "journal", "accounts"], help: ["help"] };
+  const GROUPS = { home: ["monitor", "brief"], analyse: ["analyse", "fund", "news"], trader: ["dash", "pretrade", "plan", "journal", "accounts"], help: ["help"] };
   const groupOf = (tab) => Object.keys(GROUPS).find((g) => GROUPS[g].includes(tab)) || "home";
   const PAGE_NAMES = { monitor: "Moniteur", brief: "Synthèse du jour", analyse: "Technique", fund: "Fondamental", news: "Annonces",
-    dash: "Dashboard", plan: "Plan", journal: "Journal", accounts: "Comptes", help: "Aide" };
+    dash: "Dashboard", pretrade: "Avant le trade", plan: "Plan", journal: "Journal", accounts: "Comptes", help: "Aide" };
   const GROUP_NAMES = { home: "Accueil", analyse: "Analyse", trader: "Trader", help: "Aide" };
   document.querySelectorAll("#subNav button, #sideNav button[data-tab]").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
   document.querySelectorAll("#groupNav button, #sideNav .side-grp").forEach((b) => b.addEventListener("click", () => {

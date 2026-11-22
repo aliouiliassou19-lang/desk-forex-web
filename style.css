@@ -514,3 +514,32 @@ input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px var(--info-bg)
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* ---------- avant le trade : calculateur de lot (gros champs pour le telephone) */
+.lc-sym { display: grid; grid-template-columns: 1fr 1fr; width: 100%; max-width: 420px; margin: 16px 0; }
+.lc-sym button { min-height: 52px; font-size: 1.0625rem; font-weight: 700; letter-spacing: .02em; }
+.lc-sym button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow), inset 0 -3px 0 var(--accent); }
+.lc-sym button[data-sym="XAUUSD"][aria-pressed="true"] { box-shadow: var(--shadow), inset 0 -3px 0 var(--gold); }
+.lc-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.lc-field { font-size: 0.9375rem; }
+.lc-field input { min-height: 56px; font-size: 1.375rem; font-weight: 600; padding: 8px 14px; }
+.lc-result { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
+.lc-tile { display: flex; flex-direction: column; gap: 4px; padding: 16px 20px; border-radius: var(--radius); background: var(--surface2); border: 1px solid var(--line); }
+.lc-tile span { font-size: 0.8125rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.lc-tile b { font-size: 1.75rem; font-weight: 700; line-height: 1.2; }
+.lc-tile b.lc-lot { font-size: 2.25rem; color: var(--accent); }
+.lc-tile b.lc-risk { color: var(--reject); }
+.lc-tile small { color: var(--muted); font-size: 0.8125rem; }
+.lc-actions .btn { min-height: 52px; font-size: 1rem; }
+.linklike { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; min-height: 24px; }
+@media (max-width: 640px) {
+  .lc-sym { max-width: none; }
+  .lc-fields { grid-template-columns: 1fr 1fr; }
+  .lc-fields .lc-field:first-child { grid-column: 1 / -1; }
+  .lc-result { grid-template-columns: 1fr 1fr; }
+  .lc-result .lc-tile:first-child { grid-column: 1 / -1; }
+  .lc-tile { padding: 16px; }
+  .lc-tile b { font-size: 1.375rem; white-space: nowrap; }
+  .lc-tile b.lc-lot { font-size: 2.25rem; }
+  .lc-actions .btn { width: 100%; }
+}
