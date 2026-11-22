@@ -10,14 +10,14 @@
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <script src="theme-init.js?v=63"></script>
-  <link rel="stylesheet" href="style.css?v=63">
+  <script src="theme-init.js?v=64"></script>
+  <link rel="stylesheet" href="style.css?v=64">
 </head>
 <body>
   <a class="skip" href="#main">Aller au contenu</a>
   <header class="top">
     <div class="brand">
-      <img src="icon.svg?v=63" alt="" width="36" height="36">
+      <img src="icon.svg?v=64" alt="" width="36" height="36">
       <div>
         <p class="brand-name">Desk Forex</p>
         <p class="tag">Lecture seule · aucun ordre · outil éducatif</p>
@@ -898,7 +898,7 @@
         <h2>Comment ça marche</h2>
         <ol>
           <li>Crée ta clé gratuite Twelve Data et colle-la dans <b>Accueil → Moniteur</b>. Sans clé, le site marche en <b>mode démo</b> (prix simulés, bandeau orange « Données de démo »).</li>
-          <li>Remplis les annonces de la semaine dans <b>Analyse → Annonces</b>.</li>
+          <li>Regarde les annonces de la semaine dans <b>Analyse → Annonces</b> : le calendrier se remplit tout seul (USD et EUR, impact fort et moyen).</li>
           <li>Démarre la surveillance pendant une session ouverte (Londres ou New York), page ouverte.</li>
           <li><b>« À surveiller »</b> veut dire « regarde ici » : jamais « achète » ni « vends ».</li>
           <li>Note chaque trade (ou importe-le depuis MT5) dans <b>Trader → Journal</b>, puis fais ta revue chaque semaine.</li>
@@ -917,7 +917,7 @@
             <ul>
               <li><b>Technique</b> : graphique H1/H4/D1, EMA 20/50/200, RSI, ATR, efficacité, biais, supports et résistances (sommets/creux, pivots, Fibonacci, chiffres ronds), plages. 3 crédits par analyse.</li>
               <li><b>Fondamental</b> : taux directeurs, inflation et chômage aux États-Unis et en zone euro (sources officielles datées), écart de taux, tes annonces, liens vers les banques centrales et l'actualité.</li>
-              <li><b>Annonces</b> : fenêtres d'annonces (« Refusé » 15 min avant et après).</li>
+              <li><b>Annonces</b> : calendrier automatique USD/EUR (aujourd'hui, semaine, historique), commentaires éducatifs, chiffre réel vs prévision, et tes annonces ajoutées à la main (« Refusé » 15 min avant et après).</li>
             </ul></li>
           <li><b>Trader</b>
             <ul>
@@ -940,6 +940,15 @@
           <li><b>Trader → Dashboard → Analyse de mes erreurs</b> : à partir de 10 trades clôturés, des constats simples (jour qui perd, meilleure session, effet de la checklist, symbole, erreur la plus coûteuse, trades après une perte), chacun sur au moins 3 trades.</li>
         </ol>
         <p class="muted small">Ces outils t'aident à respecter ton plan : ils ne passent aucun ordre et ne peuvent pas t'empêcher de trader dans MT5. Aucun conseil d'investissement, aucune promesse de gain.</p>
+        <h3>Annonces économiques : mode d'emploi</h3>
+        <ol>
+          <li><b>Analyse → Annonces</b> : le calendrier ForexFactory est lu automatiquement toutes les 3 h (USD et EUR, impact <b>fort</b> en rouge, <b>moyen</b> en orange). Choisis « Aujourd'hui », « Cette semaine » ou « Historique », et filtre par devise ou impact.</li>
+          <li><b>Prochaine annonce forte</b> : le compte à rebours indique l'heure du Bénin et le temps restant. 30 min avant une annonce forte, un <b>bandeau rouge</b> apparaît en haut de toutes les pages, et reste jusqu'à 15 min après.</li>
+          <li><b>Comprendre cette annonce</b> (annonces fortes) : ce qu'elle mesure, l'effet fréquent sur l'or et l'EUR/USD si le chiffre sort au-dessus ou en dessous de la prévision, et la prudence. Le texte est écrit par l'IA (Claude) ou, à défaut, par des règles simples : c'est éducatif, jamais un conseil d'achat ou de vente.</li>
+          <li><b>Chiffre réel</b> : le calendrier gratuit ne le donne pas. Après la publication, tape-le dans la case « Réel » (il reste dans ce navigateur) : le site indique s'il est plutôt positif ou négatif pour le dollar par rapport à la prévision.</li>
+          <li>Le <b>Moniteur</b> refuse les signaux 15 min avant et après chaque annonce du calendrier et de tes annonces ajoutées à la main. La saisie à la main et l'import CSV restent disponibles en bas de la page.</li>
+          <li>Si la ligne d'état indique « Données anciennes » ou « Indisponible », vérifie l'heure des annonces sur <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer">ForexFactory</a> et ajoute-les à la main.</li>
+        </ol>
         <h3>Lire le site</h3>
         <ul>
           <li><b>Statuts</b> : « À surveiller », « Refusé », « Données manquantes », « Rien à signaler » pour le Moniteur ; « Ouvert », « Clôturé », « Non exécuté » pour les trades. Les fichiers CSV et les sauvegardes gardent les codes anglais (WATCH, REJECT, DATA_MISSING, OPEN, CLOSED…).</li>
@@ -1027,8 +1036,8 @@
         </ul>
         <h3>Confidentialité</h3>
         <ul>
-          <li>Ta clé, tes annonces, ton journal, tes comptes et tes relevés restent <b>dans ton navigateur</b> (stockage local). Aucun compte, aucun suivi, aucun script tiers.</li>
-          <li>Le navigateur contacte seulement Twelve Data (prix et bougies, avec ta clé), et sans clé : la BCE, Eurostat, la Fed de New York et le BLS américain (statistiques officielles). Si tu utilises la connexion MT5 automatique : ton propre PC (<code>127.0.0.1</code>), rien d'autre.</li>
+          <li>Ta clé, tes annonces, tes chiffres réels tapés, ton journal, tes comptes et tes relevés restent <b>dans ton navigateur</b> (stockage local). Aucun compte, aucun suivi, aucun script tiers.</li>
+          <li>Le navigateur contacte seulement ce site (fichiers du calendrier), Twelve Data (prix et bougies, avec ta clé), et sans clé : la BCE, Eurostat, la Fed de New York et le BLS américain (statistiques officielles). Le calendrier et les commentaires sont préparés par un robot GitHub, pas par ton navigateur. Si tu utilises la connexion MT5 automatique : ton propre PC (<code>127.0.0.1</code>), rien d'autre.</li>
         </ul>
         <h3>Conditions</h3>
         <ul>
@@ -1079,24 +1088,24 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="fmt.js?v=63"></script>
-  <script src="rules.js?v=63"></script>
-  <script src="analysis.js?v=63"></script>
-  <script src="mt5-core.js?v=63"></script>
-  <script src="journal-core.js?v=63"></script>
-  <script src="challenge-core.js?v=63"></script>
-  <script src="dashboard-core.js?v=63"></script>
-  <script src="db.js?v=63"></script>
-  <script src="app.js?v=63"></script>
-  <script src="journal.js?v=63"></script>
-  <script src="accounts.js?v=63"></script>
-  <script src="mt5-import.js?v=63"></script>
-  <script src="discipline-core.js?v=63"></script>
-  <script src="dashboard.js?v=63"></script>
-  <script src="pretrade.js?v=63"></script>
-  <script src="briefing.js?v=63"></script>
-  <script src="desk.js?v=63"></script>
-  <script src="annonces-core.js?v=63"></script>
-  <script src="annonces.js?v=63"></script>
+  <script src="fmt.js?v=64"></script>
+  <script src="rules.js?v=64"></script>
+  <script src="analysis.js?v=64"></script>
+  <script src="mt5-core.js?v=64"></script>
+  <script src="journal-core.js?v=64"></script>
+  <script src="challenge-core.js?v=64"></script>
+  <script src="dashboard-core.js?v=64"></script>
+  <script src="db.js?v=64"></script>
+  <script src="app.js?v=64"></script>
+  <script src="journal.js?v=64"></script>
+  <script src="accounts.js?v=64"></script>
+  <script src="mt5-import.js?v=64"></script>
+  <script src="discipline-core.js?v=64"></script>
+  <script src="dashboard.js?v=64"></script>
+  <script src="pretrade.js?v=64"></script>
+  <script src="briefing.js?v=64"></script>
+  <script src="desk.js?v=64"></script>
+  <script src="annonces-core.js?v=64"></script>
+  <script src="annonces.js?v=64"></script>
 </body>
 </html>
