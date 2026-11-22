@@ -133,7 +133,7 @@
     if (!w || !h) return;
     cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
     const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
-    ctx.font = "11px system-ui, sans-serif"; ctx.fillStyle = col("--muted");
+    ctx.font = "11px Inter, system-ui, sans-serif"; ctx.fillStyle = col("--muted");
     cv._layout = null;
     if (opts.empty) { ctx.textBaseline = "middle"; ctx.fillText(opts.empty, 8, h / 2); return; }
     const vals = pts.map((p) => p.v).concat(opts.base != null ? [opts.base] : []);

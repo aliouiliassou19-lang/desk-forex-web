@@ -179,7 +179,7 @@
     const padR = 66, padT = 8, padB = 20, plotW = w - padR, plotH = h - padT - padB;
     const y = (p) => padT + (hi - p) / (hi - lo) * plotH;
     const cw = plotW / n;
-    ctx.font = "11px system-ui, sans-serif"; ctx.textBaseline = "middle";
+    ctx.font = "11px Inter, system-ui, sans-serif"; ctx.textBaseline = "middle";
     // grille
     ctx.strokeStyle = col("--line"); ctx.fillStyle = col("--muted"); ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {

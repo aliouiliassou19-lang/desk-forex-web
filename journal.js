@@ -316,7 +316,7 @@
     if (!w || !h) return;
     cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
     const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
-    ctx.font = "11px system-ui, sans-serif"; ctx.fillStyle = col("--muted");
+    ctx.font = "11px Inter, system-ui, sans-serif"; ctx.fillStyle = col("--muted");
     if (values.length < 2) { ctx.fillText("Pas assez de trades clôturés.", 8, h / 2); return; }
     let lo = Math.min(...values), hi = Math.max(...values);
     if (opts.zeroTop) hi = Math.max(hi, 0);
