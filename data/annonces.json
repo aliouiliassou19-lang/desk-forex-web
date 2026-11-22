@@ -1,0 +1,128 @@
+{
+ "checkedAt": "2026-11-22T19:18:38Z",
+ "currencies": [
+  "USD",
+  "EUR"
+ ],
+ "error": null,
+ "events": [
+  {
+   "actual": "",
+   "currency": "EUR",
+   "forecast": "49.8",
+   "id": "a12daa16c580",
+   "impact": "medium",
+   "previous": "49.3",
+   "time": "2026-11-23T08:15:00Z",
+   "title": "French Flash Manufacturing PMI"
+  },
+  {
+   "actual": "",
+   "currency": "EUR",
+   "forecast": "47.4",
+   "id": "842aac0f8f26",
+   "impact": "medium",
+   "previous": "48.4",
+   "time": "2026-11-23T08:15:00Z",
+   "title": "French Flash Services PMI"
+  },
+  {
+   "actual": "",
+   "currency": "EUR",
+   "forecast": "54.1",
+   "id": "63bc1f5d346c",
+   "impact": "medium",
+   "previous": "54.2",
+   "time": "2026-11-23T08:30:00Z",
+   "title": "German Flash Manufacturing PMI"
+  },
+  {
+   "actual": "",
+   "currency": "EUR",
+   "forecast": "52.4",
+   "id": "0a250d8fffc7",
+   "impact": "medium",
+   "previous": "51.7",
+   "time": "2026-11-23T08:30:00Z",
+   "title": "German Flash Services PMI"
+  },
+  {
+   "actual": "",
+   "currency": "USD",
+   "forecast": "54.5",
+   "id": "0a5c27f436df",
+   "impact": "medium",
+   "previous": "56.0",
+   "time": "2026-11-23T14:45:00Z",
+   "title": "Flash Manufacturing PMI"
+  },
+  {
+   "actual": "",
+   "currency": "USD",
+   "forecast": "55.6",
+   "id": "c76cb57b45b2",
+   "impact": "medium",
+   "previous": "57.9",
+   "time": "2026-11-23T14:45:00Z",
+   "title": "Flash Services PMI"
+  },
+  {
+   "actual": "",
+   "currency": "USD",
+   "forecast": "92.1",
+   "id": "b793079cc5d4",
+   "impact": "medium",
+   "previous": "91.7",
+   "time": "2026-11-24T15:00:00Z",
+   "title": "CB Consumer Confidence"
+  },
+  {
+   "actual": "",
+   "currency": "USD",
+   "forecast": "0.3%",
+   "id": "420e7555cc06",
+   "impact": "high",
+   "previous": "0.3%",
+   "time": "2026-11-25T13:30:00Z",
+   "title": "Core PCE Price Index m/m"
+  },
+  {
+   "actual": "",
+   "currency": "USD",
+   "forecast": "2.3%",
+   "id": "764935866e4c",
+   "impact": "medium",
+   "previous": "2.3%",
+   "time": "2026-11-25T13:30:00Z",
+   "title": "Prelim GDP Price Index q/q"
+  },
+  {
+   "actual": "",
+   "currency": "USD",
+   "forecast": "3.5%",
+   "id": "818c121fbd69",
+   "impact": "high",
+   "previous": "3.4%",
+   "time": "2026-11-25T13:30:00Z",
+   "title": "Prelim GDP q/q"
+  },
+  {
+   "actual": "",
+   "currency": "USD",
+   "forecast": "201K",
+   "id": "a3b9c766f55a",
+   "impact": "medium",
+   "previous": "203K",
+   "time": "2026-11-25T13:30:00Z",
+   "title": "Unemployment Claims"
+  }
+ ],
+ "fetchedAt": "2026-11-22T19:18:38Z",
+ "impacts": [
+  "high",
+  "medium"
+ ],
+ "ok": true,
+ "schema": 1,
+ "source": "forexfactory-json"
+}
