@@ -3,21 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src http://127.0.0.1:* http://localhost:* https://api.twelvedata.com https://data-api.ecb.europa.eu https://markets.newyorkfed.org https://api.bls.gov https://ec.europa.eu; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* http://localhost:* https://api.twelvedata.com https://data-api.ecb.europa.eu https://markets.newyorkfed.org https://api.bls.gov https://ec.europa.eu; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <meta name="referrer" content="no-referrer">
   <meta name="description" content="Desk forex éducatif en lecture seule : surveillance EUR/USD et or avec ta propre clé Twelve Data gratuite. Aucun ordre, aucun conseil.">
   <meta name="theme-color" content="#0B1220">
   <title>Desk Forex</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <script src="theme-init.js?v=61"></script>
-  <link rel="stylesheet" href="style.css?v=61">
+  <script src="theme-init.js?v=62"></script>
+  <link rel="stylesheet" href="style.css?v=62">
 </head>
 <body>
   <a class="skip" href="#main">Aller au contenu</a>
   <header class="top">
     <div class="brand">
-      <img src="icon.svg?v=61" alt="" width="36" height="36">
+      <img src="icon.svg?v=62" alt="" width="36" height="36">
       <div>
         <p class="brand-name">Desk Forex</p>
         <p class="tag">Lecture seule · aucun ordre · outil éducatif</p>
@@ -554,10 +554,27 @@
 
     <!-- ======================================================== ANNONCES -->
     <section id="tab-news" class="tab hidden">
+      <div class="card" id="anCard">
+        <div class="row between wrap">
+          <h2>Calendrier économique</h2>
+          <div class="seg" id="anView" role="group" aria-label="Période affichée">
+            <button type="button" data-v="today">Aujourd'hui</button><button type="button" data-v="week">Cette semaine</button><button type="button" data-v="history">Historique</button>
+          </div>
+        </div>
+        <p class="muted small">Annonces USD et EUR à impact <span class="pill bad tiny-dot">Fort</span> et <span class="pill WATCH tiny-dot">Moyen</span>, récupérées automatiquement. Le Moniteur refuse les signaux 15 minutes avant et après chaque annonce.</p>
+        <div id="anNext" class="an-next" aria-live="polite"></div>
+        <div class="filters">
+          <select id="anCcy" aria-label="Devise"><option value="all">Toutes les devises</option><option value="USD">USD</option><option value="EUR">EUR</option></select>
+          <select id="anImpact" aria-label="Impact"><option value="all">Tous les impacts</option><option value="high">Fort</option><option value="medium">Moyen</option></select>
+          <button id="anRefresh" class="btn ghost small" type="button">Actualiser</button>
+        </div>
+        <p id="anStatus" class="muted small" role="status"></p>
+        <div id="anList"></div>
+      </div>
       <div class="card">
-        <h2>Annonces économiques</h2>
-        <p class="muted">Le Moniteur refuse les signaux (« Refusé ») 15 minutes avant et après chaque annonce. Ajoute celles de la semaine (NFP, Fed, BCE, CPI…) depuis un calendrier, par exemple
-          <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer">ForexFactory</a>. L'heure se saisit dans <b>ton heure locale</b> ; elle est enregistrée en UTC.</p>
+        <h2>Ajouter une annonce à la main</h2>
+        <p class="muted">En plus du calendrier automatique, tu peux ajouter une annonce (par exemple un discours prévu au dernier moment), depuis un calendrier comme
+          <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer">ForexFactory</a>. L'heure se saisit en <b>heure du Bénin</b> ; elle est enregistrée en UTC.</p>
         <form id="newsForm" class="formgrid" autocomplete="off">
           <label>Date et heure (Bénin)<input id="nDate" type="datetime-local" required></label>
           <label>Devise<select id="nCcy"><option>USD</option><option>EUR</option></select></label>
@@ -567,9 +584,9 @@
         </form>
       </div>
       <div class="card">
-        <h2>À venir</h2>
+        <h2>Tes annonces ajoutées à la main</h2>
         <div class="scroll"><table id="newsTable"><thead><tr><th>Heure (Bénin)</th><th>Devise</th><th>Annonce</th><th>Impact</th><th>Action</th></tr></thead><tbody></tbody></table></div>
-        <div id="newsEmpty" class="empty-box"><p>Aucune annonce enregistrée. Ajoute les annonces fortes de la semaine (NFP, CPI, banques centrales) : le Moniteur refuse les signaux autour.</p>
+        <div id="newsEmpty" class="empty-box"><p>Aucune annonce ajoutée à la main. Le calendrier automatique ci-dessus suffit en général ; ajoute ici une annonce qui y manquerait.</p>
           <button class="btn small" type="button" data-focus="nDate">+ Ajouter une annonce</button></div>
       </div>
       <div class="card">
@@ -1061,22 +1078,24 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="fmt.js?v=61"></script>
-  <script src="rules.js?v=61"></script>
-  <script src="analysis.js?v=61"></script>
-  <script src="mt5-core.js?v=61"></script>
-  <script src="journal-core.js?v=61"></script>
-  <script src="challenge-core.js?v=61"></script>
-  <script src="dashboard-core.js?v=61"></script>
-  <script src="db.js?v=61"></script>
-  <script src="app.js?v=61"></script>
-  <script src="journal.js?v=61"></script>
-  <script src="accounts.js?v=61"></script>
-  <script src="mt5-import.js?v=61"></script>
-  <script src="discipline-core.js?v=61"></script>
-  <script src="dashboard.js?v=61"></script>
-  <script src="pretrade.js?v=61"></script>
-  <script src="briefing.js?v=61"></script>
-  <script src="desk.js?v=61"></script>
+  <script src="fmt.js?v=62"></script>
+  <script src="rules.js?v=62"></script>
+  <script src="analysis.js?v=62"></script>
+  <script src="mt5-core.js?v=62"></script>
+  <script src="journal-core.js?v=62"></script>
+  <script src="challenge-core.js?v=62"></script>
+  <script src="dashboard-core.js?v=62"></script>
+  <script src="db.js?v=62"></script>
+  <script src="app.js?v=62"></script>
+  <script src="journal.js?v=62"></script>
+  <script src="accounts.js?v=62"></script>
+  <script src="mt5-import.js?v=62"></script>
+  <script src="discipline-core.js?v=62"></script>
+  <script src="dashboard.js?v=62"></script>
+  <script src="pretrade.js?v=62"></script>
+  <script src="briefing.js?v=62"></script>
+  <script src="desk.js?v=62"></script>
+  <script src="annonces-core.js?v=62"></script>
+  <script src="annonces.js?v=62"></script>
 </body>
 </html>

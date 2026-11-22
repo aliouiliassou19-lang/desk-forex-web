@@ -604,3 +604,43 @@ input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px var(--info-bg)
 .insight.good .insight-ico { background: var(--ok-bg); color: var(--ok-text); }
 .insight.info .insight-ico { background: var(--info-bg); color: var(--info-text); font-style: italic; }
 #dbInsights .meter { width: min(320px, 100%); }
+
+/* ---------- calendrier economique automatique */
+.pill.tiny-dot { font-size: 0.75rem; padding: 1px 8px; }
+.an-next { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin: 14px 0 4px; padding: 14px 16px;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface2); }
+.an-next:empty { display: none; }
+.an-next > p { margin: 0; }
+.an-next.soon { border-color: color-mix(in srgb, var(--reject) 55%, transparent); background: var(--reject-bg); }
+.an-next-in { display: grid; gap: 2px; min-width: 0; }
+.an-next-lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
+.an-next-in b { font-size: 1.0625rem; }
+.an-count { font-size: 1.375rem; font-weight: 800; color: var(--text); white-space: nowrap; }
+.an-day { margin: 18px 0 8px; font-size: 0.9375rem; color: var(--muted); }
+.an-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.an-item { padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface2); min-width: 0; }
+.an-item.high { border-left: 4px solid var(--reject); }
+.an-item.past { opacity: .82; }
+.an-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.an-time { font-weight: 800; font-size: 1rem; }
+.an-title { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; }
+.an-nums { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; font-size: 0.875rem; color: var(--muted); align-items: center; }
+.an-nums b { color: var(--text); }
+.an-nums label { display: inline-flex; flex-direction: row; align-items: center; gap: 6px; margin: 0; font-size: 0.875rem; color: var(--muted); }
+input.an-actual { width: 7.5em; min-height: 32px; padding: 4px 8px; font-size: 0.875rem; }
+.an-reading { margin: 8px 0 0; font-weight: 600; font-size: 0.9375rem; }
+.an-reading.pos { color: var(--ok-text); }
+.an-reading.neg { color: var(--reject-text); }
+.an-reading.flat, .an-reading.none { color: var(--muted); }
+.an-reading small { font-weight: 400; color: var(--muted); }
+.an-comment { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
+.an-comment summary { cursor: pointer; font-weight: 700; color: var(--accent-text-soft, var(--text)); min-height: 32px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.an-comment summary small { font-weight: 400; color: var(--muted); }
+.an-comment dl { margin: 8px 0 4px; display: grid; gap: 2px; }
+.an-comment dt { font-weight: 700; font-size: 0.875rem; margin-top: 6px; }
+.an-comment dd { margin: 0; font-size: 0.9375rem; }
+:root:not([data-theme="light"]) #anCard .pill.bad { color: #FCA5A5; }   /* contraste AA sur le fond des cartes */
+@media (max-width: 640px) {
+  #anView { display: flex; width: 100%; }
+  #anView button { flex: 1 1 0; padding: 6px 6px; font-size: 0.875rem; }
+}
