@@ -1,5 +1,50 @@
 {
- "checkedAt": "2026-11-22T19:18:38Z",
- "events": [],
+ "checkedAt": "2026-11-23T13:04:22Z",
+ "events": [
+  {
+   "actual": "",
+   "currency": "EUR",
+   "forecast": "52.4",
+   "id": "0a250d8fffc7",
+   "impact": "medium",
+   "previous": "51.7",
+   "sens": 1,
+   "time": "2026-11-23T08:30:00Z",
+   "title": "German Flash Services PMI"
+  },
+  {
+   "actual": "",
+   "currency": "EUR",
+   "forecast": "54.1",
+   "id": "63bc1f5d346c",
+   "impact": "medium",
+   "previous": "54.2",
+   "sens": 1,
+   "time": "2026-11-23T08:30:00Z",
+   "title": "German Flash Manufacturing PMI"
+  },
+  {
+   "actual": "",
+   "currency": "EUR",
+   "forecast": "47.4",
+   "id": "842aac0f8f26",
+   "impact": "medium",
+   "previous": "48.4",
+   "sens": 1,
+   "time": "2026-11-23T08:15:00Z",
+   "title": "French Flash Services PMI"
+  },
+  {
+   "actual": "",
+   "currency": "EUR",
+   "forecast": "49.8",
+   "id": "a12daa16c580",
+   "impact": "medium",
+   "previous": "49.3",
+   "sens": 1,
+   "time": "2026-11-23T08:15:00Z",
+   "title": "French Flash Manufacturing PMI"
+  }
+ ],
  "schema": 1
 }

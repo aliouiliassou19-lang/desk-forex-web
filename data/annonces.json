@@ -1,5 +1,5 @@
 {
- "checkedAt": "2026-11-22T20:03:08Z",
+ "checkedAt": "2026-11-23T13:04:22Z",
  "currencies": [
   "USD",
   "EUR"
@@ -146,7 +146,7 @@
    "title": "Unemployment Claims"
   }
  ],
- "fetchedAt": "2026-11-22T20:03:08Z",
+ "fetchedAt": "2026-11-23T13:04:22Z",
  "impacts": [
   "high",
   "medium"
