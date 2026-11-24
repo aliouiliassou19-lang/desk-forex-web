@@ -1,170 +1,134 @@
 {
  "schema": 1,
- "generatedAt": "2026-11-23T16:39:32Z",
- "day": "2026-11-23",
+ "generatedAt": "2026-11-24T16:35:39Z",
+ "day": "2026-11-24",
  "source": "claude",
  "model": "claude-opus-5-5",
  "usage": {
-  "input": 2997,
-  "output": 981
+  "input": 2628,
+  "output": 863
  },
- "costUsd": 0.0316,
+ "costUsd": 0.0278,
  "errors": [],
  "pairs": [
   {
    "pair": "XAU/USD",
-   "price": 3668.63167,
+   "price": 3567.38055,
    "dec": 2,
-   "candleTime": "2026-11-23T16:00:00Z",
-   "trendDir": "flat",
+   "candleTime": "2026-11-24T16:00:00Z",
+   "trendDir": "mixed",
    "atr": {
     "unite": "$",
-    "H4": 28.65,
-    "H1": 17.31
+    "H4": 33.23,
+    "H1": 20.52
    },
    "resistances": [
     {
-     "price": 3669.78286896,
-     "label": "Fibo 23.6 %"
-    },
-    {
-     "price": 3689.084,
-     "label": "Plus haut 24 h"
-    },
-    {
-     "price": 3700,
+     "price": 3600,
      "label": "Chiffre rond"
+    },
+    {
+     "price": 3602.352303003144,
+     "label": "EMA20 H4"
+    },
+    {
+     "price": 3618.0855933333332,
+     "label": "Pivot P"
     }
    ],
    "supports": [
     {
-     "price": 3617.567344466078,
-     "label": "EMA20 H1"
+     "price": 3560.74633,
+     "label": "Plus bas 24 h"
     },
     {
-     "price": 3602.7447191166348,
-     "label": "EMA20 H4"
+     "price": 3547.0871866666666,
+     "label": "Pivot S1"
     },
     {
-     "price": 3600,
-     "label": "Chiffre rond"
+     "price": 3537.81929,
+     "label": "Sommet H4 21/11"
     }
    ],
    "news": [
     {
-     "time": "2026-11-23T14:45:00Z",
+     "time": "2026-11-24T15:00:00Z",
      "currency": "USD",
-     "event": "Flash Manufacturing PMI",
-     "impact": "medium"
-    },
-    {
-     "time": "2026-11-23T14:45:00Z",
-     "currency": "USD",
-     "event": "Flash Services PMI",
+     "event": "CB Consumer Confidence",
      "impact": "medium"
     }
    ],
    "rules": {
-    "trend": "Tendance : neutre en H4 et en H1.",
-    "levels": "Niveaux clés : résistance 3 669,78 (Fibo 23.6 %, à 12 pips) · support 3 617,57 (EMA20 H1, à 511 pips) · prix 3 668,63.",
+    "trend": "Tendance : mixte (H4 baissière, H1 neutre) : prudence, pas de direction claire.",
+    "levels": "Niveaux clés : résistance 3 600,00 (Chiffre rond, à 326 pips) · support 3 560,75 (Plus bas 24 h, à 66 pips) · prix 3 567,38.",
     "news": "Annonces : aucune annonce forte enregistrée aujourd'hui pour cette paire (vérifie le calendrier dans Analyse → Annonces)."
    },
    "ai": {
-    "tendance": "En H4 comme en H1, la tendance est neutre : le prix de l'or (3 668,63 $) n'a pas de direction claire. En journalier (D1), elle reste plutôt baissière.",
-    "niveaux": "Résistance (plafond) la plus proche : 3 669,78 $, puis 3 689,08 $. Support (plancher) le plus proche : 3 617,57 $, puis 3 602,74 $. L'ATR (mouvement moyen d'une bougie) est d'environ 28,65 $ en H4 et 17,31 $ en H1.",
-    "annonces": "À 15h45 (heure du Bénin), deux annonces USD d'impact moyen : Flash Manufacturing PMI et Flash Services PMI (indices d'activité de l'industrie et des services américains). L'or pourrait bouger à ce moment-là.",
-    "scenarios": "Si le prix casse 3 669,78 $, il pourrait aller vers 3 689,08 $, voire 3 700 $. S'il est rejeté sous ce niveau, il pourrait redescendre vers 3 617,57 $ ; un rebond sur ce support pourrait le ramener vers le haut.",
-    "prudence": "Évite de trader 15 min avant et après une annonce forte, et sois prudent autour de 15h45. Limite toujours ton risque par trade. Ce ne sont que des scénarios éducatifs, pas des conseils : le marché peut faire autre chose."
+    "tendance": "En H4, l'or (XAU/USD) est en baisse ; en H1, il hésite, sans direction claire. Le prix est à 3 567,38 $ et il s'est déjà beaucoup éloigné de sa moyenne journalière : un retour en arrière est possible.",
+    "niveaux": "Résistance (plafond) la plus proche : 3 600 $ (chiffre rond), puis 3 602,35 $. Support (plancher) le plus proche : 3 560,75 $, puis 3 547,09 $. L'ATR (mouvement moyen par bougie) est d'environ 20,52 $ en H1 et 33,23 $ en H4.",
+    "annonces": "Une annonce aujourd'hui : la confiance des consommateurs américains (CB Consumer Confidence), à 16h00 heure du Bénin. Son impact est moyen, mais elle peut faire bouger l'or.",
+    "scenarios": "Si le prix casse 3 560,75 $, il pourrait descendre vers 3 547,09 $, voire 3 537,82 $. S'il rebondit sur ce support, il pourrait remonter vers 3 600 $, une zone où il pourrait être freiné.",
+    "prudence": "Évite de trader 15 minutes avant et après une annonce forte, et sois aussi attentif vers 16h00. Limite toujours ton risque à une petite part de ton capital. Ce ne sont que des scénarios, pas des certitudes."
    }
   },
   {
    "pair": "EUR/USD",
-   "price": 1.08982,
+   "price": 1.09669,
    "dec": 5,
-   "candleTime": "2026-11-23T16:00:00Z",
-   "trendDir": "down",
+   "candleTime": "2026-11-24T16:00:00Z",
+   "trendDir": "flat",
    "atr": {
     "unite": "pips",
-    "H4": 22,
-    "H1": 16
+    "H4": 23,
+    "H1": 13
    },
    "resistances": [
     {
-     "price": 1.09,
-     "label": "Chiffre rond"
+     "price": 1.09690784,
+     "label": "Fibo 23.6 %"
     },
     {
-     "price": 1.095366129917861,
-     "label": "EMA20 H1"
+     "price": 1.0976,
+     "label": "Sommet H4 21/11"
+    },
+    {
+     "price": 1.0978933333333332,
+     "label": "Pivot R1"
+    }
+   ],
+   "supports": [
+    {
+     "price": 1.09578,
+     "label": "Creux H4 20/11"
+    },
+    {
+     "price": 1.09578,
+     "label": "Creux H4 22/11"
     },
     {
      "price": 1.09537,
      "label": "Creux D1 18/11"
     }
    ],
-   "supports": [
-    {
-     "price": 1.08816,
-     "label": "Plus bas 24 h"
-    },
-    {
-     "price": 1.08,
-     "label": "Chiffre rond"
-    },
-    {
-     "price": 1.07,
-     "label": "Chiffre rond"
-    }
-   ],
    "news": [
     {
-     "time": "2026-11-23T08:15:00Z",
-     "currency": "EUR",
-     "event": "French Flash Manufacturing PMI",
-     "impact": "medium"
-    },
-    {
-     "time": "2026-11-23T08:15:00Z",
-     "currency": "EUR",
-     "event": "French Flash Services PMI",
-     "impact": "medium"
-    },
-    {
-     "time": "2026-11-23T08:30:00Z",
-     "currency": "EUR",
-     "event": "German Flash Manufacturing PMI",
-     "impact": "medium"
-    },
-    {
-     "time": "2026-11-23T08:30:00Z",
-     "currency": "EUR",
-     "event": "German Flash Services PMI",
-     "impact": "medium"
-    },
-    {
-     "time": "2026-11-23T14:45:00Z",
+     "time": "2026-11-24T15:00:00Z",
      "currency": "USD",
-     "event": "Flash Manufacturing PMI",
-     "impact": "medium"
-    },
-    {
-     "time": "2026-11-23T14:45:00Z",
-     "currency": "USD",
-     "event": "Flash Services PMI",
+     "event": "CB Consumer Confidence",
      "impact": "medium"
     }
    ],
    "rules": {
-    "trend": "Tendance : baissière en H4 et en H1.",
-    "levels": "Niveaux clés : résistance 1,09000 (Chiffre rond, à 2 pips) · support 1,08816 (Plus bas 24 h, à 17 pips) · prix 1,08982.",
+    "trend": "Tendance : neutre en H4 et en H1.",
+    "levels": "Niveaux clés : résistance 1,09691 (Fibo 23.6 %, à 2 pips) · support 1,09578 (Creux H4 20/11, à 9 pips) · prix 1,09669.",
     "news": "Annonces : aucune annonce forte enregistrée aujourd'hui pour cette paire (vérifie le calendrier dans Analyse → Annonces)."
    },
    "ai": {
-    "tendance": "La tendance est baissière en H4 (bougies de 4 heures) comme en H1 (bougies d'1 heure), et aussi en journalier. Attention : le prix est très étiré vers le bas et le RSI H4 (indicateur d'essoufflement) est à 28, en survente.",
-    "niveaux": "Résistance proche : 1,09000 (chiffre rond), puis 1,09537. Support proche : 1,08816 (plus bas 24 h), puis 1,08000. L'ATR (mouvement moyen d'une bougie) est de 22 pips en H4 et 16 pips en H1.",
-    "annonces": "Indices PMI (santé de l'économie) : France à 09h15, Allemagne à 09h30 (EUR), États-Unis à 15h45 (USD), heure du Bénin. Impact moyen pour chacune.",
-    "scenarios": "Si le prix casse 1,08816, il pourrait descendre vers 1,08000. S'il rebondit sur 1,08816 (le marché étant en survente), il pourrait remonter vers 1,09000, voire 1,09537 si ce chiffre rond est dépassé.",
-    "prudence": "Évite de trader 15 min avant et après une annonce forte, ici autour de 09h15, 09h30 et 15h45. Limite toujours ton risque. Ce ne sont que des scénarios éducatifs, pas des certitudes ni des conseils."
+    "tendance": "En H4 et en H1, la tendance est neutre : le prix hésite sans direction claire, même si le graphique journalier reste baissier.",
+    "niveaux": "Résistance proche : 1,09691 (Fibo 23,6 %), puis 1,0976. Support proche : 1,09578, puis 1,09537. L'ATR (mouvement moyen d'une bougie) est d'environ 23 pips en H4 et 13 pips en H1.",
+    "annonces": "USD : CB Consumer Confidence (confiance des consommateurs américains) à 16:00, heure du Bénin, impact moyen.",
+    "scenarios": "Si le prix casse 1,09691, il pourrait aller vers 1,0976, voire 1,09789. S'il rebondit sous 1,09691 et casse 1,09578, il pourrait descendre vers 1,09537.",
+    "prudence": "Évite de trader 15 min avant et après l'annonce de 16:00. Limite ton risque à une petite part de ton capital. Ce ne sont que des scénarios possibles, pas des certitudes."
    }
   }
  ]
