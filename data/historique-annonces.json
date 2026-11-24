@@ -1,6 +1,17 @@
 {
- "checkedAt": "2026-11-24T02:16:50Z",
+ "checkedAt": "2026-11-24T23:56:17Z",
  "events": [
+  {
+   "actual": "",
+   "currency": "USD",
+   "forecast": "92.4",
+   "id": "b793079cc5d4",
+   "impact": "medium",
+   "previous": "91.7",
+   "sens": 1,
+   "time": "2026-11-24T15:00:00Z",
+   "title": "CB Consumer Confidence"
+  },
   {
    "actual": "",
    "currency": "USD",
