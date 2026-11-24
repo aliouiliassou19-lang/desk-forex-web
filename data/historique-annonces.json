@@ -1,6 +1,28 @@
 {
- "checkedAt": "2026-11-23T13:04:22Z",
+ "checkedAt": "2026-11-24T02:16:50Z",
  "events": [
+  {
+   "actual": "",
+   "currency": "USD",
+   "forecast": "55.6",
+   "id": "c76cb57b45b2",
+   "impact": "medium",
+   "previous": "57.9",
+   "sens": 1,
+   "time": "2026-11-23T14:45:00Z",
+   "title": "Flash Services PMI"
+  },
+  {
+   "actual": "",
+   "currency": "USD",
+   "forecast": "54.5",
+   "id": "0a5c27f436df",
+   "impact": "medium",
+   "previous": "56.0",
+   "sens": 1,
+   "time": "2026-11-23T14:45:00Z",
+   "title": "Flash Manufacturing PMI"
+  },
   {
    "actual": "",
    "currency": "EUR",

@@ -1,5 +1,5 @@
 {
- "checkedAt": "2026-11-23T13:04:22Z",
+ "checkedAt": "2026-11-24T02:16:50Z",
  "currencies": [
   "USD",
   "EUR"
@@ -75,7 +75,7 @@
   {
    "actual": "",
    "currency": "USD",
-   "forecast": "92.1",
+   "forecast": "92.4",
    "id": "b793079cc5d4",
    "impact": "medium",
    "previous": "91.7",
@@ -133,20 +133,9 @@
    "sens": 1,
    "time": "2026-11-25T13:30:00Z",
    "title": "Prelim GDP q/q"
-  },
-  {
-   "actual": "",
-   "currency": "USD",
-   "forecast": "201K",
-   "id": "a3b9c766f55a",
-   "impact": "medium",
-   "previous": "203K",
-   "sens": -1,
-   "time": "2026-11-25T13:30:00Z",
-   "title": "Unemployment Claims"
   }
  ],
- "fetchedAt": "2026-11-23T13:04:22Z",
+ "fetchedAt": "2026-11-24T02:16:50Z",
  "impacts": [
   "high",
   "medium"
