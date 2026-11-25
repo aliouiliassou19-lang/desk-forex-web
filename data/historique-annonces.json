@@ -1,6 +1,57 @@
 {
- "checkedAt": "2026-11-24T23:56:17Z",
+ "checkedAt": "2026-11-25T19:23:22Z",
  "events": [
+  {
+   "actual": "",
+   "comment": {
+    "at": "2026-11-22T20:03:08Z",
+    "by": "claude",
+    "mesure": "Le PIB préliminaire mesure la croissance de l'économie américaine sur le trimestre, par rapport au trimestre précédent (première estimation).",
+    "model": "claude-opus-5-5",
+    "prudence": "Annonce à fort impact à 14h30 (heure du Bénin) : évite de trader entre 14h15 et 14h45, les prix peuvent bouger très vite. Ces effets sont des tendances fréquentes, pas des certitudes.",
+    "si_inferieur": "En dessous de 3,5 %, le dollar a souvent tendance à s'affaiblir : l'EUR/USD a alors tendance à monter et l'or (XAU/USD) aussi.",
+    "si_superieur": "Au-dessus de 3,5 %, le dollar a souvent tendance à se renforcer : l'EUR/USD a alors tendance à baisser et l'or (XAU/USD) aussi, car il est coté en dollars."
+   },
+   "currency": "USD",
+   "forecast": "3.5%",
+   "id": "818c121fbd69",
+   "impact": "high",
+   "previous": "3.4%",
+   "sens": 1,
+   "time": "2026-11-25T13:30:00Z",
+   "title": "Prelim GDP q/q"
+  },
+  {
+   "actual": "",
+   "currency": "USD",
+   "forecast": "2.3%",
+   "id": "764935866e4c",
+   "impact": "medium",
+   "previous": "2.3%",
+   "sens": 1,
+   "time": "2026-11-25T13:30:00Z",
+   "title": "Prelim GDP Price Index q/q"
+  },
+  {
+   "actual": "",
+   "comment": {
+    "at": "2026-11-22T20:03:08Z",
+    "by": "claude",
+    "mesure": "Cet indice mesure la hausse des prix payés par les ménages américains sur un mois, sans l'alimentation ni l'énergie (trop changeantes). C'est la mesure d'inflation préférée de la banque centrale américaine.",
+    "model": "claude-opus-5-5",
+    "prudence": "Annonce à fort impact : évite de trader de 14h15 à 14h45 (heure du Bénin), car les prix peuvent bouger très vite. Ces effets sont des tendances fréquentes, pas des certitudes : le marché peut réagir autrement.",
+    "si_inferieur": "Le dollar a souvent tendance à baisser, car une baisse des taux devient plus probable. L'EUR/USD a alors tendance à monter, et l'or (XAU/USD) aussi, souvent.",
+    "si_superieur": "Le dollar a souvent tendance à monter, car des taux d'intérêt élevés deviennent plus probables. L'EUR/USD a alors tendance à baisser, et l'or (XAU/USD) aussi, souvent."
+   },
+   "currency": "USD",
+   "forecast": "0.3%",
+   "id": "420e7555cc06",
+   "impact": "high",
+   "previous": "0.3%",
+   "sens": 1,
+   "time": "2026-11-25T13:30:00Z",
+   "title": "Core PCE Price Index m/m"
+  },
   {
    "actual": "",
    "currency": "USD",
