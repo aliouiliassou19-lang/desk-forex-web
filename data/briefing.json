@@ -1,158 +1,120 @@
 {
  "schema": 1,
- "generatedAt": "2026-11-25T16:18:11Z",
- "day": "2026-11-25",
+ "generatedAt": "2026-11-26T15:54:29Z",
+ "day": "2026-11-26",
  "source": "claude",
  "model": "claude-opus-5-5",
  "usage": {
-  "input": 2875,
-  "output": 962
+  "input": 2468,
+  "output": 820
  },
- "costUsd": 0.0307,
+ "costUsd": 0.0263,
  "errors": [],
  "pairs": [
   {
    "pair": "XAU/USD",
-   "price": 3449.2023,
+   "price": 3570.44734,
    "dec": 2,
-   "candleTime": "2026-11-25T16:00:00Z",
-   "trendDir": "down",
+   "candleTime": "2026-11-26T15:00:00Z",
+   "trendDir": "flat",
    "atr": {
     "unite": "$",
-    "H4": 38.15,
-    "H1": 24.82
+    "H4": 43,
+    "H1": 20.12
    },
    "resistances": [
     {
-     "price": 3470.00779,
-     "label": "Pivot S2"
+     "price": 3595.58623772,
+     "label": "Fibo 61.8 %"
     },
     {
-     "price": 3500,
+     "price": 3600,
      "label": "Chiffre rond"
     },
     {
-     "price": 3503.97701,
-     "label": "Creux D1 21/11"
+     "price": 3606.46278,
+     "label": "Sommet H4 26/11"
     }
    ],
    "supports": [
     {
-     "price": 3426.47957,
-     "label": "Plus bas 24 h"
+     "price": 3566.70473,
+     "label": "Fibo 50 %"
     },
     {
-     "price": 3400,
-     "label": "Chiffre rond"
+     "price": 3566.496929426254,
+     "label": "EMA20 H4"
     },
     {
-     "price": 3300,
-     "label": "Chiffre rond"
+     "price": 3566.092819537057,
+     "label": "EMA20 H1"
     }
    ],
-   "news": [
-    {
-     "time": "2026-11-25T13:30:00Z",
-     "currency": "USD",
-     "event": "Core PCE Price Index m/m",
-     "impact": "high"
-    },
-    {
-     "time": "2026-11-25T13:30:00Z",
-     "currency": "USD",
-     "event": "Prelim GDP Price Index q/q",
-     "impact": "medium"
-    },
-    {
-     "time": "2026-11-25T13:30:00Z",
-     "currency": "USD",
-     "event": "Prelim GDP q/q",
-     "impact": "high"
-    }
-   ],
+   "news": [],
    "rules": {
-    "trend": "Tendance : baissière en H4 et en H1.",
-    "levels": "Niveaux clés : résistance 3 470,01 (Pivot S2, à 208 pips) · support 3 426,48 (Plus bas 24 h, à 227 pips) · prix 3 449,20.",
-    "news": "Annonces fortes aujourd'hui : 14:30 USD Core PCE Price Index m/m · 14:30 USD Prelim GDP q/q (pas de nouvelle position 15 min avant et après)."
+    "trend": "Tendance : neutre en H4 et en H1.",
+    "levels": "Niveaux clés : résistance 3 595,59 (Fibo 61.8 %, à 251 pips) · support 3 566,70 (Fibo 50 %, à 37 pips) · prix 3 570,45.",
+    "news": "Annonces : aucune annonce forte enregistrée aujourd'hui pour cette paire (vérifie le calendrier dans Analyse → Annonces)."
    },
    "ai": {
-    "tendance": "L'or (XAU/USD, à 3449,2 $) est en baisse en H4 et en H1. Attention : il a déjà beaucoup baissé, il est « en survente » (il a chuté vite et fort), donc un rebond temporaire reste possible.",
-    "niveaux": "Résistance (plafond) la plus proche : 3470,01 $, puis 3500 $. Support (plancher) le plus proche : 3426,48 $, puis 3400 $. L'ATR (mouvement moyen d'une bougie) est d'environ 38,15 $ en H4 et 24,82 $ en H1.",
-    "annonces": "Annonces USD à 14h30 (heure du Bénin) : Core PCE (inflation, impact fort), PIB préliminaire (impact fort) et indice des prix du PIB (impact moyen). Le prix pourrait bouger brusquement à ce moment-là.",
-    "scenarios": "Si le prix casse 3426,48 $, il pourrait aller vers 3400 $. S'il rebondit sur 3426,48 $ ou remonte au-dessus de 3470,01 $, il pourrait aller tester 3500 $.",
-    "prudence": "Évite de trader de 14h15 à 14h45 à cause des annonces fortes. Limite toujours ton risque à une petite part de ton capital. Ce ne sont que des scénarios éducatifs, pas des certitudes ni des conseils."
+    "tendance": "En H4 et en H1, l'or (XAU/USD) est neutre : pas de direction claire. En journalier (D1), la tendance de fond reste baissière. Le prix est à 3570,45 $.",
+    "niveaux": "Résistance (plafond) proche : 3595,59 $, puis 3600 $. Support (plancher) proche : 3566,7 $, très collé au prix. L'ATR (mouvement moyen d'une bougie) est d'environ 20,12 $ en H1 et 43 $ en H4.",
+    "annonces": "Aucune annonce économique importante n'est prévue aujourd'hui pour cette paire.",
+    "scenarios": "Si le prix casse 3566,7 $ vers le bas, il pourrait descendre plus loin, dans le sens de la tendance D1. S'il rebondit sur ce support, il pourrait remonter vers 3595,59 $, voire 3600 $.",
+    "prudence": "Ce ne sont que des scénarios, pas des certitudes. L'or bouge vite : limite toujours ton risque. Les jours d'annonce forte, évite de trader 15 min avant et après."
    }
   },
   {
    "pair": "EUR/USD",
-   "price": 1.09464,
+   "price": 1.09732,
    "dec": 5,
-   "candleTime": "2026-11-25T16:00:00Z",
+   "candleTime": "2026-11-26T15:00:00Z",
    "trendDir": "mixed",
    "atr": {
     "unite": "pips",
-    "H4": 20,
-    "H1": 11
+    "H4": 21,
+    "H1": 10
    },
    "resistances": [
     {
-     "price": 1.0947033333333334,
-     "label": "Pivot P"
+     "price": 1.09807,
+     "label": "Sommet H4 24/11"
     },
     {
-     "price": 1.0949226877056963,
-     "label": "EMA20 H4"
+     "price": 1.09925,
+     "label": "Sommet H4 25/11"
     },
     {
-     "price": 1.09537,
-     "label": "Creux D1 18/11"
+     "price": 1.09925,
+     "label": "Plus haut 24 h"
     }
    ],
    "supports": [
     {
-     "price": 1.0945536609791116,
+     "price": 1.0970674242910505,
      "label": "EMA20 H1"
     },
     {
-     "price": 1.09316,
-     "label": "Plus bas 24 h"
+     "price": 1.0967966666666664,
+     "label": "Pivot P"
     },
     {
-     "price": 1.0913366666666666,
-     "label": "Pivot S1"
+     "price": 1.0959078272369707,
+     "label": "EMA20 H4"
     }
    ],
-   "news": [
-    {
-     "time": "2026-11-25T13:30:00Z",
-     "currency": "USD",
-     "event": "Core PCE Price Index m/m",
-     "impact": "high"
-    },
-    {
-     "time": "2026-11-25T13:30:00Z",
-     "currency": "USD",
-     "event": "Prelim GDP Price Index q/q",
-     "impact": "medium"
-    },
-    {
-     "time": "2026-11-25T13:30:00Z",
-     "currency": "USD",
-     "event": "Prelim GDP q/q",
-     "impact": "high"
-    }
-   ],
+   "news": [],
    "rules": {
-    "trend": "Tendance : mixte (H4 baissière, H1 neutre) : prudence, pas de direction claire.",
-    "levels": "Niveaux clés : résistance 1,09470 (Pivot P, à 1 pips) · support 1,09455 (EMA20 H1, à 1 pips) · prix 1,09464.",
-    "news": "Annonces fortes aujourd'hui : 14:30 USD Core PCE Price Index m/m · 14:30 USD Prelim GDP q/q (pas de nouvelle position 15 min avant et après)."
+    "trend": "Tendance : mixte (H4 neutre, H1 haussière) : prudence, pas de direction claire.",
+    "levels": "Niveaux clés : résistance 1,09807 (Sommet H4 24/11, à 8 pips) · support 1,09707 (EMA20 H1, à 3 pips) · prix 1,09732.",
+    "news": "Annonces : aucune annonce forte enregistrée aujourd'hui pour cette paire (vérifie le calendrier dans Analyse → Annonces)."
    },
    "ai": {
-    "tendance": "En H4 (bougies de 4 heures), la tendance est baissière ; en H1 (bougies d'1 heure), elle est neutre, sans direction claire. Le fond reste plutôt orienté à la baisse.",
-    "niveaux": "Résistance (plafond) la plus proche : 1,0947 (pivot P), puis 1,09492. Support (plancher) le plus proche : 1,09455, puis 1,09316. L'ATR (mouvement moyen d'une bougie) est d'environ 20 pips en H4 et 11 pips en H1.",
-    "annonces": "Trois annonces USD à 14h30 (heure du Bénin) : Core PCE (inflation, impact fort), PIB préliminaire (impact fort) et indice des prix du PIB (impact moyen). Le marché pourrait bouger vite à ce moment-là.",
-    "scenarios": "Si le prix casse 1,09455, il pourrait aller vers 1,09316, voire 1,09134. S'il rebondit et dépasse 1,0947 puis 1,09492, il pourrait monter vers 1,09537. Ce ne sont que des hypothèses.",
-    "prudence": "Évite de trader de 14h15 à 14h45 à cause des annonces fortes. Limite toujours ton risque à une petite part de ton capital. Ces scénarios sont éducatifs, pas des certitudes ni des conseils."
+    "tendance": "En H4, l'EUR/USD n'a pas de direction claire (neutre). En H1, le prix monte doucement (haussier). En journalier, la tendance reste plutôt baissière.",
+    "niveaux": "Résistance (plafond) la plus proche : 1,09807, puis 1,09925. Support (plancher) le plus proche : 1,09707 (moyenne mobile H1), puis 1,0968. L'ATR (mouvement moyen d'une bougie) est de 21 pips en H4 et de 10 pips en H1.",
+    "annonces": "Aucune annonce économique importante n'est prévue aujourd'hui pour l'EUR/USD. Garde quand même un œil sur l'actualité.",
+    "scenarios": "Si le prix casse 1,09807, il pourrait monter vers 1,09925. S'il rebondit sur 1,09707, la hausse en H1 pourrait continuer. S'il passe sous 1,0968, il pourrait descendre vers 1,09591.",
+    "prudence": "Ce ne sont que des scénarios, pas des certitudes. Le marché est mixte en ce moment, donc les mouvements peuvent être hésitants. Pas de trade 15 min avant et après une annonce forte, et limite toujours ton risque."
    }
   }
  ]
