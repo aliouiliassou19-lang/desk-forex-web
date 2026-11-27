@@ -1,75 +1,75 @@
 {
  "schema": 1,
- "generatedAt": "2026-11-26T15:54:29Z",
- "day": "2026-11-26",
+ "generatedAt": "2026-11-27T15:42:39Z",
+ "day": "2026-11-27",
  "source": "claude",
  "model": "claude-opus-5-5",
  "usage": {
-  "input": 2468,
-  "output": 820
+  "input": 2471,
+  "output": 825
  },
- "costUsd": 0.0263,
+ "costUsd": 0.0264,
  "errors": [],
  "pairs": [
   {
    "pair": "XAU/USD",
-   "price": 3570.44734,
+   "price": 3631.95837,
    "dec": 2,
-   "candleTime": "2026-11-26T15:00:00Z",
+   "candleTime": "2026-11-27T15:00:00Z",
    "trendDir": "flat",
    "atr": {
     "unite": "$",
-    "H4": 43,
-    "H1": 20.12
+    "H4": 41.07,
+    "H1": 17.2
    },
    "resistances": [
     {
-     "price": 3595.58623772,
-     "label": "Fibo 61.8 %"
+     "price": 3632.5452470842692,
+     "label": "EMA20 H1"
     },
     {
-     "price": 3600,
-     "label": "Chiffre rond"
+     "price": 3633.63195,
+     "label": "Pivot R2"
     },
     {
-     "price": 3606.46278,
-     "label": "Sommet H4 26/11"
+     "price": 3684.86992,
+     "label": "Plus haut 24 h"
     }
    ],
    "supports": [
     {
-     "price": 3566.70473,
-     "label": "Fibo 50 %"
+     "price": 3618.37312982,
+     "label": "Fibo 61.8 %"
     },
     {
-     "price": 3566.496929426254,
-     "label": "EMA20 H4"
+     "price": 3606.46278,
+     "label": "Sommet H4 26/11"
     },
     {
-     "price": 3566.092819537057,
-     "label": "EMA20 H1"
+     "price": 3600.5493,
+     "label": "Pivot R1"
     }
    ],
    "news": [],
    "rules": {
     "trend": "Tendance : neutre en H4 et en H1.",
-    "levels": "Niveaux clés : résistance 3 595,59 (Fibo 61.8 %, à 251 pips) · support 3 566,70 (Fibo 50 %, à 37 pips) · prix 3 570,45.",
+    "levels": "Niveaux clés : résistance 3 632,55 (EMA20 H1, à 6 pips) · support 3 618,37 (Fibo 61.8 %, à 136 pips) · prix 3 631,96.",
     "news": "Annonces : aucune annonce forte enregistrée aujourd'hui pour cette paire (vérifie le calendrier dans Analyse → Annonces)."
    },
    "ai": {
-    "tendance": "En H4 et en H1, l'or (XAU/USD) est neutre : pas de direction claire. En journalier (D1), la tendance de fond reste baissière. Le prix est à 3570,45 $.",
-    "niveaux": "Résistance (plafond) proche : 3595,59 $, puis 3600 $. Support (plancher) proche : 3566,7 $, très collé au prix. L'ATR (mouvement moyen d'une bougie) est d'environ 20,12 $ en H1 et 43 $ en H4.",
-    "annonces": "Aucune annonce économique importante n'est prévue aujourd'hui pour cette paire.",
-    "scenarios": "Si le prix casse 3566,7 $ vers le bas, il pourrait descendre plus loin, dans le sens de la tendance D1. S'il rebondit sur ce support, il pourrait remonter vers 3595,59 $, voire 3600 $.",
-    "prudence": "Ce ne sont que des scénarios, pas des certitudes. L'or bouge vite : limite toujours ton risque. Les jours d'annonce forte, évite de trader 15 min avant et après."
+    "tendance": "En H4 (bougies de 4 heures) comme en H1 (1 heure), l'or (XAU/USD) est neutre : pas de direction claire. En journalier, la tendance de fond reste baissière.",
+    "niveaux": "Résistance proche : 3632,55 $ (moyenne mobile EMA20 H1), puis 3633,63 $. Support proche : 3618,37 $, puis 3606,46 $. L'ATR (mouvement moyen d'une bougie) est d'environ 17,2 $ en H1 et 41,07 $ en H4.",
+    "annonces": "Aucune annonce économique prévue aujourd'hui pour cette paire.",
+    "scenarios": "Si le prix casse 3633,63 $, il pourrait monter vers 3684,87 $ (plus haut 24 h). S'il bute sur 3632,55 $ et passe sous 3618,37 $, il pourrait descendre vers 3606,46 $, voire 3600,55 $.",
+    "prudence": "Ce ne sont que des scénarios, pas des certitudes. Évite de trader 15 min avant et après une annonce forte, et limite toujours ton risque à une petite part de ton capital."
    }
   },
   {
    "pair": "EUR/USD",
-   "price": 1.09732,
+   "price": 1.09431,
    "dec": 5,
-   "candleTime": "2026-11-26T15:00:00Z",
-   "trendDir": "mixed",
+   "candleTime": "2026-11-27T15:00:00Z",
+   "trendDir": "down",
    "atr": {
     "unite": "pips",
     "H4": 21,
@@ -77,44 +77,44 @@
    },
    "resistances": [
     {
-     "price": 1.09807,
-     "label": "Sommet H4 24/11"
+     "price": 1.09537,
+     "label": "Creux D1 18/11"
     },
     {
-     "price": 1.09925,
-     "label": "Sommet H4 25/11"
+     "price": 1.0956933333333336,
+     "label": "Pivot S1"
     },
     {
-     "price": 1.09925,
-     "label": "Plus haut 24 h"
+     "price": 1.09578,
+     "label": "Creux H4 22/11"
     }
    ],
    "supports": [
     {
-     "price": 1.0970674242910505,
-     "label": "EMA20 H1"
+     "price": 1.0941466666666668,
+     "label": "Pivot S2"
     },
     {
-     "price": 1.0967966666666664,
-     "label": "Pivot P"
+     "price": 1.09383,
+     "label": "Plus bas 24 h"
     },
     {
-     "price": 1.0959078272369707,
-     "label": "EMA20 H4"
+     "price": 1.09316,
+     "label": "Creux H4 25/11"
     }
    ],
    "news": [],
    "rules": {
-    "trend": "Tendance : mixte (H4 neutre, H1 haussière) : prudence, pas de direction claire.",
-    "levels": "Niveaux clés : résistance 1,09807 (Sommet H4 24/11, à 8 pips) · support 1,09707 (EMA20 H1, à 3 pips) · prix 1,09732.",
+    "trend": "Tendance : baissière en H4 et en H1.",
+    "levels": "Niveaux clés : résistance 1,09537 (Creux D1 18/11, à 11 pips) · support 1,09415 (Pivot S2, à 2 pips) · prix 1,09431.",
     "news": "Annonces : aucune annonce forte enregistrée aujourd'hui pour cette paire (vérifie le calendrier dans Analyse → Annonces)."
    },
    "ai": {
-    "tendance": "En H4, l'EUR/USD n'a pas de direction claire (neutre). En H1, le prix monte doucement (haussier). En journalier, la tendance reste plutôt baissière.",
-    "niveaux": "Résistance (plafond) la plus proche : 1,09807, puis 1,09925. Support (plancher) le plus proche : 1,09707 (moyenne mobile H1), puis 1,0968. L'ATR (mouvement moyen d'une bougie) est de 21 pips en H4 et de 10 pips en H1.",
-    "annonces": "Aucune annonce économique importante n'est prévue aujourd'hui pour l'EUR/USD. Garde quand même un œil sur l'actualité.",
-    "scenarios": "Si le prix casse 1,09807, il pourrait monter vers 1,09925. S'il rebondit sur 1,09707, la hausse en H1 pourrait continuer. S'il passe sous 1,0968, il pourrait descendre vers 1,09591.",
-    "prudence": "Ce ne sont que des scénarios, pas des certitudes. Le marché est mixte en ce moment, donc les mouvements peuvent être hésitants. Pas de trade 15 min avant et après une annonce forte, et limite toujours ton risque."
+    "tendance": "Sur EUR/USD, la tendance est baissière en H4 (bougies de 4 heures) comme en H1 (bougies d'1 heure), et aussi en journalier : le prix a plutôt tendance à descendre.",
+    "niveaux": "Prix actuel : 1,09431. Résistance (plafond) la plus proche : 1,09537. Support (plancher) le plus proche : 1,09415, tout près. L'ATR (mouvement moyen d'une bougie) est d'environ 21 pips en H4 et 10 pips en H1.",
+    "annonces": "Aucune annonce économique importante n'est prévue aujourd'hui pour EUR/USD.",
+    "scenarios": "Si le prix casse 1,09415, il pourrait descendre vers 1,09383 puis 1,09316, dans le sens de la tendance. S'il rebondit sur 1,09415, il pourrait remonter vers 1,09537, voire 1,09569.",
+    "prudence": "Ce ne sont que des scénarios, pas des certitudes. Même sans annonce aujourd'hui, garde l'habitude d'éviter de trader 15 min avant et après une annonce forte, et limite toujours ton risque à une petite part de ton capital."
    }
   }
  ]
